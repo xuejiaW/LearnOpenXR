@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Android",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/Common",
+                "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/aarch64-linux-android",
+                "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include",
+                "${ANDROID_NDK_HOME}/sources/cxx-stl/llvm-libc++/include",
+                "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/c++/v1",
+                "${ANDROID_NDK_HOME}/sources/cxx-stl/system/include",
+                "${ANDROID_NDK_HOME}/sources/android/native_app_glue",
+                "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/aarch64-linux-android/asm"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "__ANDROID__=1",
+                "ANDROID=1",
+                "_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES",
+                "__STDC_LIMIT_MACROS",
+                "__STDC_CONSTANT_MACROS"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-arm64",
+            "compilerPath": "${env:ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe",
+            "configurationProvider": "ms-vscode.cmake-tools" // 关键：让 CMake Tools 提供配置
+        }
+    ],
+    "version": 4
+}

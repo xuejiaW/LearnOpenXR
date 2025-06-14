@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'org.khronos.Introduction01'
+    namespace 'org.khronos.Ch01_Introduction'
     compileSdk 29
     ndkVersion '23.1.7779620'
 
     defaultConfig {
-        applicationId "org.khronos.Introduction01"
+        applicationId "org.khronos.Ch01_Introduction"
         minSdk 24
         targetSdk 29
         versionCode 1
