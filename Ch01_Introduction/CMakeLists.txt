@@ -39,7 +39,10 @@ FetchContent_MakeAvailable(OpenXR)
 
 # Files
 set(SOURCES
-    main.cpp
+    app/src/main/cpp/main.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
     ../Common/GraphicsAPI.cpp
     ../Common/GraphicsAPI_D3D11.cpp
     ../Common/GraphicsAPI_D3D12.cpp
@@ -49,6 +52,7 @@ set(SOURCES
     ../Common/OpenXRDebugUtils.cpp
 )
 set(HEADERS
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
     ../Common/DebugOutput.h
     ../Common/GraphicsAPI.h
     ../Common/GraphicsAPI_D3D11.h
@@ -68,6 +72,7 @@ if(ANDROID) # Android
         ${PROJECT_NAME}
         PRIVATE
             # In this repo
+            app/src/main/cpp/ # Add app/src/main/cpp to include paths
             ../Common/
             # From OpenXR repo
             "${openxr_SOURCE_DIR}/src/common"
@@ -130,6 +135,7 @@ else() # Windows / Linux
         ${PROJECT_NAME}
         PRIVATE
             # In this repo
+            app/src/main/cpp/ # Add app/src/main/cpp to include paths
             ../Common/
             # From OpenXR repo
             "${openxr_SOURCE_DIR}/src/common"

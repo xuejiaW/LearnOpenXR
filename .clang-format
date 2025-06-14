@@ -1,12 +1,20 @@
-Language: Cpp
-BasedOnStyle:  Google
-UseTab: Never
+Language:	Cpp
+BasedOnStyle:	Google
+
+# Bias for AccessModifier, -2 as the LLVM/GNU/Microsoft style
+AccessModifierOffset: -2
+
+# Indent Width
 IndentWidth: 4
-TabWidth: 4
-AllowShortIfStatementsOnASingleLine: false
-Standard: Cpp11
-IndentCaseLabels: false
-ColumnLimit: 0
-AccessModifierOffset: -4
-NamespaceIndentation: All
-FixNamespaceComments: false
+
+# Do not change #include order
+IncludeBlocks: Preserve
+
+# Limit a maximum of 150 characters in a single line
+ColumnLimit: 150
+
+# Using 'Allman' style for braces, which always break before braces
+BreakBeforeBraces: Allman
+
+# Allow empty line at the start of blocks
+KeepEmptyLinesAtTheStartOfBlocks: true
