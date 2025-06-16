@@ -9,8 +9,16 @@
     "cmake.generator": "Ninja",
     "cmake.buildDirectory": "${workspaceFolder}/Ch01_Introduction/app/.cxx/Debug/${cmake.abi}",
     "cmake.configureOnOpen": false,
-    "C_Cpp.errorSquiggles": "disabled",
     "search.exclude": {
+        "**/Ch01*": true,
+        "**/Ch01_Introduction/**": true
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
         "**/Ch01*": true,
         "**/Ch01_Introduction/**": true
     }

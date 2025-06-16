@@ -30,8 +30,21 @@ class OpenXRTutorial
 
   private:
     void PollSystemEvents();
+    void CreateInstance();
+    void DestroyInstance();
 
-  private:
+    void ActiveAvailableApiLayers();
+    void ActiveAvailableExtensions();
+
+    void GetInstanceProperties();
+
+    XrInstance m_xrInstance = XR_NULL_HANDLE;
+    std::vector<std::string> m_RequestApiLayers = {};
+    std::vector<const char *> m_ActiveApiLayers = {};
+
+    std::vector<std::string> m_RequestExtensions = {};
+    std::vector<const char *> m_ActiveExtensions = {};
+
     bool m_applicationRunning = true;
     bool m_sessionRunning = false;
     GraphicsAPI_Type m_apiType;
