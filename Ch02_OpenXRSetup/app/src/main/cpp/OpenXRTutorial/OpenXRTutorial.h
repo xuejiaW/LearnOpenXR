@@ -30,6 +30,7 @@ class OpenXRTutorial
 
   private:
     void PollSystemEvents();
+
     void CreateInstance();
     void DestroyInstance();
 
@@ -38,12 +39,15 @@ class OpenXRTutorial
 
     void GetSystemID();
 
+    void CreateSession();
+    void DestroySession();
+
     void ActiveAvailableApiLayers();
     void ActiveAvailableExtensions();
 
     void GetInstanceProperties();
 
-    XrInstance m_xrInstance = XR_NULL_HANDLE; // This name can not be modified
+    XrInstance m_xrInstance = XR_NULL_HANDLE;  // This name can not be modified
     std::vector<std::string> m_RequestApiLayers = {};
     std::vector<const char *> m_ActiveApiLayers = {};
 
@@ -52,7 +56,13 @@ class OpenXRTutorial
 
     XrDebugUtilsMessengerEXT m_DebugUtilsMessenger = XR_NULL_HANDLE;
 
+    GraphicsAPI_Type m_apiType;
+    std::unique_ptr<GraphicsAPI> m_GraphicsAPI = nullptr;
+
+    XrSystemId m_SystemID = XR_NULL_SYSTEM_ID;
+    XrSession m_xrSession = XR_NULL_HANDLE;
+    XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
+
     bool m_applicationRunning = true;
     bool m_sessionRunning = false;
-    GraphicsAPI_Type m_apiType;
 };

@@ -2,6 +2,8 @@
 #include <DebugOutput.h>
 #include <OpenXRDebugUtils.h>
 
+#include <GraphicsAPI_Vulkan.h>
+
 OpenXRTutorial::OpenXRTutorial(GraphicsAPI_Type apiType) : m_apiType(apiType) {}
 
 OpenXRTutorial::~OpenXRTutorial() = default;
@@ -11,11 +13,16 @@ void OpenXRTutorial::Run()
     CreateInstance();
     CreateDebugMessenger();
     GetSystemID();
+    CreateSession();
 
     while (m_applicationRunning)
     {
         PollSystemEvents();
     }
+
+    DestroySession();
+    DestroyDebugMessenger();
+    DestroyInstance();
 }
 
 void OpenXRTutorial::ActiveAvailableApiLayers()
@@ -133,10 +140,29 @@ void OpenXRTutorial::GetSystemID()
     XrSystemGetInfo systemGetInfo{XR_TYPE_SYSTEM_GET_INFO};
     systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
-    XrSystemId systemId = XR_NULL_SYSTEM_ID;
-    OPENXR_CHECK(xrGetSystem(m_xrInstance, &systemGetInfo, &systemId), "Failed to get OpenXR system ID");
-    XR_TUT_LOG("OpenXR System ID: " << systemId);
+    OPENXR_CHECK(xrGetSystem(m_xrInstance, &systemGetInfo, &m_SystemID), "Failed to get OpenXR system ID");
+    XR_TUT_LOG("OpenXR System ID: " << m_SystemID);
 
     XrSystemProperties m_systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
-    OPENXR_CHECK(xrGetSystemProperties(m_xrInstance, systemId, &m_systemProperties), "Failed to get OpenXR system properties");
+    OPENXR_CHECK(xrGetSystemProperties(m_xrInstance, m_SystemID, &m_systemProperties), "Failed to get OpenXR system properties");
+}
+
+void OpenXRTutorial::CreateSession()
+{
+    XrSessionCreateInfo sessionCreateInfo{XR_TYPE_SESSION_CREATE_INFO};
+    m_GraphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(m_xrInstance, m_SystemID);
+    sessionCreateInfo.next = m_GraphicsAPI->GetGraphicsBinding();
+    sessionCreateInfo.createFlags = 0;  // There are currently no session creation flag bits defined. This is reserved for future use.
+    sessionCreateInfo.systemId = m_SystemID;
+
+    OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &m_xrSession), "Failed to create OpenXR session");
+}
+
+void OpenXRTutorial::DestroySession()
+{
+    if (m_xrSession != XR_NULL_HANDLE)
+    {
+        OPENXR_CHECK(xrDestroySession(m_xrSession), "Failed to destroy OpenXR session");
+        m_xrSession = XR_NULL_HANDLE;
+    }
 }

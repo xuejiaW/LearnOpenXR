@@ -39,10 +39,6 @@ FetchContent_MakeAvailable(OpenXR)
 
 # Files
 set(SOURCES
-    app/src/main/cpp/main.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
     ../Common/GraphicsAPI.cpp
     ../Common/GraphicsAPI_D3D11.cpp
     ../Common/GraphicsAPI_D3D12.cpp
@@ -50,9 +46,12 @@ set(SOURCES
     ../Common/GraphicsAPI_OpenGL_ES.cpp
     ../Common/GraphicsAPI_Vulkan.cpp
     ../Common/OpenXRDebugUtils.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
+    app/src/main/cpp/main.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
 )
 set(HEADERS
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
     ../Common/DebugOutput.h
     ../Common/GraphicsAPI.h
     ../Common/GraphicsAPI_D3D11.h
@@ -63,6 +62,7 @@ set(HEADERS
     ../Common/HelperFunctions.h
     ../Common/OpenXRDebugUtils.h
     ../Common/OpenXRHelper.h
+    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
 )
 
 if(ANDROID) # Android
