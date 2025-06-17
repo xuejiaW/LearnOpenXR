@@ -10,6 +10,8 @@ void OpenXRTutorial::Run()
 {
     CreateInstance();
     CreateDebugMessenger();
+    GetSystemID();
+
     while (m_applicationRunning)
     {
         PollSystemEvents();
@@ -124,4 +126,17 @@ void OpenXRTutorial::DestroyDebugMessenger()
         DestroyOpenXRDebugUtilsMessenger(m_xrInstance, m_DebugUtilsMessenger);
         m_DebugUtilsMessenger = XR_NULL_HANDLE;
     }
+}
+
+void OpenXRTutorial::GetSystemID()
+{
+    XrSystemGetInfo systemGetInfo{XR_TYPE_SYSTEM_GET_INFO};
+    systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+
+    XrSystemId systemId = XR_NULL_SYSTEM_ID;
+    OPENXR_CHECK(xrGetSystem(m_xrInstance, &systemGetInfo, &systemId), "Failed to get OpenXR system ID");
+    XR_TUT_LOG("OpenXR System ID: " << systemId);
+
+    XrSystemProperties m_systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
+    OPENXR_CHECK(xrGetSystemProperties(m_xrInstance, systemId, &m_systemProperties), "Failed to get OpenXR system properties");
 }

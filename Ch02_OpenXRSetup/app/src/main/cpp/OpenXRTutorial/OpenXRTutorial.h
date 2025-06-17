@@ -36,6 +36,8 @@ class OpenXRTutorial
     void CreateDebugMessenger();
     void DestroyDebugMessenger();
 
+    void GetSystemID();
+
     void ActiveAvailableApiLayers();
     void ActiveAvailableExtensions();
 
