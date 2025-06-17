@@ -1,5 +1,6 @@
 #include "OpenXRTutorial.h"
 #include <DebugOutput.h>
+#include <OpenXRDebugUtils.h>
 
 OpenXRTutorial::OpenXRTutorial(GraphicsAPI_Type apiType) : m_apiType(apiType) {}
 
@@ -8,6 +9,7 @@ OpenXRTutorial::~OpenXRTutorial() = default;
 void OpenXRTutorial::Run()
 {
     CreateInstance();
+    CreateDebugMessenger();
     while (m_applicationRunning)
     {
         PollSystemEvents();
@@ -111,5 +113,15 @@ void OpenXRTutorial::CreateInstance()
     GetInstanceProperties();
 }
 
-
 void OpenXRTutorial::DestroyInstance() { OPENXR_CHECK(xrDestroyInstance(m_xrInstance), "Failed to destroy OpenXR instance"); }
+
+void OpenXRTutorial::CreateDebugMessenger() { m_DebugUtilsMessenger = CreateOpenXRDebugUtilsMessenger(m_xrInstance); }
+
+void OpenXRTutorial::DestroyDebugMessenger()
+{
+    if (m_DebugUtilsMessenger != XR_NULL_HANDLE)
+    {
+        DestroyOpenXRDebugUtilsMessenger(m_xrInstance, m_DebugUtilsMessenger);
+        m_DebugUtilsMessenger = XR_NULL_HANDLE;
+    }
+}

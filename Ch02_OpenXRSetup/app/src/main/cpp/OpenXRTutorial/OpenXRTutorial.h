@@ -33,17 +33,22 @@ class OpenXRTutorial
     void CreateInstance();
     void DestroyInstance();
 
+    void CreateDebugMessenger();
+    void DestroyDebugMessenger();
+
     void ActiveAvailableApiLayers();
     void ActiveAvailableExtensions();
 
     void GetInstanceProperties();
 
-    XrInstance m_xrInstance = XR_NULL_HANDLE;
+    XrInstance m_xrInstance = XR_NULL_HANDLE; // This name can not be modified
     std::vector<std::string> m_RequestApiLayers = {};
     std::vector<const char *> m_ActiveApiLayers = {};
 
     std::vector<std::string> m_RequestExtensions = {};
     std::vector<const char *> m_ActiveExtensions = {};
+
+    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger = XR_NULL_HANDLE;
 
     bool m_applicationRunning = true;
     bool m_sessionRunning = false;
