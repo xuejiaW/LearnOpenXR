@@ -30,6 +30,7 @@ class OpenXRTutorial
 
   private:
     void PollSystemEvents();
+    void PollEvent();
 
     void CreateInstance();
     void DestroyInstance();

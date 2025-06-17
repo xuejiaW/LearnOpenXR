@@ -18,6 +18,7 @@ void OpenXRTutorial::Run()
     while (m_applicationRunning)
     {
         PollSystemEvents();
+        PollEvent();
     }
 
     DestroySession();
@@ -164,5 +165,66 @@ void OpenXRTutorial::DestroySession()
     {
         OPENXR_CHECK(xrDestroySession(m_xrSession), "Failed to destroy OpenXR session");
         m_xrSession = XR_NULL_HANDLE;
+    }
+}
+
+void OpenXRTutorial::PollEvent()
+{
+    XrEventDataBuffer eventDataBuffer{XR_TYPE_EVENT_DATA_BUFFER};
+
+    auto XrPollEvent = [&]() -> bool
+    {
+        eventDataBuffer = {XR_TYPE_EVENT_DATA_BUFFER};
+        return xrPollEvent(m_xrInstance, &eventDataBuffer) == XR_SUCCESS;
+    };
+
+    while (XrPollEvent())
+    {
+        switch (eventDataBuffer.type)
+        {
+            case XR_TYPE_EVENT_DATA_EVENTS_LOST:
+            {
+                auto *eventsLost = reinterpret_cast<XrEventDataEventsLost *>(&eventDataBuffer);
+                XR_TUT_LOG_ERROR("OpenXR events lost: " << eventsLost->lostEventCount);
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+            {
+                auto *sessionStateChanged = reinterpret_cast<XrEventDataSessionStateChanged *>(&eventDataBuffer);
+                m_SessionState = sessionStateChanged->state;
+                XR_TUT_LOG("OpenXR session state changed: " << m_SessionState);
+
+                if (m_SessionState == XR_SESSION_STATE_READY)
+                {
+                    XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
+                    sessionBeginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+                    OPENXR_CHECK(xrBeginSession(m_xrSession, &sessionBeginInfo), "Failed to begin OpenXR session");
+                    XR_TUT_LOG("OpenXR session started successfully");
+                    m_sessionRunning = true;
+                }
+                else if (m_SessionState == XR_SESSION_STATE_STOPPING)
+                {
+                    OPENXR_CHECK(xrEndSession(m_xrSession), "Failed to end OpenXR session");
+                    m_sessionRunning = false;
+                }
+                else if (m_SessionState == XR_SESSION_STATE_EXITING)
+                {
+                    m_sessionRunning = false;
+                    m_applicationRunning = false;
+                }
+                else if (m_SessionState == XR_SESSION_STATE_LOSS_PENDING)
+                {
+                    m_sessionRunning = false;
+                    m_applicationRunning = false;
+                }
+
+                break;
+            }
+            default:
+            {
+                XR_TUT_LOG("OpenXR event data type: " << eventDataBuffer.type);
+                break;
+            }
+        }
     }
 }
