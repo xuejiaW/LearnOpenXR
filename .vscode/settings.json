@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "E:/Github/LearnOpenXR/Ch02_OpenXRSetup",
+    "cmake.sourceDirectory": "E:/Github/LearnOpenXR/Ch03_Graphics",
     "search.exclude": {
         "**/Ch01*": true,
         "**/Ch02*": true

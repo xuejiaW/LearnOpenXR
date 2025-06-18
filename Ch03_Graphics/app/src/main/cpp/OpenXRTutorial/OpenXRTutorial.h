@@ -49,12 +49,24 @@ class OpenXRTutorial
     void GetInstanceProperties();
 
     void GetViewConfigurationViews();
+    void CreateSwapchains();
+    void DestroySwapchains();
 
     std::vector<XrViewConfigurationType> m_ExpectedViewConfiguration = {XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
                                                                         XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO};
     std::vector<XrViewConfigurationType> m_AvailableViewConfigurations;
     XrViewConfigurationType m_ActiveViewConfiguration = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
     std::vector<XrViewConfigurationView> m_ActiveViewConfigurationViews;
+
+    struct SwapchainInfo
+    {
+        XrSwapchain swapchain = XR_NULL_HANDLE;
+        int64_t swapchainFormat = 0;
+        std::vector<void *> imageViews;
+    };
+
+    std::vector<SwapchainInfo> m_ColorSwapchainInfos = {};
+    std::vector<SwapchainInfo> m_DepthSwapchainInfos = {};
 
     XrInstance m_xrInstance = XR_NULL_HANDLE;  // This name can not be modified
     std::vector<std::string> m_RequestApiLayers = {};

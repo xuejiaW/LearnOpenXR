@@ -15,6 +15,7 @@ void OpenXRTutorial::Run()
     GetSystemID();
     CreateSession();
     GetViewConfigurationViews();
+    CreateSwapchains();
 
     while (m_applicationRunning)
     {
@@ -22,6 +23,7 @@ void OpenXRTutorial::Run()
         PollEvent();
     }
 
+    DestroySwapchains();
     DestroySession();
     DestroyDebugMessenger();
     DestroyInstance();
@@ -36,9 +38,9 @@ void OpenXRTutorial::ActiveAvailableApiLayers()
     availableApiLayersProperties.resize(propertyCount, {XR_TYPE_API_LAYER_PROPERTIES});
     xrEnumerateApiLayerProperties(propertyCount, &propertyCount, availableApiLayersProperties.data());
 
-    for (auto &requestLayer : m_RequestApiLayers)
+    for (auto& requestLayer : m_RequestApiLayers)
     {
-        for (const auto &availableLayer : availableApiLayersProperties)
+        for (const auto& availableLayer : availableApiLayersProperties)
         {
             if (strcmp(requestLayer.c_str(), availableLayer.layerName) != 0)
             {
@@ -66,10 +68,10 @@ void OpenXRTutorial::ActiveAvailableExtensions()
     availableExtensions.resize(extensionCount, {XR_TYPE_EXTENSION_PROPERTIES});
     xrEnumerateInstanceExtensionProperties(nullptr, extensionCount, &extensionCount, availableExtensions.data());
 
-    for (const auto &requestExtension : m_RequestExtensions)
+    for (const auto& requestExtension : m_RequestExtensions)
     {
         bool found = false;
-        for (const auto &availableExtension : availableExtensions)
+        for (const auto& availableExtension : availableExtensions)
         {
             if (strcmp(requestExtension.c_str(), availableExtension.extensionName) != 0)
             {
@@ -95,8 +97,8 @@ void OpenXRTutorial::GetInstanceProperties()
     XrInstanceProperties instanceProperties = {XR_TYPE_INSTANCE_PROPERTIES};
     OPENXR_CHECK(xrGetInstanceProperties(m_xrInstance, &instanceProperties), "Failed to get OpenXR instance properties");
     XR_TUT_LOG("OpenXR Runtime: " << instanceProperties.runtimeName << " - " << XR_VERSION_MAJOR(instanceProperties.runtimeVersion) << "."
-                                  << XR_VERSION_MINOR(instanceProperties.runtimeVersion) << "."
-                                  << XR_VERSION_PATCH(instanceProperties.runtimeVersion));
+        << XR_VERSION_MINOR(instanceProperties.runtimeVersion) << "."
+        << XR_VERSION_PATCH(instanceProperties.runtimeVersion));
 }
 
 void OpenXRTutorial::CreateInstance()
@@ -185,13 +187,13 @@ void OpenXRTutorial::PollEvent()
         {
             case XR_TYPE_EVENT_DATA_EVENTS_LOST:
             {
-                auto *eventsLost = reinterpret_cast<XrEventDataEventsLost *>(&eventDataBuffer);
+                auto* eventsLost = reinterpret_cast<XrEventDataEventsLost*>(&eventDataBuffer);
                 XR_TUT_LOG_ERROR("OpenXR events lost: " << eventsLost->lostEventCount);
                 break;
             }
             case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
             {
-                auto *sessionStateChanged = reinterpret_cast<XrEventDataSessionStateChanged *>(&eventDataBuffer);
+                auto* sessionStateChanged = reinterpret_cast<XrEventDataSessionStateChanged*>(&eventDataBuffer);
                 m_SessionState = sessionStateChanged->state;
                 XR_TUT_LOG("OpenXR session state changed: " << m_SessionState);
 
@@ -238,10 +240,10 @@ void OpenXRTutorial::GetViewConfigurationViews()
 
     m_AvailableViewConfigurations.resize(viewConfigurationCount);
     OPENXR_CHECK(xrEnumerateViewConfigurations(m_xrInstance, m_SystemID, viewConfigurationCount, &viewConfigurationCount,
-                                               m_AvailableViewConfigurations.data()),
+                     m_AvailableViewConfigurations.data()),
                  "Failed to enumerate OpenXR view configurations");
 
-    for (const XrViewConfigurationType &expectViewConfiguration : m_ExpectedViewConfiguration)
+    for (const XrViewConfigurationType& expectViewConfiguration : m_ExpectedViewConfiguration)
     {
         if (std::find(m_AvailableViewConfigurations.begin(), m_AvailableViewConfigurations.end(), expectViewConfiguration) !=
             m_AvailableViewConfigurations.end())
@@ -257,9 +259,130 @@ void OpenXRTutorial::GetViewConfigurationViews()
 
     m_ActiveViewConfigurationViews.resize(viewConfigurationViewsCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
     OPENXR_CHECK(xrEnumerateViewConfigurationViews(m_xrInstance, m_SystemID, m_ActiveViewConfiguration, viewConfigurationViewsCount,
-                                                   &viewConfigurationViewsCount, m_ActiveViewConfigurationViews.data()),
+                     &viewConfigurationViewsCount, m_ActiveViewConfigurationViews.data()),
                  "Failed to enumerate OpenXR view configuration views");
 
     XR_TUT_LOG("OpenXR view configuration type: " << m_ActiveViewConfiguration);
     XR_TUT_LOG("OpenXR view configuration views count: " << m_ActiveViewConfigurationViews.size());
+}
+
+void OpenXRTutorial::CreateSwapchains()
+{
+    uint32_t formatCount = 0;
+    OPENXR_CHECK(xrEnumerateSwapchainFormats(m_xrSession, 0, &formatCount, nullptr), "Failed to enumerate OpenXR swapchain formats");
+    std::vector<int64_t> swapchainFormats(formatCount);
+    OPENXR_CHECK(xrEnumerateSwapchainFormats(m_xrSession, formatCount, &formatCount, swapchainFormats.data()),
+                 "Failed to enumerate OpenXR swapchain formats");
+
+    int64_t depthFormat = m_GraphicsAPI->SelectDepthSwapchainFormat(swapchainFormats);
+    if (depthFormat == 0)
+    {
+        XR_TUT_LOG_ERROR("No suitable depth swapchain format found");
+        DEBUG_BREAK;
+    }
+    else
+    {
+        XR_TUT_LOG("Selected depth swapchain format: " << depthFormat);
+    }
+
+    m_ColorSwapchainInfos.resize(m_ActiveViewConfigurationViews.size());
+    m_DepthSwapchainInfos.resize(m_ActiveViewConfigurationViews.size());
+
+    for (size_t i = 0; i < m_ActiveViewConfigurationViews.size(); ++i)
+    {
+        SwapchainInfo& colorSwapchainInfo = m_ColorSwapchainInfos[i];
+        SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[i];
+        const XrViewConfigurationView& viewConfigView = m_ActiveViewConfigurationViews[i];
+
+        XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+        swapchainCreateInfo.createFlags = 0;
+        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
+        swapchainCreateInfo.format = m_GraphicsAPI->SelectColorSwapchainFormat(swapchainFormats);
+        swapchainCreateInfo.sampleCount = viewConfigView.recommendedSwapchainSampleCount;
+        swapchainCreateInfo.width = viewConfigView.recommendedImageRectWidth;
+        swapchainCreateInfo.height = viewConfigView.recommendedImageRectHeight;
+        swapchainCreateInfo.faceCount = 1;
+        swapchainCreateInfo.arraySize = 1;
+        swapchainCreateInfo.mipCount = 1;
+        OPENXR_CHECK(xrCreateSwapchain(m_xrSession, &swapchainCreateInfo, &colorSwapchainInfo.swapchain), "Failed to create OpenXR color swapchain");
+        colorSwapchainInfo.swapchainFormat = swapchainCreateInfo.format;
+
+        // Depth swapchain creation
+        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
+        swapchainCreateInfo.format = depthFormat;
+        OPENXR_CHECK(xrCreateSwapchain(m_xrSession, &swapchainCreateInfo, &depthSwapchainInfo.swapchain), "Failed to create OpenXR depth swapchain");
+
+        uint32_t colorSwapchainImageCount = 0;
+        OPENXR_CHECK(xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, 0, &colorSwapchainImageCount, nullptr),
+                     "Failed to get color swapchain images count");
+        XrSwapchainImageBaseHeader* colorSwapchainImages =
+            m_GraphicsAPI->AllocateSwapchainImageData(colorSwapchainInfo.swapchain, GraphicsAPI::SwapchainType::COLOR, colorSwapchainImageCount);
+        OPENXR_CHECK(
+            xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, colorSwapchainImageCount, &colorSwapchainImageCount, colorSwapchainImages),
+            "Failed to get color swapchain images");
+
+        uint32_t depthSwapchainImageCount = 0;
+        OPENXR_CHECK(xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, 0, &depthSwapchainImageCount, nullptr),
+                     "Failed to get depth swapchain images count");
+        XrSwapchainImageBaseHeader* depthSwapchainImages =
+            m_GraphicsAPI->AllocateSwapchainImageData(depthSwapchainInfo.swapchain, GraphicsAPI::SwapchainType::DEPTH, depthSwapchainImageCount);
+        OPENXR_CHECK(
+            xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, depthSwapchainImageCount, &depthSwapchainImageCount, depthSwapchainImages),
+            "Failed to get depth swapchain images");
+
+        for (uint32_t j = 0; j < colorSwapchainImageCount; ++j)
+        {
+            GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
+            imageViewCreateInfo.image = m_GraphicsAPI->GetSwapchainImage(colorSwapchainInfo.swapchain, j);
+            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::RTV; // Render Target View
+            imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
+            imageViewCreateInfo.format = colorSwapchainInfo.swapchainFormat;
+            imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::COLOR_BIT;
+            imageViewCreateInfo.baseMipLevel = 0;
+            imageViewCreateInfo.levelCount = 1;
+            imageViewCreateInfo.baseArrayLayer = 0;
+            imageViewCreateInfo.layerCount = 1;
+            colorSwapchainInfo.imageViews.push_back(m_GraphicsAPI->CreateImageView(imageViewCreateInfo));
+        }
+
+        for (uint32_t j = 0; j < depthSwapchainImageCount; ++j)
+        {
+            GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
+            imageViewCreateInfo.image = m_GraphicsAPI->GetSwapchainImage(depthSwapchainInfo.swapchain, j);
+            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::DSV; // Depth Stencil View
+            imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
+            imageViewCreateInfo.format = depthSwapchainInfo.swapchainFormat;
+            imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::DEPTH_BIT;
+            imageViewCreateInfo.baseMipLevel = 0;
+            imageViewCreateInfo.levelCount = 1;
+            imageViewCreateInfo.baseArrayLayer = 0;
+            imageViewCreateInfo.layerCount = 1;
+            depthSwapchainInfo.imageViews.push_back(m_GraphicsAPI->CreateImageView(imageViewCreateInfo));
+        }
+    }
+}
+
+
+void OpenXRTutorial::DestroySwapchains()
+{
+    for (size_t i = 0; i != m_ActiveViewConfigurationViews.size(); ++i)
+    {
+        SwapchainInfo& colorSwapchainInfo = m_ColorSwapchainInfos[i];
+        SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[i];
+
+        for (auto& imageView : colorSwapchainInfo.imageViews)
+        {
+            m_GraphicsAPI->DestroyImageView(imageView);
+        }
+        m_GraphicsAPI->FreeSwapchainImageData(colorSwapchainInfo.swapchain);
+
+        for (auto& imageView : depthSwapchainInfo.imageViews)
+        {
+            m_GraphicsAPI->DestroyImageView(imageView);
+        }
+        m_GraphicsAPI->FreeSwapchainImageData(depthSwapchainInfo.swapchain);
+
+        OPENXR_CHECK(xrDestroySwapchain(colorSwapchainInfo.swapchain), "Failed to destroy OpenXR color swapchain");
+        OPENXR_CHECK(xrDestroySwapchain(depthSwapchainInfo.swapchain), "Failed to destroy OpenXR depth swapchain");
+    }
 }
