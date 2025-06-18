@@ -8,7 +8,7 @@
 
 class OpenXRTutorial
 {
-  public:
+public:
     OpenXRTutorial(GraphicsAPI_Type apiType);
     ~OpenXRTutorial();
 
@@ -28,7 +28,7 @@ class OpenXRTutorial
     static void AndroidAppHandleCmd(struct android_app *app, int32_t cmd);
 #endif
 
-  private:
+private:
     void PollSystemEvents();
     void PollEvent();
 
@@ -52,6 +52,8 @@ class OpenXRTutorial
     void CreateSwapchains();
     void DestroySwapchains();
 
+    void GetEnvironmentBlendModes();
+
     std::vector<XrViewConfigurationType> m_ExpectedViewConfiguration = {XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
                                                                         XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO};
     std::vector<XrViewConfigurationType> m_AvailableViewConfigurations;
@@ -62,7 +64,7 @@ class OpenXRTutorial
     {
         XrSwapchain swapchain = XR_NULL_HANDLE;
         int64_t swapchainFormat = 0;
-        std::vector<void *> imageViews;
+        std::vector<void*> imageViews;
     };
 
     std::vector<SwapchainInfo> m_ColorSwapchainInfos = {};
@@ -70,10 +72,10 @@ class OpenXRTutorial
 
     XrInstance m_xrInstance = XR_NULL_HANDLE;  // This name can not be modified
     std::vector<std::string> m_RequestApiLayers = {};
-    std::vector<const char *> m_ActiveApiLayers = {};
+    std::vector<const char*> m_ActiveApiLayers = {};
 
     std::vector<std::string> m_RequestExtensions = {};
-    std::vector<const char *> m_ActiveExtensions = {};
+    std::vector<const char*> m_ActiveExtensions = {};
 
     XrDebugUtilsMessengerEXT m_DebugUtilsMessenger = XR_NULL_HANDLE;
 
@@ -83,6 +85,10 @@ class OpenXRTutorial
     XrSystemId m_SystemID = XR_NULL_SYSTEM_ID;
     XrSession m_xrSession = XR_NULL_HANDLE;
     XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
+
+    std::vector<XrEnvironmentBlendMode> m_ExpectedEnvironmentBlendModes = {XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+    std::vector<XrEnvironmentBlendMode> m_AvailableEnvironmentBlendModes = {};
+    XrEnvironmentBlendMode m_ActiveEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM;
 
     bool m_applicationRunning = true;
     bool m_sessionRunning = false;

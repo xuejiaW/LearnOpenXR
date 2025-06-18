@@ -16,6 +16,7 @@ void OpenXRTutorial::Run()
     CreateSession();
     GetViewConfigurationViews();
     CreateSwapchains();
+    GetEnvironmentBlendModes();
 
     while (m_applicationRunning)
     {
@@ -362,7 +363,6 @@ void OpenXRTutorial::CreateSwapchains()
     }
 }
 
-
 void OpenXRTutorial::DestroySwapchains()
 {
     for (size_t i = 0; i != m_ActiveViewConfigurationViews.size(); ++i)
@@ -384,5 +384,34 @@ void OpenXRTutorial::DestroySwapchains()
 
         OPENXR_CHECK(xrDestroySwapchain(colorSwapchainInfo.swapchain), "Failed to destroy OpenXR color swapchain");
         OPENXR_CHECK(xrDestroySwapchain(depthSwapchainInfo.swapchain), "Failed to destroy OpenXR depth swapchain");
+    }
+}
+
+void OpenXRTutorial::GetEnvironmentBlendModes()
+{
+    uint32_t environmentBlendModeCount = 0;
+    OPENXR_CHECK(xrEnumerateEnvironmentBlendModes(m_xrInstance, m_SystemID, m_ActiveViewConfiguration, 0, &environmentBlendModeCount, nullptr),
+                 "Failed to enumerate OpenXR environment blend modes");
+
+    m_AvailableEnvironmentBlendModes.resize(environmentBlendModeCount);
+    OPENXR_CHECK(xrEnumerateEnvironmentBlendModes(m_xrInstance, m_SystemID, m_ActiveViewConfiguration, environmentBlendModeCount,
+                     &environmentBlendModeCount, m_AvailableEnvironmentBlendModes.data()),
+                 "Failed to enumerate OpenXR environment blend modes");
+
+    for (const auto& expectedEnvironmentBlendMode : m_ExpectedEnvironmentBlendModes)
+    {
+        if (std::find(m_AvailableEnvironmentBlendModes.begin(), m_AvailableEnvironmentBlendModes.end(), expectedEnvironmentBlendMode) !=
+            m_AvailableEnvironmentBlendModes.end())
+        {
+            m_ActiveEnvironmentBlendMode = expectedEnvironmentBlendMode;
+            XR_TUT_LOG("OpenXR active environment blend mode: " << m_ActiveEnvironmentBlendMode);
+            return;
+        }
+    }
+
+    if (m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM)
+    {
+        XR_TUT_LOG_ERROR("No suitable environment blend mode found");
+        m_ActiveEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE; // Fallback to opaque mode
     }
 }
