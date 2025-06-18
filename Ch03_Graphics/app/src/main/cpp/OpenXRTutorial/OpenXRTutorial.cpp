@@ -14,6 +14,7 @@ void OpenXRTutorial::Run()
     CreateDebugMessenger();
     GetSystemID();
     CreateSession();
+    GetViewConfigurationViews();
 
     while (m_applicationRunning)
     {
@@ -229,3 +230,36 @@ void OpenXRTutorial::PollEvent()
     }
 }
 
+void OpenXRTutorial::GetViewConfigurationViews()
+{
+    uint32_t viewConfigurationCount = 0;
+    OPENXR_CHECK(xrEnumerateViewConfigurations(m_xrInstance, m_SystemID, 0, &viewConfigurationCount, nullptr),
+                 "Failed to enumerate OpenXR view configurations");
+
+    m_AvailableViewConfigurations.resize(viewConfigurationCount);
+    OPENXR_CHECK(xrEnumerateViewConfigurations(m_xrInstance, m_SystemID, viewConfigurationCount, &viewConfigurationCount,
+                                               m_AvailableViewConfigurations.data()),
+                 "Failed to enumerate OpenXR view configurations");
+
+    for (const XrViewConfigurationType &expectViewConfiguration : m_ExpectedViewConfiguration)
+    {
+        if (std::find(m_AvailableViewConfigurations.begin(), m_AvailableViewConfigurations.end(), expectViewConfiguration) !=
+            m_AvailableViewConfigurations.end())
+        {
+            m_ActiveViewConfiguration = expectViewConfiguration;
+            break;
+        }
+    }
+
+    uint32_t viewConfigurationViewsCount = 0;
+    OPENXR_CHECK(xrEnumerateViewConfigurationViews(m_xrInstance, m_SystemID, m_ActiveViewConfiguration, 0, &viewConfigurationViewsCount, nullptr),
+                 "Failed to enumerate OpenXR view configuration views");
+
+    m_ActiveViewConfigurationViews.resize(viewConfigurationViewsCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+    OPENXR_CHECK(xrEnumerateViewConfigurationViews(m_xrInstance, m_SystemID, m_ActiveViewConfiguration, viewConfigurationViewsCount,
+                                                   &viewConfigurationViewsCount, m_ActiveViewConfigurationViews.data()),
+                 "Failed to enumerate OpenXR view configuration views");
+
+    XR_TUT_LOG("OpenXR view configuration type: " << m_ActiveViewConfiguration);
+    XR_TUT_LOG("OpenXR view configuration views count: " << m_ActiveViewConfigurationViews.size());
+}
