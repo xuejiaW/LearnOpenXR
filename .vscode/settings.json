@@ -2,11 +2,11 @@
     "cmake.sourceDirectory": "E:/Github/LearnOpenXR/Ch02_OpenXRSetup",
     "search.exclude": {
         "**/Ch01*": true,
-        "**/Ch01_Introduction/**": true
+        "**/Ch02*": true
     },
     "files.exclude": {
         "**/Ch01*": true,
-        "**/Ch01_Introduction/**": true
+        "**/Ch02*": true
     },
     "files.associations": {
         "memory": "cpp"
