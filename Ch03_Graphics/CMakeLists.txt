@@ -47,9 +47,9 @@ set(SOURCES
     ../Common/GraphicsAPI_OpenGL_ES.cpp
     ../Common/GraphicsAPI_Vulkan.cpp
     ../Common/OpenXRDebugUtils.cpp
+    app/src/main/cpp/main.cpp
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
-    app/src/main/cpp/main.cpp
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
 )
 set(HEADERS

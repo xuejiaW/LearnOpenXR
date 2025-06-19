@@ -3,6 +3,7 @@
 #include <OpenXRDebugUtils.h>
 
 #include <GraphicsAPI_Vulkan.h>
+#include <openxr/openxr.h>
 
 size_t renderCuboidIndex = 0;
 

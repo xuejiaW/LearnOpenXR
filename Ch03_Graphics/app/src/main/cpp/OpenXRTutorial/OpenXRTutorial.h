@@ -2,6 +2,7 @@
 
 #include <GraphicsAPI.h>
 #include <xr_linear_algebra.h>
+#include <openxr/openxr.h>
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -124,7 +125,6 @@ private:
         int64_t swapchainFormat = 0;
         std::vector<void*> imageViews;
     };
-
 
     std::vector<SwapchainInfo> m_ColorSwapchainInfos = {};
     std::vector<SwapchainInfo> m_DepthSwapchainInfos = {};
