@@ -16,6 +16,8 @@ public:
 
     void Run();
 
+    static GraphicsAPI_Type m_apiType;
+
 #if defined(__ANDROID__)
   public:
     static android_app *androidApp;
@@ -64,20 +66,6 @@ private:
 
     void PollSystemEvents();
     void PollEvent();
-
-    void CreateInstance();
-    void DestroyInstance();
-
-    void CreateDebugMessenger();
-    void DestroyDebugMessenger();
-
-    void GetSystemID();
-
-    void CreateSession();
-    void DestroySession();
-
-    void ActiveAvailableApiLayers();
-    void ActiveAvailableExtensions();
 
     void GetInstanceProperties();
 
@@ -129,20 +117,7 @@ private:
     std::vector<SwapchainInfo> m_ColorSwapchainInfos = {};
     std::vector<SwapchainInfo> m_DepthSwapchainInfos = {};
 
-    XrInstance m_xrInstance = XR_NULL_HANDLE;  // This name can not be modified
-    std::vector<std::string> m_RequestApiLayers = {};
-    std::vector<const char*> m_ActiveApiLayers = {};
 
-    std::vector<std::string> m_RequestExtensions = {};
-    std::vector<const char*> m_ActiveExtensions = {};
-
-    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger = XR_NULL_HANDLE;
-
-    GraphicsAPI_Type m_apiType;
-    std::unique_ptr<GraphicsAPI> m_GraphicsAPI = nullptr;
-
-    XrSystemId m_SystemID = XR_NULL_SYSTEM_ID;
-    XrSession m_xrSession = XR_NULL_HANDLE;
     XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
 
     std::vector<XrEnvironmentBlendMode> m_ExpectedEnvironmentBlendModes = {XR_ENVIRONMENT_BLEND_MODE_OPAQUE};

@@ -14,15 +14,17 @@
 // For DEBUG_BREAK
 #include <HelperFunctions.h>
 
+// #include "../Ch03_Graphics/app/src/main/cpp/OpenXR/OpenXRCoreMgr.h"
+
 // XR_DOCS_TAG_BEGIN_Helper_Functions0
 inline void OpenXRDebugBreak() {
     std::cerr << "Breakpoint here to debug." << std::endl;
     DEBUG_BREAK;
 }
 
-inline const char* GetXRErrorString(XrInstance xrInstance, XrResult result) {
+inline const char* GetXRErrorString(XrResult result) {
     static char string[XR_MAX_RESULT_STRING_SIZE];
-    xrResultToString(xrInstance, result, string);
+    // xrResultToString(OpenXRCoreMgr::m_xrInstance, result, string);
     return string;
 }
 
@@ -30,7 +32,7 @@ inline const char* GetXRErrorString(XrInstance xrInstance, XrResult result) {
     {                                                                                                                                                       \
         XrResult result = (x);                                                                                                                              \
         if (!XR_SUCCEEDED(result)) {                                                                                                                        \
-            std::cerr << "ERROR: OPENXR: " << int(result) << "(" << (m_xrInstance ? GetXRErrorString(m_xrInstance, result) : "") << ") " << y << std::endl; \
+            std::cerr << "ERROR: OPENXR: " << int(result) << "(" << (GetXRErrorString(result)) << ") " << y << std::endl; \
             OpenXRDebugBreak();                                                                                                                             \
         }                                                                                                                                                   \
     }
