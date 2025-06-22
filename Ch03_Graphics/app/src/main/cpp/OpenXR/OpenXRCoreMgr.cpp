@@ -11,7 +11,7 @@
 XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
 XrSession OpenXRCoreMgr::xrSession = XR_NULL_HANDLE;
 XrSystemId OpenXRCoreMgr::systemID = XR_NULL_SYSTEM_ID;
-std::unique_ptr<GraphicsAPI> OpenXRCoreMgr:: graphicsAPI = nullptr;
+std::unique_ptr<GraphicsAPI> OpenXRCoreMgr::graphicsAPI = nullptr;
 
 std::vector<std::string> OpenXRCoreMgr::m_RequestApiLayers{};
 std::vector<const char*> OpenXRCoreMgr::m_ActiveApiLayers{};
@@ -103,11 +103,7 @@ void OpenXRCoreMgr::ActiveAvailableApiLayers()
     {
         for (const auto& availableLayer : availableApiLayersProperties)
         {
-            if (strcmp(requestLayer.c_str(), availableLayer.layerName) != 0)
-            {
-                continue;
-            }
-            else
+            if (strcmp(requestLayer.c_str(), availableLayer.layerName) == 0)
             {
                 m_ActiveApiLayers.push_back(availableLayer.layerName);
                 XR_TUT_LOG_ERROR("Requested api layer not found: " << requestLayer);
@@ -134,21 +130,17 @@ void OpenXRCoreMgr::ActiveAvailableExtensions()
         bool found = false;
         for (const auto& availableExtension : availableExtensions)
         {
-            if (strcmp(requestExtension.c_str(), availableExtension.extensionName) != 0)
-            {
-                continue;
-            }
-            else
+            if (strcmp(requestExtension.c_str(), availableExtension.extensionName) == 0)
             {
                 m_ActiveExtensions.push_back(availableExtension.extensionName);
                 found = true;
                 break;
             }
+        }
 
-            if (!found)
-            {
-                XR_TUT_LOG_ERROR("Requested extension not found: " << requestExtension);
-            }
+        if (!found)
+        {
+            XR_TUT_LOG_ERROR("Requested extension not found: " << requestExtension);
         }
     }
 }

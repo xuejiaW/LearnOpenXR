@@ -1,22 +1,9 @@
-// Copyright 2023, The Khronos Group Inc.
-//
-// SPDX-License-Identifier: Apache-2.0
-
-// OpenXR Tutorial for Khronos Group
-
 #pragma once
-// Define any XR_USE_PLATFORM_... / XR_USE_GRAPHICS_API_... before this header file.
 
-// OpenXR Headers
 #include <openxr/openxr.h>
-#include <openxr/openxr_platform.h>
 
-// For DEBUG_BREAK
 #include <HelperFunctions.h>
 
-// #include "../Ch03_Graphics/app/src/main/cpp/OpenXR/OpenXRCoreMgr.h"
-
-// XR_DOCS_TAG_BEGIN_Helper_Functions0
 inline void OpenXRDebugBreak() {
     std::cerr << "Breakpoint here to debug." << std::endl;
     DEBUG_BREAK;
@@ -29,11 +16,10 @@ inline const char* GetXRErrorString(XrResult result) {
 }
 
 #define OPENXR_CHECK(x, y)                                                                                                                                  \
-    {                                                                                                                                                       \
+    do {                                                                                                                                                    \
         XrResult result = (x);                                                                                                                              \
         if (!XR_SUCCEEDED(result)) {                                                                                                                        \
             std::cerr << "ERROR: OPENXR: " << int(result) << "(" << (GetXRErrorString(result)) << ") " << y << std::endl; \
             OpenXRDebugBreak();                                                                                                                             \
         }                                                                                                                                                   \
-    }
-// XR_DOCS_TAG_END_Helper_Functions0
+    } while (0)

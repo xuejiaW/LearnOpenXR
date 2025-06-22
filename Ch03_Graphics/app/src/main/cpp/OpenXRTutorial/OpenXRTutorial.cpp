@@ -126,14 +126,14 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
 
         const uint32_t& width = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[i].recommendedImageRectWidth;
         const uint32_t& height = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[i].recommendedImageRectHeight;
-        GraphicsAPI::Viewport viewport = {0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f};
+        GraphicsAPI::Viewport viewport = {0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f};
         GraphicsAPI::Rect2D scissor = {{0, 0}, {width, height}};
-        float nearZ = 0.05f;
-        float farZ = 100.0f;
 
         // Fill out the XrCompositionLayerProjectionView structure specifying the pose and fov from the view.
         // This also associates the swapchain image with this layer projection view.
-        renderLayerInfo.layerProjectionViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW, nullptr};
+        XrCompositionLayerProjectionView layerProjectionView = {};
+        layerProjectionView.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+        renderLayerInfo.layerProjectionViews[i] = layerProjectionView;
         renderLayerInfo.layerProjectionViews[i].pose = views[i].pose;
         renderLayerInfo.layerProjectionViews[i].fov = views[i].fov;
         renderLayerInfo.layerProjectionViews[i].subImage.swapchain = colorSwapchainInfo.swapchain;
@@ -159,7 +159,7 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         OpenXRCoreMgr::graphicsAPI->SetScissors(&scissor, 1);
 
         XrMatrix4x4f proj;
-        XrMatrix4x4f_CreateProjectionFov(&proj, m_apiType, views[i].fov, nearZ, farZ);
+        XrMatrix4x4f_CreateProjectionFov(&proj, m_apiType, views[i].fov, 0.05f, 1000.0f);
         XrMatrix4x4f toView;
         XrVector3f scale1m{1.0f, 1.0f, 1.0f};
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &views[i].pose.position, &views[i].pose.orientation, &scale1m);
@@ -176,7 +176,8 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         OpenXRCoreMgr::graphicsAPI->EndRendering();
 
         // Give the swapchain image back to OpenXR, allowing the compositor to use the image.
-        XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+        XrSwapchainImageReleaseInfo releaseInfo{};
+        releaseInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO;
         OPENXR_CHECK(xrReleaseSwapchainImage(colorSwapchainInfo.swapchain, &releaseInfo), "Failed to release Image back to the Color Swapchain");
         OPENXR_CHECK(xrReleaseSwapchainImage(depthSwapchainInfo.swapchain, &releaseInfo), "Failed to release Image back to the Depth Swapchain");
 
@@ -317,6 +318,5 @@ void OpenXRTutorial::DestroyResources()
 
 void OpenXRTutorial::DestroyReferenceSpace()
 {
-    OPENXR_CHECK(xrDestroySpace(m_ActiveSpaces), "Failed to destroy Space.")
+    OPENXR_CHECK(xrDestroySpace(m_ActiveSpaces), "Failed to destroy Space.");
 }
-
