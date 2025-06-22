@@ -5,6 +5,7 @@
 #include <GraphicsAPI_Vulkan.h>
 #include <openxr/openxr.h>
 #include "../OpenXR//OpenXRCoreMgr.h"
+#include "../OpenXR/OpenXRDisplayMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 
 size_t renderCuboidIndex = 0;
@@ -24,16 +25,16 @@ void OpenXRTutorial::Run()
     OpenXRCoreMgr::CreateDebugMessenger();
     OpenXRCoreMgr::GetSystemID();
     OpenXRCoreMgr::CreateSession();
-    GetViewConfigurationViews();
-    CreateSwapchains();
-    GetEnvironmentBlendModes();
+    OpenXRDisplayMgr::GetViewConfigurationViews();
+    OpenXRDisplayMgr::CreateSwapchains();
+    OpenXRDisplayMgr::GetEnvironmentBlendModes();
     CreateReferenceSpaces();
     CreateResources();
 
     while (OpenXRSessionMgr::applicationRunning)
     {
         PollSystemEvents();
-        PollEvent();
+        OpenXRSessionMgr::PollEvent();
         if (OpenXRSessionMgr::IsSessionRunning())
         {
             RenderFrame();
@@ -42,235 +43,10 @@ void OpenXRTutorial::Run()
 
     DestroyResources();
     DestroyReferenceSpace();
-    DestroySwapchains();
+    OpenXRDisplayMgr::DestroySwapchains();
     OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyDebugMessenger();
     OpenXRCoreMgr::DestroyInstance();
-}
-
-
-void OpenXRTutorial::PollEvent()
-{
-    XrEventDataBuffer eventDataBuffer{XR_TYPE_EVENT_DATA_BUFFER};
-
-    auto XrPollEvent = [&]() -> bool
-    {
-        eventDataBuffer = {XR_TYPE_EVENT_DATA_BUFFER};
-        return xrPollEvent(OpenXRCoreMgr::m_xrInstance, &eventDataBuffer) == XR_SUCCESS;
-    };
-
-    while (XrPollEvent())
-    {
-        switch (eventDataBuffer.type)
-        {
-            case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
-            {
-                auto* sessionStateChanged = reinterpret_cast<XrEventDataSessionStateChanged*>(&eventDataBuffer);
-                OpenXRSessionMgr::OnSessionChanged(sessionStateChanged);
-                break;
-            }
-            default:
-            {
-                XR_TUT_LOG("OpenXR event data type: " << eventDataBuffer.type);
-                break;
-            }
-        }
-    }
-}
-
-void OpenXRTutorial::GetViewConfigurationViews()
-{
-    uint32_t viewConfigurationCount = 0;
-    OPENXR_CHECK(xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, 0, &viewConfigurationCount, nullptr),
-                 "Failed to enumerate OpenXR view configurations");
-
-    m_AvailableViewConfigurations.resize(viewConfigurationCount);
-    OPENXR_CHECK(
-        xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, viewConfigurationCount, &viewConfigurationCount,
-            m_AvailableViewConfigurations.data()),
-        "Failed to enumerate OpenXR view configurations");
-
-    for (const XrViewConfigurationType& expectViewConfiguration : m_ExpectedViewConfiguration)
-    {
-        if (std::find(m_AvailableViewConfigurations.begin(), m_AvailableViewConfigurations.end(), expectViewConfiguration) !=
-            m_AvailableViewConfigurations.end())
-        {
-            m_ActiveViewConfiguration = expectViewConfiguration;
-            break;
-        }
-    }
-
-    uint32_t viewConfigurationViewsCount = 0;
-    OPENXR_CHECK(
-        xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0, &
-            viewConfigurationViewsCount, nullptr),
-        "Failed to enumerate OpenXR view configuration views");
-
-    m_ActiveViewConfigurationViews.resize(viewConfigurationViewsCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-    OPENXR_CHECK(
-        xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration,
-            viewConfigurationViewsCount,
-            &viewConfigurationViewsCount, m_ActiveViewConfigurationViews.data()),
-        "Failed to enumerate OpenXR view configuration views");
-
-    XR_TUT_LOG("OpenXR view configuration type: " << m_ActiveViewConfiguration);
-    XR_TUT_LOG("OpenXR view configuration views count: " << m_ActiveViewConfigurationViews.size());
-}
-
-void OpenXRTutorial::CreateSwapchains()
-{
-    uint32_t formatCount = 0;
-    OPENXR_CHECK(xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, 0, &formatCount, nullptr), "Failed to enumerate OpenXR swapchain formats");
-    std::vector<int64_t> swapchainFormats(formatCount);
-    OPENXR_CHECK(xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, formatCount, &formatCount, swapchainFormats.data()),
-                 "Failed to enumerate OpenXR swapchain formats");
-
-    int64_t depthFormat = OpenXRCoreMgr::graphicsAPI->SelectDepthSwapchainFormat(swapchainFormats);
-    if (depthFormat == 0)
-    {
-        XR_TUT_LOG_ERROR("No suitable depth swapchain format found");
-        DEBUG_BREAK;
-    }
-    else
-    {
-        XR_TUT_LOG("Selected depth swapchain format: " << depthFormat);
-    }
-
-    m_ColorSwapchainInfos.resize(m_ActiveViewConfigurationViews.size());
-    m_DepthSwapchainInfos.resize(m_ActiveViewConfigurationViews.size());
-
-    for (size_t i = 0; i < m_ActiveViewConfigurationViews.size(); ++i)
-    {
-        SwapchainInfo& colorSwapchainInfo = m_ColorSwapchainInfos[i];
-        SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[i];
-        const XrViewConfigurationView& viewConfigView = m_ActiveViewConfigurationViews[i];
-
-        XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
-        swapchainCreateInfo.createFlags = 0;
-        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
-        swapchainCreateInfo.format = OpenXRCoreMgr::graphicsAPI->SelectColorSwapchainFormat(swapchainFormats);
-        swapchainCreateInfo.sampleCount = viewConfigView.recommendedSwapchainSampleCount;
-        swapchainCreateInfo.width = viewConfigView.recommendedImageRectWidth;
-        swapchainCreateInfo.height = viewConfigView.recommendedImageRectHeight;
-        swapchainCreateInfo.faceCount = 1;
-        swapchainCreateInfo.arraySize = 1;
-        swapchainCreateInfo.mipCount = 1;
-        OPENXR_CHECK(xrCreateSwapchain(OpenXRCoreMgr::xrSession, &swapchainCreateInfo, &colorSwapchainInfo.swapchain),
-                     "Failed to create OpenXR color swapchain");
-        colorSwapchainInfo.swapchainFormat = swapchainCreateInfo.format;
-
-        // Depth swapchain creation
-        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
-        swapchainCreateInfo.format = depthFormat;
-        OPENXR_CHECK(xrCreateSwapchain(OpenXRCoreMgr::xrSession, &swapchainCreateInfo, &depthSwapchainInfo.swapchain),
-                     "Failed to create OpenXR depth swapchain");
-
-        uint32_t colorSwapchainImageCount = 0;
-        OPENXR_CHECK(xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, 0, &colorSwapchainImageCount, nullptr),
-                     "Failed to get color swapchain images count");
-        XrSwapchainImageBaseHeader* colorSwapchainImages =
-            OpenXRCoreMgr::graphicsAPI->AllocateSwapchainImageData(colorSwapchainInfo.swapchain, GraphicsAPI::SwapchainType::COLOR,
-                                                                     colorSwapchainImageCount);
-        OPENXR_CHECK(
-            xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, colorSwapchainImageCount, &colorSwapchainImageCount, colorSwapchainImages),
-            "Failed to get color swapchain images");
-
-        uint32_t depthSwapchainImageCount = 0;
-        OPENXR_CHECK(xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, 0, &depthSwapchainImageCount, nullptr),
-                     "Failed to get depth swapchain images count");
-        XrSwapchainImageBaseHeader* depthSwapchainImages =
-            OpenXRCoreMgr::graphicsAPI->AllocateSwapchainImageData(depthSwapchainInfo.swapchain, GraphicsAPI::SwapchainType::DEPTH,
-                                                                     depthSwapchainImageCount);
-        OPENXR_CHECK(
-            xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, depthSwapchainImageCount, &depthSwapchainImageCount, depthSwapchainImages),
-            "Failed to get depth swapchain images");
-
-        for (uint32_t j = 0; j < colorSwapchainImageCount; ++j)
-        {
-            GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
-            imageViewCreateInfo.image = OpenXRCoreMgr::graphicsAPI->GetSwapchainImage(colorSwapchainInfo.swapchain, j);
-            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::RTV; // Render Target View
-            imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
-            imageViewCreateInfo.format = colorSwapchainInfo.swapchainFormat;
-            imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::COLOR_BIT;
-            imageViewCreateInfo.baseMipLevel = 0;
-            imageViewCreateInfo.levelCount = 1;
-            imageViewCreateInfo.baseArrayLayer = 0;
-            imageViewCreateInfo.layerCount = 1;
-            colorSwapchainInfo.imageViews.push_back(OpenXRCoreMgr::graphicsAPI->CreateImageView(imageViewCreateInfo));
-        }
-
-        for (uint32_t j = 0; j < depthSwapchainImageCount; ++j)
-        {
-            GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
-            imageViewCreateInfo.image = OpenXRCoreMgr::graphicsAPI->GetSwapchainImage(depthSwapchainInfo.swapchain, j);
-            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::DSV; // Depth Stencil View
-            imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
-            imageViewCreateInfo.format = depthSwapchainInfo.swapchainFormat;
-            imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::DEPTH_BIT;
-            imageViewCreateInfo.baseMipLevel = 0;
-            imageViewCreateInfo.levelCount = 1;
-            imageViewCreateInfo.baseArrayLayer = 0;
-            imageViewCreateInfo.layerCount = 1;
-            depthSwapchainInfo.imageViews.push_back(OpenXRCoreMgr::graphicsAPI->CreateImageView(imageViewCreateInfo));
-        }
-    }
-}
-
-void OpenXRTutorial::DestroySwapchains()
-{
-    for (size_t i = 0; i != m_ActiveViewConfigurationViews.size(); ++i)
-    {
-        SwapchainInfo& colorSwapchainInfo = m_ColorSwapchainInfos[i];
-        SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[i];
-
-        for (auto& imageView : colorSwapchainInfo.imageViews)
-        {
-            OpenXRCoreMgr::graphicsAPI->DestroyImageView(imageView);
-        }
-        OpenXRCoreMgr::graphicsAPI->FreeSwapchainImageData(colorSwapchainInfo.swapchain);
-
-        for (auto& imageView : depthSwapchainInfo.imageViews)
-        {
-            OpenXRCoreMgr::graphicsAPI->DestroyImageView(imageView);
-        }
-        OpenXRCoreMgr::graphicsAPI->FreeSwapchainImageData(depthSwapchainInfo.swapchain);
-
-        OPENXR_CHECK(xrDestroySwapchain(colorSwapchainInfo.swapchain), "Failed to destroy OpenXR color swapchain");
-        OPENXR_CHECK(xrDestroySwapchain(depthSwapchainInfo.swapchain), "Failed to destroy OpenXR depth swapchain");
-    }
-}
-
-void OpenXRTutorial::GetEnvironmentBlendModes()
-{
-    uint32_t environmentBlendModeCount = 0;
-    OPENXR_CHECK(
-        xrEnumerateEnvironmentBlendModes(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0, &
-            environmentBlendModeCount, nullptr),
-        "Failed to enumerate OpenXR environment blend modes");
-
-    m_AvailableEnvironmentBlendModes.resize(environmentBlendModeCount);
-    OPENXR_CHECK(
-        xrEnumerateEnvironmentBlendModes(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, environmentBlendModeCount,
-            &environmentBlendModeCount, m_AvailableEnvironmentBlendModes.data()),
-        "Failed to enumerate OpenXR environment blend modes");
-
-    for (const auto& expectedEnvironmentBlendMode : m_ExpectedEnvironmentBlendModes)
-    {
-        if (std::find(m_AvailableEnvironmentBlendModes.begin(), m_AvailableEnvironmentBlendModes.end(), expectedEnvironmentBlendMode) !=
-            m_AvailableEnvironmentBlendModes.end())
-        {
-            m_ActiveEnvironmentBlendMode = expectedEnvironmentBlendMode;
-            XR_TUT_LOG("OpenXR active environment blend mode: " << m_ActiveEnvironmentBlendMode);
-            return;
-        }
-    }
-
-    if (m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM)
-    {
-        XR_TUT_LOG_ERROR("No suitable environment blend mode found");
-        m_ActiveEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE; // Fallback to opaque mode
-    }
 }
 
 void OpenXRTutorial::CreateReferenceSpaces()
@@ -308,7 +84,7 @@ void OpenXRTutorial::RenderFrame()
 
     XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
     frameEndInfo.displayTime = frameState.predictedDisplayTime;
-    frameEndInfo.environmentBlendMode = m_ActiveEnvironmentBlendMode;
+    frameEndInfo.environmentBlendMode = OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode;
     frameEndInfo.layerCount = static_cast<uint32_t>(renderLayerInfo.layers.size());
     frameEndInfo.layers = renderLayerInfo.layers.data();
     OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
@@ -316,11 +92,11 @@ void OpenXRTutorial::RenderFrame()
 
 bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
 {
-    std::vector<XrView> views(m_ActiveViewConfigurationViews.size(), {XR_TYPE_VIEW});
+    std::vector<XrView> views(OpenXRDisplayMgr::m_ActiveViewConfigurationViews.size(), {XR_TYPE_VIEW});
 
     XrViewState viewState{XR_TYPE_VIEW_STATE, nullptr};
     XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO, nullptr};
-    viewLocateInfo.viewConfigurationType = m_ActiveViewConfiguration;
+    viewLocateInfo.viewConfigurationType = OpenXRDisplayMgr::m_ActiveViewConfiguration;
     viewLocateInfo.displayTime = renderLayerInfo.predictedDisplayTime;
     viewLocateInfo.space = m_ActiveSpaces;
     uint32_t viewCount = 0;
@@ -336,11 +112,11 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
     for (uint32_t i = 0; i < viewCount; ++i)
     {
         uint32_t colorImageIndex = 0;
-        SwapchainInfo& colorSwapchainInfo = m_ColorSwapchainInfos[i];
+        SwapchainInfo& colorSwapchainInfo = OpenXRDisplayMgr::m_ColorSwapchainInfos[i];
         OPENXR_CHECK(xrAcquireSwapchainImage(colorSwapchainInfo.swapchain, nullptr, &colorImageIndex), "Failed to acquire color swapchain image");
 
         uint32_t depthImageIndex = 0;
-        SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[i];
+        SwapchainInfo& depthSwapchainInfo = OpenXRDisplayMgr::m_DepthSwapchainInfos[i];
         OPENXR_CHECK(xrAcquireSwapchainImage(depthSwapchainInfo.swapchain, nullptr, &depthImageIndex), "Failed to acquire depth swapchain image");
 
         XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO, nullptr};
@@ -348,8 +124,8 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         OPENXR_CHECK(xrWaitSwapchainImage(colorSwapchainInfo.swapchain, &waitInfo), "Failed to wait for color swapchain image");
         OPENXR_CHECK(xrWaitSwapchainImage(depthSwapchainInfo.swapchain, &waitInfo), "Failed to wait for depth swapchain image");
 
-        const uint32_t& width = m_ActiveViewConfigurationViews[i].recommendedImageRectWidth;
-        const uint32_t& height = m_ActiveViewConfigurationViews[i].recommendedImageRectHeight;
+        const uint32_t& width = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[i].recommendedImageRectWidth;
+        const uint32_t& height = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[i].recommendedImageRectHeight;
         GraphicsAPI::Viewport viewport = {0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f};
         GraphicsAPI::Rect2D scissor = {{0, 0}, {width, height}};
         float nearZ = 0.05f;
@@ -370,15 +146,15 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         OpenXRCoreMgr::graphicsAPI->BeginRendering();
 
         // Clear
-        if (m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
+        if (OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
         {
             OpenXRCoreMgr::graphicsAPI->ClearColor(colorSwapchainInfo.imageViews[colorImageIndex], 0.17f, 0.17f, 0.17f, 1.00f);
         }
         OpenXRCoreMgr::graphicsAPI->ClearDepth(depthSwapchainInfo.imageViews[depthImageIndex], 1.0f);
 
         OpenXRCoreMgr::graphicsAPI->SetRenderAttachments(&colorSwapchainInfo.imageViews[colorImageIndex], 1,
-                                                           depthSwapchainInfo.imageViews[depthImageIndex], width,
-                                                           height, m_pipeline);
+                                                         depthSwapchainInfo.imageViews[depthImageIndex], width,
+                                                         height, m_pipeline);
         OpenXRCoreMgr::graphicsAPI->SetViewports(&viewport, 1);
         OpenXRCoreMgr::graphicsAPI->SetScissors(&scissor, 1);
 
@@ -450,12 +226,12 @@ void OpenXRTutorial::CreateResources()
         {GraphicsAPI::BufferCreateInfo::Type::VERTEX, sizeof(float) * 4, sizeof(cubeVertices), &cubeVertices});
 
     m_indexBuffer = OpenXRCoreMgr::graphicsAPI->CreateBuffer({GraphicsAPI::BufferCreateInfo::Type::INDEX, sizeof(uint32_t), sizeof(cubeIndices),
-                                                                &cubeIndices});
+                                                              &cubeIndices});
 
     size_t numberOfCuboids = 2;
     m_uniformBuffer_Camera = OpenXRCoreMgr::graphicsAPI->CreateBuffer({GraphicsAPI::BufferCreateInfo::Type::UNIFORM, 0,
-                                                                         sizeof(CuboidConstants) * numberOfCuboids,
-                                                                         nullptr});
+                                                                       sizeof(CuboidConstants) * numberOfCuboids,
+                                                                       nullptr});
     m_uniformBuffer_Normals = OpenXRCoreMgr::graphicsAPI->
         CreateBuffer({GraphicsAPI::BufferCreateInfo::Type::UNIFORM, 0, sizeof(normals), &normals});
 
@@ -471,11 +247,11 @@ void OpenXRTutorial::CreateResources()
     {
         std::vector<char> vertexSource = ReadBinaryFile("VertexShader.spv");
         m_vertexShader = OpenXRCoreMgr::graphicsAPI->CreateShader({GraphicsAPI::ShaderCreateInfo::Type::VERTEX, vertexSource.data(),
-                                                                     vertexSource.size()});
+                                                                   vertexSource.size()});
 
         std::vector<char> fragmentSource = ReadBinaryFile("PixelShader.spv");
         m_fragmentShader = OpenXRCoreMgr::graphicsAPI->CreateShader({GraphicsAPI::ShaderCreateInfo::Type::FRAGMENT, fragmentSource.data(),
-                                                                       fragmentSource.size()});
+                                                                     fragmentSource.size()});
     }
 #endif
 
@@ -491,8 +267,8 @@ void OpenXRTutorial::CreateResources()
     pipelineCreateInfo.colorBlendState = {false, GraphicsAPI::LogicOp::NO_OP,
                                           {{true, GraphicsAPI::BlendFactor::SRC_ALPHA, GraphicsAPI::BlendFactor::ONE_MINUS_SRC_ALPHA, GraphicsAPI::BlendOp::ADD, GraphicsAPI::BlendFactor::ONE, GraphicsAPI::BlendFactor::ZERO, GraphicsAPI::BlendOp::ADD, (GraphicsAPI::ColorComponentBit)15}},
                                           {0.0f, 0.0f, 0.0f, 0.0f}};
-    pipelineCreateInfo.colorFormats = {m_ColorSwapchainInfos[0].swapchainFormat};
-    pipelineCreateInfo.depthFormat = m_DepthSwapchainInfos[0].swapchainFormat;
+    pipelineCreateInfo.colorFormats = {OpenXRDisplayMgr::m_ColorSwapchainInfos[0].swapchainFormat};
+    pipelineCreateInfo.depthFormat = OpenXRDisplayMgr::m_DepthSwapchainInfos[0].swapchainFormat;
     pipelineCreateInfo.layout = {{0, nullptr, GraphicsAPI::DescriptorInfo::Type::BUFFER, GraphicsAPI::DescriptorInfo::Stage::VERTEX},
                                  {1, nullptr, GraphicsAPI::DescriptorInfo::Type::BUFFER, GraphicsAPI::DescriptorInfo::Stage::VERTEX},
                                  {2, nullptr, GraphicsAPI::DescriptorInfo::Type::BUFFER, GraphicsAPI::DescriptorInfo::Stage::FRAGMENT}};
@@ -512,11 +288,11 @@ void OpenXRTutorial::RenderCuboid(XrPosef pose, XrVector3f scale, XrVector3f col
 
     OpenXRCoreMgr::graphicsAPI->SetBufferData(m_uniformBuffer_Camera, offsetCameraUB, sizeof(CuboidConstants), &cuboidsConstants);
     OpenXRCoreMgr::graphicsAPI->SetDescriptor({0, m_uniformBuffer_Camera, GraphicsAPI::DescriptorInfo::Type::BUFFER,
-                                                 GraphicsAPI::DescriptorInfo::Stage::VERTEX,
-                                                 false, offsetCameraUB, sizeof(CuboidConstants)});
+                                               GraphicsAPI::DescriptorInfo::Stage::VERTEX,
+                                               false, offsetCameraUB, sizeof(CuboidConstants)});
     OpenXRCoreMgr::graphicsAPI->SetDescriptor({1, m_uniformBuffer_Normals, GraphicsAPI::DescriptorInfo::Type::BUFFER,
-                                                 GraphicsAPI::DescriptorInfo::Stage::VERTEX,
-                                                 false, 0, sizeof(normals)});
+                                               GraphicsAPI::DescriptorInfo::Stage::VERTEX,
+                                               false, 0, sizeof(normals)});
 
     OpenXRCoreMgr::graphicsAPI->UpdateDescriptors();
 
@@ -543,3 +319,4 @@ void OpenXRTutorial::DestroyReferenceSpace()
 {
     OPENXR_CHECK(xrDestroySpace(m_ActiveSpaces), "Failed to destroy Space.")
 }
+

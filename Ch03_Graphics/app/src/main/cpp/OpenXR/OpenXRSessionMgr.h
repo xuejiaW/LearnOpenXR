@@ -4,6 +4,7 @@
 class OpenXRSessionMgr
 {
 public:
+    static void PollEvent();
     static void OnSessionChanged(XrEventDataSessionStateChanged* sessionStateChanged);
     static bool IsSessionActive();
     static bool IsSessionRunning();
@@ -14,3 +15,4 @@ private:
     static XrSessionState m_SessionState;
     static bool m_sessionRunning;
 };
+

@@ -8,6 +8,35 @@ XrSessionState OpenXRSessionMgr::m_SessionState = XR_SESSION_STATE_UNKNOWN;
 bool OpenXRSessionMgr::m_sessionRunning = false;
 bool OpenXRSessionMgr::applicationRunning = true;
 
+void OpenXRSessionMgr::PollEvent()
+{
+    XrEventDataBuffer eventDataBuffer{XR_TYPE_EVENT_DATA_BUFFER};
+
+    auto XrPollEvent = [&]() -> bool
+    {
+        eventDataBuffer = {XR_TYPE_EVENT_DATA_BUFFER};
+        return xrPollEvent(OpenXRCoreMgr::m_xrInstance, &eventDataBuffer) == XR_SUCCESS;
+    };
+
+    while (XrPollEvent())
+    {
+        switch (eventDataBuffer.type)
+        {
+            case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+            {
+                auto* sessionStateChanged = reinterpret_cast<XrEventDataSessionStateChanged*>(&eventDataBuffer);
+                OnSessionChanged(sessionStateChanged);
+                break;
+            }
+            default:
+            {
+                XR_TUT_LOG("OpenXR event data type: " << eventDataBuffer.type);
+                break;
+            }
+        }
+    }
+}
+
 void OpenXRSessionMgr::OnSessionChanged(XrEventDataSessionStateChanged* sessionStateChanged)
 {
 
@@ -49,3 +78,4 @@ bool OpenXRSessionMgr::IsSessionRunning()
 {
     return m_sessionRunning;
 }
+
