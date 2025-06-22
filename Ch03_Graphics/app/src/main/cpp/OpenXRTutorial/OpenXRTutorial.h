@@ -118,7 +118,11 @@ private:
     std::vector<SwapchainInfo> m_DepthSwapchainInfos = {};
 
 
-    XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
+    // XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
+    // bool m_sessionRunning = false;
+    //
+    // bool m_applicationRunning = true;
+
 
     std::vector<XrEnvironmentBlendMode> m_ExpectedEnvironmentBlendModes = {XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
     std::vector<XrEnvironmentBlendMode> m_AvailableEnvironmentBlendModes = {};
@@ -126,6 +130,4 @@ private:
 
     XrSpace m_ActiveSpaces = XR_NULL_HANDLE;
 
-    bool m_applicationRunning = true;
-    bool m_sessionRunning = false;
 };

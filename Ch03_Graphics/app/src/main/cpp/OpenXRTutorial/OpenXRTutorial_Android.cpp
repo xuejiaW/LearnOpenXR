@@ -2,6 +2,7 @@
 #include <DebugOutput.h> // For XR_TUTORIAL_GRAPHICS_API
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h> // For XrLoaderInitInfoAndroidKHR
+#include "../OpenXR/OpenXRSessionMgr.h"
 
 #if defined(__ANDROID__)
 android_app *OpenXRTutorial::androidApp = nullptr;
@@ -42,13 +43,13 @@ void OpenXRTutorial::AndroidAppHandleCmd(struct android_app *app, int32_t cmd) {
 
 void OpenXRTutorial::PollSystemEvents() {
     if (androidApp->destroyRequested != 0) {
-        m_applicationRunning = false;
+        OpenXRSessionMgr::applicationRunning = false;
         return;
     }
     while (true) {
         struct android_poll_source *source = nullptr;
         int events = 0;
-        const int timeoutMilliseconds = (!androidAppState.resumed && !m_sessionRunning && androidApp->destroyRequested == 0) ? -1 : 0;
+        const int timeoutMilliseconds = (!androidAppState.resumed && !OpenXRSessionMgr::IsSessionRunning() && androidApp->destroyRequested == 0) ? -1 : 0;
         if (ALooper_pollOnce(timeoutMilliseconds, nullptr, &events, (void **)&source) >= 0) {
             if (source != nullptr) {
                 source->process(androidApp, source);

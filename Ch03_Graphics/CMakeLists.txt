@@ -49,6 +49,7 @@ set(SOURCES
     ../Common/OpenXRDebugUtils.cpp
     app/src/main/cpp/main.cpp
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.cpp
+    app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
@@ -65,6 +66,7 @@ set(HEADERS
     ../Common/OpenXRDebugUtils.h
     ../Common/OpenXRHelper.h
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
+    app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
 )
 
