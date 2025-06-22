@@ -18,13 +18,13 @@ void OpenXRSessionMgr::OnSessionChanged(XrEventDataSessionStateChanged* sessionS
     {
         XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
         sessionBeginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-        OPENXR_CHECK(xrBeginSession(OpenXRCoreMgr::OpenXRCoreMgr::m_xrSession, &sessionBeginInfo), "Failed to begin OpenXR session");
+        OPENXR_CHECK(xrBeginSession(OpenXRCoreMgr::OpenXRCoreMgr::xrSession, &sessionBeginInfo), "Failed to begin OpenXR session");
         XR_TUT_LOG("OpenXR session started successfully");
         m_sessionRunning = true;
     }
     else if (m_SessionState == XR_SESSION_STATE_STOPPING)
     {
-        OPENXR_CHECK(xrEndSession(OpenXRCoreMgr::m_xrSession), "Failed to end OpenXR session");
+        OPENXR_CHECK(xrEndSession(OpenXRCoreMgr::xrSession), "Failed to end OpenXR session");
         m_sessionRunning = false;
     }
     else if (m_SessionState == XR_SESSION_STATE_EXITING)

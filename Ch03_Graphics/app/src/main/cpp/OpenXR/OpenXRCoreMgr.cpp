@@ -9,9 +9,9 @@
 #include "../OpenXRTutorial/OpenXRTutorial.h"
 
 XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
-XrSession OpenXRCoreMgr::m_xrSession = XR_NULL_HANDLE;
-XrSystemId OpenXRCoreMgr::m_SystemID = XR_NULL_SYSTEM_ID;
-std::unique_ptr<GraphicsAPI> OpenXRCoreMgr:: m_GraphicsAPI = nullptr;
+XrSession OpenXRCoreMgr::xrSession = XR_NULL_HANDLE;
+XrSystemId OpenXRCoreMgr::systemID = XR_NULL_SYSTEM_ID;
+std::unique_ptr<GraphicsAPI> OpenXRCoreMgr:: graphicsAPI = nullptr;
 
 std::vector<std::string> OpenXRCoreMgr::m_RequestApiLayers{};
 std::vector<const char*> OpenXRCoreMgr::m_ActiveApiLayers{};
@@ -63,30 +63,30 @@ void OpenXRCoreMgr::GetSystemID()
     XrSystemGetInfo systemGetInfo{XR_TYPE_SYSTEM_GET_INFO};
     systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
-    OPENXR_CHECK(xrGetSystem(m_xrInstance, &systemGetInfo, &m_SystemID), "Failed to get OpenXR system ID");
-    XR_TUT_LOG("OpenXR System ID: " << m_SystemID);
+    OPENXR_CHECK(xrGetSystem(m_xrInstance, &systemGetInfo, &systemID), "Failed to get OpenXR system ID");
+    XR_TUT_LOG("OpenXR System ID: " << systemID);
 
     XrSystemProperties m_systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
-    OPENXR_CHECK(xrGetSystemProperties(m_xrInstance, m_SystemID, &m_systemProperties), "Failed to get OpenXR system properties");
+    OPENXR_CHECK(xrGetSystemProperties(m_xrInstance, systemID, &m_systemProperties), "Failed to get OpenXR system properties");
 }
 
 void OpenXRCoreMgr::CreateSession()
 {
     XrSessionCreateInfo sessionCreateInfo{XR_TYPE_SESSION_CREATE_INFO};
-    m_GraphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(m_xrInstance, m_SystemID);
-    sessionCreateInfo.next = m_GraphicsAPI->GetGraphicsBinding();
+    graphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(m_xrInstance, systemID);
+    sessionCreateInfo.next = graphicsAPI->GetGraphicsBinding();
     sessionCreateInfo.createFlags = 0;  // There are currently no session creation flag bits defined. This is reserved for future use.
-    sessionCreateInfo.systemId = m_SystemID;
+    sessionCreateInfo.systemId = systemID;
 
-    OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &m_xrSession), "Failed to create OpenXR session");
+    OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &xrSession), "Failed to create OpenXR session");
 }
 
 void OpenXRCoreMgr::DestroySession()
 {
-    if (m_xrSession != XR_NULL_HANDLE)
+    if (xrSession != XR_NULL_HANDLE)
     {
-        OPENXR_CHECK(xrDestroySession(m_xrSession), "Failed to destroy OpenXR session");
-        m_xrSession = XR_NULL_HANDLE;
+        OPENXR_CHECK(xrDestroySession(xrSession), "Failed to destroy OpenXR session");
+        xrSession = XR_NULL_HANDLE;
     }
 }
 

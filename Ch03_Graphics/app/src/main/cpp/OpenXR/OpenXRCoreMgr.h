@@ -20,9 +20,9 @@ public:
     static void GetInstanceProperties();
 
     static XrInstance m_xrInstance;
-    static XrSystemId m_SystemID;
-    static XrSession m_xrSession;
-    static std::unique_ptr<GraphicsAPI> m_GraphicsAPI;
+    static XrSystemId systemID;
+    static XrSession xrSession;
+    static std::unique_ptr<GraphicsAPI> graphicsAPI;
 
 private:
     static void ActiveAvailableApiLayers();
