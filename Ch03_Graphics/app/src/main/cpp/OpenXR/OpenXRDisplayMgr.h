@@ -12,8 +12,6 @@ public:
     static void CreateSwapchains();
     static void DestroySwapchains();
 
-    static void ReleaseSwapChainImage();
-
     static XrViewConfigurationType m_ActiveViewConfiguration;
     static XrEnvironmentBlendMode m_ActiveEnvironmentBlendMode;
     static std::vector<SwapchainInfo> m_ColorSwapchainInfos;

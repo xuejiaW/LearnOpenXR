@@ -3,18 +3,24 @@
 #include "DebugOutput.h"
 #include "OpenXRHelper.h"
 #include "OpenXRCoreMgr.h"
+#include "OpenXRDisplayMgr.h"
+#include "OpenXRDisplay/RenderLayerInfo.h"
 
 XrSessionState OpenXRSessionMgr::m_SessionState = XR_SESSION_STATE_UNKNOWN;
 bool OpenXRSessionMgr::m_sessionRunning = false;
 bool OpenXRSessionMgr::applicationRunning = true;
+XrFrameState OpenXRSessionMgr::frameState{};
+
 
 void OpenXRSessionMgr::PollEvent()
 {
-    XrEventDataBuffer eventDataBuffer{XR_TYPE_EVENT_DATA_BUFFER};
+    XrEventDataBuffer eventDataBuffer{};
+    eventDataBuffer.type = XR_TYPE_EVENT_DATA_BUFFER;
 
     auto XrPollEvent = [&]() -> bool
     {
-        eventDataBuffer = {XR_TYPE_EVENT_DATA_BUFFER};
+        eventDataBuffer = {};
+        eventDataBuffer.type = XR_TYPE_EVENT_DATA_BUFFER;
         return xrPollEvent(OpenXRCoreMgr::m_xrInstance, &eventDataBuffer) == XR_SUCCESS;
     };
 
@@ -37,7 +43,7 @@ void OpenXRSessionMgr::PollEvent()
     }
 }
 
-void OpenXRSessionMgr::OnSessionChanged(XrEventDataSessionStateChanged* sessionStateChanged)
+void OpenXRSessionMgr::OnSessionChanged(const XrEventDataSessionStateChanged* sessionStateChanged)
 {
 
     m_SessionState = sessionStateChanged->state;
@@ -45,7 +51,8 @@ void OpenXRSessionMgr::OnSessionChanged(XrEventDataSessionStateChanged* sessionS
 
     if (m_SessionState == XR_SESSION_STATE_READY)
     {
-        XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
+        XrSessionBeginInfo sessionBeginInfo{};
+        sessionBeginInfo.type = XR_TYPE_SESSION_BEGIN_INFO;
         sessionBeginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
         OPENXR_CHECK(xrBeginSession(OpenXRCoreMgr::OpenXRCoreMgr::xrSession, &sessionBeginInfo), "Failed to begin OpenXR session");
         XR_TUT_LOG("OpenXR session started successfully");
@@ -56,12 +63,7 @@ void OpenXRSessionMgr::OnSessionChanged(XrEventDataSessionStateChanged* sessionS
         OPENXR_CHECK(xrEndSession(OpenXRCoreMgr::xrSession), "Failed to end OpenXR session");
         m_sessionRunning = false;
     }
-    else if (m_SessionState == XR_SESSION_STATE_EXITING)
-    {
-        m_sessionRunning = false;
-        applicationRunning = false;
-    }
-    else if (m_SessionState == XR_SESSION_STATE_LOSS_PENDING)
+    else if (m_SessionState == XR_SESSION_STATE_EXITING || m_SessionState == XR_SESSION_STATE_LOSS_PENDING)
     {
         m_sessionRunning = false;
         applicationRunning = false;
@@ -79,3 +81,33 @@ bool OpenXRSessionMgr::IsSessionRunning()
     return m_sessionRunning;
 }
 
+bool OpenXRSessionMgr::ShouldRender()
+{
+    return frameState.shouldRender && IsSessionActive();
+}
+
+void OpenXRSessionMgr::WaitFrame()
+{
+    frameState.type = XR_TYPE_FRAME_STATE;
+    frameState.next = nullptr;
+    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO, nullptr};
+    OPENXR_CHECK(xrWaitFrame(OpenXRCoreMgr::xrSession, &frameWaitInfo, &frameState), "Failed to wait for OpenXR frame");
+}
+
+void OpenXRSessionMgr::BeginFrame()
+{
+    XrFrameBeginInfo frameBeginInfo{};
+    frameBeginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
+    OPENXR_CHECK(xrBeginFrame(OpenXRCoreMgr::xrSession, &frameBeginInfo), "Failed to begin OpenXR frame");
+}
+
+void OpenXRSessionMgr::EndFrame(const RenderLayerInfo& renderLayerInfo)
+{
+    XrFrameEndInfo frameEndInfo{};
+    frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
+    frameEndInfo.displayTime = frameState.predictedDisplayTime;
+    frameEndInfo.environmentBlendMode = OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode;
+    frameEndInfo.layerCount = static_cast<uint32_t>(renderLayerInfo.layers.size());
+    frameEndInfo.layers = renderLayerInfo.layers.data();
+    OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
+}

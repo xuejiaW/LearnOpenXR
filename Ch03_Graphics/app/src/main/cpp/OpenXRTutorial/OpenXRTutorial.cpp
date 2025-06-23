@@ -51,19 +51,15 @@ void OpenXRTutorial::Run()
 
 void OpenXRTutorial::RenderFrame()
 {
-    XrFrameState frameState{XR_TYPE_FRAME_STATE, nullptr};
-    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO, nullptr};
-    OPENXR_CHECK(xrWaitFrame(OpenXRCoreMgr::xrSession, &frameWaitInfo, &frameState), "Failed to wait for OpenXR frame");
-
-    XrFrameBeginInfo frameBeginInfo{XR_TYPE_FRAME_BEGIN_INFO};
-    OPENXR_CHECK(xrBeginFrame(OpenXRCoreMgr::xrSession, &frameBeginInfo), "Failed to begin the XR Frame.");
+    OpenXRSessionMgr::WaitFrame();
+    OpenXRSessionMgr::BeginFrame();
 
     // Variables for rendering and layer composition.
     RenderLayerInfo renderLayerInfo{}; // Create new RenderLayerInfo every frame
-    renderLayerInfo.predictedDisplayTime = frameState.predictedDisplayTime;
+    renderLayerInfo.predictedDisplayTime = OpenXRSessionMgr::frameState.predictedDisplayTime;
 
-    bool sessionActive = OpenXRSessionMgr::IsSessionActive();
-    if (sessionActive && frameState.shouldRender)
+    // bool sessionActive = OpenXRSessionMgr::IsSessionActive();
+    if (OpenXRSessionMgr::ShouldRender())
     {
         // Render the stereo image and associate one of swapchain images with the XrCompositionLayerProjection structure.
         bool rendered = RenderLayer(renderLayerInfo);
@@ -73,12 +69,7 @@ void OpenXRTutorial::RenderFrame()
         }
     }
 
-    XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
-    frameEndInfo.displayTime = frameState.predictedDisplayTime;
-    frameEndInfo.environmentBlendMode = OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode;
-    frameEndInfo.layerCount = static_cast<uint32_t>(renderLayerInfo.layers.size());
-    frameEndInfo.layers = renderLayerInfo.layers.data();
-    OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
+    OpenXRSessionMgr::EndFrame(renderLayerInfo);
 }
 
 bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
