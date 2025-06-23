@@ -19,10 +19,15 @@ public:
 
     static void GetInstanceProperties();
 
+    static void CreateReferenceSpaces();
+    static void DestroyReferenceSpace();
+
     static XrInstance m_xrInstance;
     static XrSystemId systemID;
     static XrSession xrSession;
     static std::unique_ptr<GraphicsAPI> graphicsAPI;
+
+    static XrSpace m_ActiveSpaces;
 
 private:
     static void ActiveAvailableApiLayers();

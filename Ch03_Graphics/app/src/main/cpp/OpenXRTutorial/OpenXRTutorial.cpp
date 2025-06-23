@@ -28,7 +28,7 @@ void OpenXRTutorial::Run()
     OpenXRDisplayMgr::GetViewConfigurationViews();
     OpenXRDisplayMgr::CreateSwapchains();
     OpenXRDisplayMgr::GetEnvironmentBlendModes();
-    CreateReferenceSpaces();
+    OpenXRCoreMgr::CreateReferenceSpaces();
     CreateResources();
 
     while (OpenXRSessionMgr::applicationRunning)
@@ -42,20 +42,11 @@ void OpenXRTutorial::Run()
     }
 
     DestroyResources();
-    DestroyReferenceSpace();
+    OpenXRCoreMgr::DestroyReferenceSpace();
     OpenXRDisplayMgr::DestroySwapchains();
     OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyDebugMessenger();
     OpenXRCoreMgr::DestroyInstance();
-}
-
-void OpenXRTutorial::CreateReferenceSpaces()
-{
-    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO, nullptr};
-    referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-    referenceSpaceCreateInfo.poseInReferenceSpace = XrPosef{{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
-    OPENXR_CHECK(xrCreateReferenceSpace(OpenXRCoreMgr::xrSession, &referenceSpaceCreateInfo, &m_ActiveSpaces),
-                 "Failed to create OpenXR local reference space");
 }
 
 void OpenXRTutorial::RenderFrame()
@@ -98,7 +89,7 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
     XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO, nullptr};
     viewLocateInfo.viewConfigurationType = OpenXRDisplayMgr::m_ActiveViewConfiguration;
     viewLocateInfo.displayTime = renderLayerInfo.predictedDisplayTime;
-    viewLocateInfo.space = m_ActiveSpaces;
+    viewLocateInfo.space = OpenXRCoreMgr::m_ActiveSpaces;
     uint32_t viewCount = 0;
     XrResult result = xrLocateViews(OpenXRCoreMgr::xrSession, &viewLocateInfo, &viewState, static_cast<uint32_t>(views.size()), &viewCount,
                                     views.data());
@@ -184,7 +175,7 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
     }
     renderLayerInfo.projectionLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT |
                                                  XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-    renderLayerInfo.projectionLayer.space = m_ActiveSpaces;
+    renderLayerInfo.projectionLayer.space = OpenXRCoreMgr::m_ActiveSpaces;
     renderLayerInfo.projectionLayer.viewCount = static_cast<uint32_t>(renderLayerInfo.layerProjectionViews.size());
     renderLayerInfo.projectionLayer.views = renderLayerInfo.layerProjectionViews.data();
 
@@ -313,10 +304,4 @@ void OpenXRTutorial::DestroyResources()
     OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_uniformBuffer_Normals);
     OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_indexBuffer);
     OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_vertexBuffer);
-}
-
-
-void OpenXRTutorial::DestroyReferenceSpace()
-{
-    OPENXR_CHECK(xrDestroySpace(m_ActiveSpaces), "Failed to destroy Space.");
 }

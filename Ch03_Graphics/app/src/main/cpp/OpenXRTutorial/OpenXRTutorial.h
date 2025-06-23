@@ -60,8 +60,6 @@ private:
 
     void PollSystemEvents();
 
-    void CreateReferenceSpaces();
-    void DestroyReferenceSpace();
 
     void RenderFrame();
     bool RenderLayer(RenderLayerInfo& renderLayerInfo);
@@ -86,7 +84,6 @@ private:
     // The pipeline is a graphics-API specific state object.
     void* m_pipeline = nullptr;
 
-    XrSpace m_ActiveSpaces = XR_NULL_HANDLE;
 
 };
 

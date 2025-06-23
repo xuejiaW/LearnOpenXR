@@ -12,6 +12,7 @@ XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
 XrSession OpenXRCoreMgr::xrSession = XR_NULL_HANDLE;
 XrSystemId OpenXRCoreMgr::systemID = XR_NULL_SYSTEM_ID;
 std::unique_ptr<GraphicsAPI> OpenXRCoreMgr::graphicsAPI = nullptr;
+XrSpace OpenXRCoreMgr::m_ActiveSpaces = XR_NULL_HANDLE;
 
 std::vector<std::string> OpenXRCoreMgr::m_RequestApiLayers{};
 std::vector<const char*> OpenXRCoreMgr::m_ActiveApiLayers{};
@@ -152,4 +153,18 @@ void OpenXRCoreMgr::GetInstanceProperties()
     XR_TUT_LOG("OpenXR Runtime: " << instanceProperties.runtimeName << " - " << XR_VERSION_MAJOR(instanceProperties.runtimeVersion) << "."
         << XR_VERSION_MINOR(instanceProperties.runtimeVersion) << "."
         << XR_VERSION_PATCH(instanceProperties.runtimeVersion));
+}
+
+void OpenXRCoreMgr::CreateReferenceSpaces()
+{
+    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO, nullptr};
+    referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
+    referenceSpaceCreateInfo.poseInReferenceSpace = XrPosef{{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
+    OPENXR_CHECK(xrCreateReferenceSpace(OpenXRCoreMgr::xrSession, &referenceSpaceCreateInfo, &m_ActiveSpaces),
+                 "Failed to create OpenXR local reference space");
+}
+
+void OpenXRCoreMgr::DestroyReferenceSpace()
+{
+    OPENXR_CHECK(xrDestroySpace(m_ActiveSpaces), "Failed to destroy Space.");
 }
