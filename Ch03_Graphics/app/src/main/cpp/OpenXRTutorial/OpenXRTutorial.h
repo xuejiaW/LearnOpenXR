@@ -4,6 +4,7 @@
 #include <xr_linear_algebra.h>
 #include <openxr/openxr.h>
 #include "../OpenXR/OpenXRDisplay/RenderLayerInfo.h"
+#include "TableFloorScene.h"
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -34,56 +35,14 @@ public:
 #endif
 
 private:
-
-    // Data used to render a cuboid
-    struct CuboidConstants
-    {
-        XrMatrix4x4f viewProj;
-        XrMatrix4x4f modelViewProj;
-        XrMatrix4x4f model;
-        XrVector4f color;
-        XrVector4f pad1;
-        XrVector4f pad2;
-        XrVector4f pad3;
-    };
-
-    // Reused for every draw
-    CuboidConstants cuboidsConstants;
-
-    XrVector4f normals[6] = {
-        {1.00f, 0.00f, 0.00f, 0},
-        {-1.00f, 0.00f, 0.00f, 0},
-        {0.00f, 1.00f, 0.00f, 0},
-        {0.00f, -1.00f, 0.00f, 0},
-        {0.00f, 0.00f, 1.00f, 0},
-        {0.00f, 0.0f, -1.00f, 0}};
-
     void PollSystemEvents();
-
-
     void RenderFrame();
     bool RenderLayer(RenderLayerInfo& renderLayerInfo);
 
-    void CreateResources();
-    void RenderCuboid(XrPosef pose, XrVector3f scale, XrVector3f color);
-    void DestroyResources();
-
+    // 场景相关
     float m_viewHeightM = 1.5f;
-
-    // Vertex and index buffers: geometry for our cuboids.
-    void* m_vertexBuffer = nullptr;
-    void* m_indexBuffer = nullptr;
-    // Camera values constant buffer for the shaders.
-    void* m_uniformBuffer_Camera = nullptr;
-    // The normals are stored in a uniform buffer to simplify our vertex geometry.
-    void* m_uniformBuffer_Normals = nullptr;
-
-    // We use only two shaders in this app.
-    void *m_vertexShader = nullptr, *m_fragmentShader = nullptr;
-
-    // The pipeline is a graphics-API specific state object.
-    void* m_pipeline = nullptr;
-
-
+    
+    // 场景渲染器
+    TableFloorScene* m_scene = nullptr;
 };
 
