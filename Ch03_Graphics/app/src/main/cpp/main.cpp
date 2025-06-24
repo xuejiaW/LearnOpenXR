@@ -14,12 +14,9 @@ static void OpenXRTutorial_Main(GraphicsAPI_Type apiType)
 
 #if defined(__ANDROID__)
 void android_main(struct android_app *app) {
-    JNIEnv *env;
-    app->activity->vm->AttachCurrentThread(&env, nullptr);
+    JNIEnv *env;    app->activity->vm->AttachCurrentThread(&env, nullptr);
 
-    // It's good practice to ensure OpenXR loader is initialized for Android.
     PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR = nullptr;
-    // Using XR_NULL_HANDLE for the first parameter as we don't have an instance yet.
     if (XR_FAILED(xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction *)&xrInitializeLoaderKHR))) {
         XR_TUT_LOG_ERROR("Failed to get xrInitializeLoaderKHR function pointer.");
         return;
@@ -39,14 +36,13 @@ void android_main(struct android_app *app) {
 
     app->userData = &OpenXRTutorial::androidAppState;
     app->onAppCmd = OpenXRTutorial::AndroidAppHandleCmd;
-
     OpenXRTutorial::androidApp = app;
-    OpenXRTutorial_Main(XR_TUTORIAL_GRAPHICS_API); // XR_TUTORIAL_GRAPHICS_API defined by cmake
+    OpenXRTutorial_Main(XR_TUTORIAL_GRAPHICS_API);
 }
 #else
 int main(int argc, char** argv)
 {
-    OpenXRTutorial_Main(XR_TUTORIAL_GRAPHICS_API); // XR_TUTORIAL_GRAPHICS_API defined by cmake
+    OpenXRTutorial_Main(XR_TUTORIAL_GRAPHICS_API);
     return 0;
 }
 #endif

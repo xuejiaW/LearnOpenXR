@@ -6,7 +6,6 @@
 #include "../OpenXR/OpenXRCoreMgr.h"
 
 #if defined(__ANDROID__)
-// Android implementation
 std::vector<char> ReadBinaryFile(const char* filename, AAssetManager* assetManager)
 {
     AAsset* asset = AAssetManager_open(assetManager, filename, AASSET_MODE_BUFFER);
@@ -50,7 +49,6 @@ SceneRenderer::~SceneRenderer()
 std::vector<char> SceneRenderer::ReadShaderFile(const std::string& filename)
 {
 #if defined(__ANDROID__)
-    // Android 平台读取着色器
     if (OpenXRTutorial::androidApp != nullptr && 
         OpenXRTutorial::androidApp->activity != nullptr && 
         OpenXRTutorial::androidApp->activity->assetManager != nullptr) {
@@ -75,5 +73,11 @@ void* SceneRenderer::CreateShaderFromFile(const std::string& filename, GraphicsA
     {
         return nullptr;
     }
-    return OpenXRCoreMgr::graphicsAPI->CreateShader({shaderType, shaderSource.data(), shaderSource.size()});
+
+    GraphicsAPI::ShaderCreateInfo shaderCreateInfo;
+    shaderCreateInfo.type = shaderType;
+    shaderCreateInfo.sourceData = shaderSource.data();
+    shaderCreateInfo.sourceSize = shaderSource.size();
+
+    return OpenXRCoreMgr::graphicsAPI->CreateShader(shaderCreateInfo);
 }
