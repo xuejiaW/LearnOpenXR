@@ -12,17 +12,18 @@ public:
     static void CreateSwapchains();
     static void DestroySwapchains();
 
+    static int RefreshViewsData();
+
     static XrViewConfigurationType m_ActiveViewConfiguration;
     static XrEnvironmentBlendMode m_ActiveEnvironmentBlendMode;
     static std::vector<SwapchainInfo> m_ColorSwapchainInfos;
     static std::vector<SwapchainInfo> m_DepthSwapchainInfos;
     static std::vector<XrViewConfigurationView> m_ActiveViewConfigurationViews;
+    static std::vector<XrView> views;
 
 private:
-
     static std::vector<XrViewConfigurationType> m_ExpectedViewConfiguration;
     static std::vector<XrViewConfigurationType> m_AvailableViewConfigurations;
     static std::vector<XrEnvironmentBlendMode> m_ExpectedEnvironmentBlendModes;
     static std::vector<XrEnvironmentBlendMode> m_AvailableEnvironmentBlendModes;
 };
-

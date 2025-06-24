@@ -3,6 +3,7 @@
 #include "DebugOutput.h"
 #include "OpenXRCoreMgr.h"
 #include "OpenXRHelper.h"
+#include "OpenXRSessionMgr.h"
 
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_ColorSwapchainInfos = {};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_DepthSwapchainInfos = {};
@@ -15,6 +16,8 @@ std::vector<XrViewConfigurationView> OpenXRDisplayMgr::m_ActiveViewConfiguration
 XrEnvironmentBlendMode OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM;
 std::vector<XrEnvironmentBlendMode> OpenXRDisplayMgr::m_ExpectedEnvironmentBlendModes = {XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
 std::vector<XrEnvironmentBlendMode> OpenXRDisplayMgr::m_AvailableEnvironmentBlendModes = {};
+
+std::vector<XrView> OpenXRDisplayMgr::views = {};
 
 void OpenXRDisplayMgr::GetViewConfigurationViews()
 {
@@ -44,7 +47,9 @@ void OpenXRDisplayMgr::GetViewConfigurationViews()
             viewConfigurationViewsCount, nullptr),
         "Failed to enumerate OpenXR view configuration views");
 
-    m_ActiveViewConfigurationViews.resize(viewConfigurationViewsCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+    XrViewConfigurationView templateConfigurationView{};
+    templateConfigurationView.type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
+    m_ActiveViewConfigurationViews.resize(viewConfigurationViewsCount, templateConfigurationView);
     OPENXR_CHECK(
         xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration,
             viewConfigurationViewsCount,
@@ -116,7 +121,8 @@ void OpenXRDisplayMgr::CreateSwapchains()
         SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[i];
         const XrViewConfigurationView& viewConfigView = m_ActiveViewConfigurationViews[i];
 
-        XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+        XrSwapchainCreateInfo swapchainCreateInfo{};
+        swapchainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
         swapchainCreateInfo.createFlags = 0;
         swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
         swapchainCreateInfo.format = OpenXRCoreMgr::graphicsAPI->SelectColorSwapchainFormat(swapchainFormats);
@@ -212,3 +218,24 @@ void OpenXRDisplayMgr::DestroySwapchains()
     }
 }
 
+int OpenXRDisplayMgr::RefreshViewsData()
+{
+    XrView viewTemplate{};
+    viewTemplate.type = XR_TYPE_VIEW;
+
+    views.resize(m_ActiveViewConfigurationViews.size(), viewTemplate);
+
+    XrViewState viewState{};
+    viewState.type = XR_TYPE_VIEW_STATE;
+    XrViewLocateInfo viewLocateInfo{};
+    viewLocateInfo.type = XR_TYPE_VIEW_LOCATE_INFO;
+    viewLocateInfo.viewConfigurationType = m_ActiveViewConfiguration;
+    viewLocateInfo.displayTime = OpenXRSessionMgr::frameState.predictedDisplayTime;
+    viewLocateInfo.space = OpenXRCoreMgr::m_ActiveSpaces;
+    uint32_t viewCount = 0;
+
+    OPENXR_CHECK(xrLocateViews(OpenXRCoreMgr::xrSession, &viewLocateInfo, &viewState, static_cast<uint32_t>(views.size()), &viewCount,
+                     views.data()), "Failed to locate views");
+
+    return viewCount;
+}
