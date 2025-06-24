@@ -46,18 +46,17 @@ set(SOURCES
     ../Common/GraphicsAPI_OpenGL.cpp
     ../Common/GraphicsAPI_OpenGL_ES.cpp
     ../Common/GraphicsAPI_Vulkan.cpp
-    ../Common/OpenXRDebugUtils.cpp
-    app/src/main/cpp/main.cpp
+    ../Common/OpenXRDebugUtils.cpp    app/src/main/cpp/main.cpp
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
-    app/src/main/cpp/OpenXRTutorial/SceneRenderer.cpp
-    app/src/main/cpp/OpenXRTutorial/TableFloorScene.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRRenderer.cpp
-    app/src/main/cpp/OpenXRTutorial/XRMathUtils.cpp
+    app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
+    app/src/main/cpp/Application/OpenXRTutorial.cpp
+    app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
+    app/src/main/cpp/Rendering/SceneRenderer.cpp
+    app/src/main/cpp/Scenes/TableFloorScene.cpp
+    app/src/main/cpp/Rendering/OpenXRRenderer.cpp
+    app/src/main/cpp/Utils/XRMathUtils.cpp
 )
 set(HEADERS
     ../Common/DebugOutput.h
@@ -69,15 +68,14 @@ set(HEADERS
     ../Common/GraphicsAPI_Vulkan.h
     ../Common/HelperFunctions.h
     ../Common/OpenXRDebugUtils.h
-    ../Common/OpenXRHelper.h
-    app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
+    ../Common/OpenXRHelper.h    app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
-    app/src/main/cpp/OpenXRTutorial/SceneRenderer.h
-    app/src/main/cpp/OpenXRTutorial/TableFloorScene.h
-    app/src/main/cpp/OpenXRTutorial/OpenXRRenderer.h
-    app/src/main/cpp/OpenXRTutorial/XRMathUtils.h
+    app/src/main/cpp/Application/OpenXRTutorial.h
+    app/src/main/cpp/Rendering/SceneRenderer.h
+    app/src/main/cpp/Scenes/TableFloorScene.h
+    app/src/main/cpp/Rendering/OpenXRRenderer.h
+    app/src/main/cpp/Utils/XRMathUtils.h
 )
 
 # XR_DOCS_TAG_BEGIN_HLSLShaders

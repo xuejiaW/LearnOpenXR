@@ -6,7 +6,7 @@
 
 #include "GraphicsAPI_Vulkan.h"
 #include "HelperFunctions.h"
-#include "../OpenXRTutorial/OpenXRTutorial.h"
+#include "../Application/OpenXRTutorial.h"
 
 XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
 XrSession OpenXRCoreMgr::xrSession = XR_NULL_HANDLE;

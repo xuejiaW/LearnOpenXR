@@ -4,8 +4,8 @@
 #include <xr_linear_algebra.h>
 #include <openxr/openxr.h>
 #include "../OpenXR/OpenXRDisplay/RenderLayerInfo.h"
-#include "TableFloorScene.h"
-#include "OpenXRRenderer.h"
+#include "../Scenes/TableFloorScene.h"
+#include "../Rendering/OpenXRRenderer.h"
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -43,4 +43,3 @@ private:
     OpenXRRenderer* m_renderer = nullptr;
     TableFloorScene* m_scene = nullptr;
 };
-

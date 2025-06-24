@@ -2,7 +2,7 @@
 #include <DebugOutput.h>
 
 #include <GraphicsAPI_Vulkan.h>
-#include "../OpenXR//OpenXRCoreMgr.h"
+#include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 

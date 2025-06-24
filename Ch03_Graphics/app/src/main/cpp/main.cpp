@@ -1,5 +1,5 @@
 #include <DebugOutput.h>
-#include "OpenXRTutorial/OpenXRTutorial.h"
+#include "Application/OpenXRTutorial.h"
 
 static void OpenXRTutorial_Main(GraphicsAPI_Type apiType)
 {

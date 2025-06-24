@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneRenderer.h"
+#include "../Rendering/SceneRenderer.h"
 
 // TableFloorScene - 一个具体的场景实现，渲染桌子和地板
 class TableFloorScene : public SceneRenderer
@@ -11,7 +11,8 @@ public:
 
     // 实现基类的抽象方法
     void CreateResources() override;
-    void Render(const XrMatrix4x4f& viewProj) override;    void DestroyResources() override;
+    void Render(const XrMatrix4x4f& viewProj) override;
+    void DestroyResources() override;
 
     // 设置视图高度
     void SetViewHeight(float heightInMeters) override { m_viewHeightM = heightInMeters; }

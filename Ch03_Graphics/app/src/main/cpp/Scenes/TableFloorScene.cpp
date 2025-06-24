@@ -1,7 +1,7 @@
 #include "TableFloorScene.h"
-#include <OpenXRDebugUtils.h>
-#include "../OpenXR//OpenXRDisplayMgr.h"
-#include "OpenXRTutorial.h"
+#include "../OpenXR/OpenXRDisplayMgr.h"
+#include "../OpenXR/OpenXRCoreMgr.h"
+#include "../Application/OpenXRTutorial.h"
 
 // 跟踪当前要渲染的立方体索引
 static size_t renderCuboidIndex = 0;
