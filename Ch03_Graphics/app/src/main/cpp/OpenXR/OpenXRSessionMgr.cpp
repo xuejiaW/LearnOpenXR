@@ -101,13 +101,13 @@ void OpenXRSessionMgr::BeginFrame()
     OPENXR_CHECK(xrBeginFrame(OpenXRCoreMgr::xrSession, &frameBeginInfo), "Failed to begin OpenXR frame");
 }
 
-void OpenXRSessionMgr::EndFrame(const RenderLayerInfo& renderLayerInfo)
+void OpenXRSessionMgr::EndFrame(const bool rendered)
 {
     XrFrameEndInfo frameEndInfo{};
     frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
     frameEndInfo.displayTime = frameState.predictedDisplayTime;
     frameEndInfo.environmentBlendMode = OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode;
-    frameEndInfo.layerCount = static_cast<uint32_t>(renderLayerInfo.layers.size());
-    frameEndInfo.layers = renderLayerInfo.layers.data();
+    frameEndInfo.layerCount = rendered ? static_cast<uint32_t>(OpenXRDisplayMgr::renderLayerInfo.layers.size()) : 0;
+    frameEndInfo.layers = rendered ? OpenXRDisplayMgr::renderLayerInfo.layers.data() : nullptr;
     OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
 }

@@ -62,24 +62,20 @@ void OpenXRTutorial::RenderFrame()
     OpenXRSessionMgr::WaitFrame();
     OpenXRSessionMgr::BeginFrame();
 
-    RenderLayerInfo renderLayerInfo{};
-
-    if (OpenXRSessionMgr::ShouldRender())
+    const bool shouldRender = OpenXRSessionMgr::ShouldRender();
+    if (shouldRender)
     {
-        if (RenderLayer(renderLayerInfo))
-        {
-            renderLayerInfo.layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&renderLayerInfo.projectionLayer));
-        }
+        RenderLayer();
     }
 
-    OpenXRSessionMgr::EndFrame(renderLayerInfo);
+    OpenXRSessionMgr::EndFrame(shouldRender);
 }
 
-bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
+void OpenXRTutorial::RenderLayer()
 {
     const int viewCount = OpenXRDisplayMgr::RefreshViewsData();
+    OpenXRDisplayMgr::GenerateRenderLayerInfo();
 
-    renderLayerInfo.layerProjectionViews.resize(viewCount, {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW});
     for (int i = 0; i < viewCount; ++i)
     {
         void* colorImage = nullptr;
@@ -93,19 +89,7 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         GraphicsAPI::Viewport viewport = {0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f};
         GraphicsAPI::Rect2D scissor = {{0, 0}, {width, height}};
 
-        // Fill out the XrCompositionLayerProjectionView structure specifying the pose and fov from the view.
-        // This also associates the swapchain image with this layer projection view.
-        XrCompositionLayerProjectionView layerProjectionView = {};
-        layerProjectionView.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-        renderLayerInfo.layerProjectionViews[i] = layerProjectionView;
-        renderLayerInfo.layerProjectionViews[i].pose = OpenXRDisplayMgr::views[i].pose;
-        renderLayerInfo.layerProjectionViews[i].fov = OpenXRDisplayMgr::views[i].fov;
-        renderLayerInfo.layerProjectionViews[i].subImage.swapchain = colorSwapchainInfo.swapchain;
-        renderLayerInfo.layerProjectionViews[i].subImage.imageRect.offset.x = 0;
-        renderLayerInfo.layerProjectionViews[i].subImage.imageRect.offset.y = 0;
-        renderLayerInfo.layerProjectionViews[i].subImage.imageRect.extent.width = static_cast<int32_t>(width);
-        renderLayerInfo.layerProjectionViews[i].subImage.imageRect.extent.height = static_cast<int32_t>(height);
-        renderLayerInfo.layerProjectionViews[i].subImage.imageArrayIndex = 0;  // Useful for multiview rendering
+        OpenXRDisplayMgr::RefreshProjectionLayerViews(i);
 
         OpenXRCoreMgr::graphicsAPI->BeginRendering();
 
@@ -120,11 +104,9 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         OpenXRCoreMgr::graphicsAPI->SetViewports(&viewport, 1);
         OpenXRCoreMgr::graphicsAPI->SetScissors(&scissor, 1);
 
-        // 计算投影矩阵
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, m_apiType, OpenXRDisplayMgr::views[i].fov, 0.05f, 1000.0f);
 
-        // 计算视图矩阵
         XrMatrix4x4f toView;
         XrVector3f scale1m{1.0f, 1.0f, 1.0f};
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &OpenXRDisplayMgr::views[i].pose.position, &OpenXRDisplayMgr::views[i].pose.orientation,
@@ -132,11 +114,9 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
 
-        // 计算最终的视图投影矩阵
         XrMatrix4x4f viewProj;
         XrMatrix4x4f_Multiply(&viewProj, &proj, &view);
 
-        // 使用场景渲染器渲染场景
         m_scene->SetViewHeight(m_viewHeightM);
         m_scene->Render(viewProj);
 
@@ -149,11 +129,4 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
         OPENXR_CHECK(xrReleaseSwapchainImage(depthSwapchainInfo.swapchain, &releaseInfo), "Failed to release Image back to the Depth Swapchain");
 
     }
-    renderLayerInfo.projectionLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT |
-                                                 XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
-    renderLayerInfo.projectionLayer.space = OpenXRCoreMgr::m_ActiveSpaces;
-    renderLayerInfo.projectionLayer.viewCount = static_cast<uint32_t>(renderLayerInfo.layerProjectionViews.size());
-    renderLayerInfo.projectionLayer.views = renderLayerInfo.layerProjectionViews.data();
-
-    return true;
 }

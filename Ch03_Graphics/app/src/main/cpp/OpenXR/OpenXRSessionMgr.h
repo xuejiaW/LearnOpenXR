@@ -13,7 +13,7 @@ public:
 
     static void WaitFrame();
     static void BeginFrame();
-    static void EndFrame(const RenderLayerInfo& renderLayerInfo);
+    static void EndFrame(const bool rendered);
 
     static bool applicationRunning;
 

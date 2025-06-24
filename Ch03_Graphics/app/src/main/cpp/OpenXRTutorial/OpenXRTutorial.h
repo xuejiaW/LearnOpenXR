@@ -37,7 +37,7 @@ public:
 private:
     void PollSystemEvents();
     void RenderFrame();
-    bool RenderLayer(RenderLayerInfo& renderLayerInfo);
+    void RenderLayer();
 
     // 场景相关
     float m_viewHeightM = 1.5f;

@@ -19,7 +19,7 @@ inline const char* GetXRErrorString(XrResult result) {
     do {                                                                                                                                                    \
         XrResult result = (x);                                                                                                                              \
         if (!XR_SUCCEEDED(result)) {                                                                                                                        \
-            std::cerr << "ERROR: OPENXR: " << int(result) << "(" << (GetXRErrorString(result)) << ") " << y << std::endl; \
+            std::cout << "ERROR: OPENXR: " << int(result) << "(" << (GetXRErrorString(result)) << ") " << y << std::endl; \
             OpenXRDebugBreak();                                                                                                                             \
         }                                                                                                                                                   \
     } while (0)

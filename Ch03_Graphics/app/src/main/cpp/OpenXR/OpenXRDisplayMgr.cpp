@@ -18,7 +18,7 @@ std::vector<XrEnvironmentBlendMode> OpenXRDisplayMgr::m_ExpectedEnvironmentBlend
 std::vector<XrEnvironmentBlendMode> OpenXRDisplayMgr::m_AvailableEnvironmentBlendModes = {};
 
 std::vector<XrView> OpenXRDisplayMgr::views = {};
-
+RenderLayerInfo OpenXRDisplayMgr::renderLayerInfo{};
 void OpenXRDisplayMgr::GetViewConfigurationViews()
 {
     uint32_t viewConfigurationCount = 0;
@@ -258,4 +258,32 @@ void OpenXRDisplayMgr::AcquireSwapChainImages(const int viewIndex, void*& colorI
 
     colorImage = m_ColorSwapchainInfos[viewIndex].imageViews[colorImageIndex];
     depthImage = m_DepthSwapchainInfos[viewIndex].imageViews[depthImageIndex];
+}
+
+void OpenXRDisplayMgr::RefreshProjectionLayerViews(int viewIndex)
+{
+    const uint32_t& width = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth;
+    const uint32_t& height = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectHeight;
+
+    renderLayerInfo.layerProjectionViews[viewIndex].pose = views[viewIndex].pose;
+    renderLayerInfo.layerProjectionViews[viewIndex].fov = views[viewIndex].fov;
+    renderLayerInfo.layerProjectionViews[viewIndex].subImage.swapchain = m_ColorSwapchainInfos[viewIndex].swapchain;
+    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.offset.x = 0;
+    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.offset.y = 0;
+    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.extent.width = static_cast<int32_t>(width);
+    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.extent.height = static_cast<int32_t>(height);
+    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageArrayIndex = 0;
+}
+
+void OpenXRDisplayMgr::GenerateRenderLayerInfo()
+{
+    XrCompositionLayerProjectionView layerProjectionViewTemplate = {};
+    layerProjectionViewTemplate.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+    renderLayerInfo.layerProjectionViews.resize(views.size(), layerProjectionViewTemplate);
+
+    renderLayerInfo.projectionLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT |
+                                                 XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+    renderLayerInfo.projectionLayer.space = OpenXRCoreMgr::m_ActiveSpaces;
+    renderLayerInfo.projectionLayer.viewCount = static_cast<uint32_t>(renderLayerInfo.layerProjectionViews.size());
+    renderLayerInfo.projectionLayer.views = renderLayerInfo.layerProjectionViews.data();
 }
