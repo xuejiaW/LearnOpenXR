@@ -11,14 +11,13 @@ public:
 
     // 实现基类的抽象方法
     void CreateResources() override;
-    void Render(const XrMatrix4x4f& viewProj) override;
-    void DestroyResources() override;
+    void Render(const XrMatrix4x4f& viewProj) override;    void DestroyResources() override;
 
     // 设置视图高度
-    void SetViewHeight(float heightInMeters) { m_viewHeightM = heightInMeters; }
+    void SetViewHeight(float heightInMeters) override { m_viewHeightM = heightInMeters; }
 
     // 获取图形管线
-    void* GetPipeline() const { return m_pipeline; }
+    void* GetPipeline() const override { return m_pipeline; }
 
 private:
     // 渲染一个立方体

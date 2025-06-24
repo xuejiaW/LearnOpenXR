@@ -23,9 +23,16 @@ public:
     // Clean up scene resources
     virtual void DestroyResources() = 0;
 
+    // Get the graphics pipeline for this scene
+    virtual void* GetPipeline() const = 0;
+    
+    // Set view height (used for scene-specific calculations)
+    virtual void SetViewHeight(float heightM) { m_viewHeightM = heightM; }
+
 protected:
     // Common rendering data
     GraphicsAPI_Type m_apiType;
+    float m_viewHeightM = 1.5f;
 
     // Graphics resources
     void* m_vertexBuffer = nullptr;

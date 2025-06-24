@@ -5,6 +5,7 @@
 #include <openxr/openxr.h>
 #include "../OpenXR/OpenXRDisplay/RenderLayerInfo.h"
 #include "TableFloorScene.h"
+#include "OpenXRRenderer.h"
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -36,13 +37,10 @@ public:
 
 private:
     void PollSystemEvents();
-    void RenderFrame();
-    void RenderLayer();
+    void InitializeOpenXR();
+    void ShutdownOpenXR();
 
-    // 场景相关
-    float m_viewHeightM = 1.5f;
-    
-    // 场景渲染器
+    OpenXRRenderer* m_renderer = nullptr;
     TableFloorScene* m_scene = nullptr;
 };
 

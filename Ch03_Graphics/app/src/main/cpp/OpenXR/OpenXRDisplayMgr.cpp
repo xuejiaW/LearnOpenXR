@@ -260,6 +260,17 @@ void OpenXRDisplayMgr::AcquireSwapChainImages(const int viewIndex, void*& colorI
     depthImage = m_DepthSwapchainInfos[viewIndex].imageViews[depthImageIndex];
 }
 
+void OpenXRDisplayMgr::ReleaseSwapChainImages(int viewIndex)
+{
+    XrSwapchainImageReleaseInfo releaseInfo{};
+    releaseInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO;
+    OPENXR_CHECK(xrReleaseSwapchainImage(m_ColorSwapchainInfos[viewIndex].swapchain, &releaseInfo),
+                 "Failed to release Image back to the Color Swapchain");
+    OPENXR_CHECK(xrReleaseSwapchainImage(m_DepthSwapchainInfos[viewIndex].swapchain, &releaseInfo),
+                 "Failed to release Image back to the Depth Swapchain");
+}
+
+
 void OpenXRDisplayMgr::RefreshProjectionLayerViews(int viewIndex)
 {
     const uint32_t& width = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth;

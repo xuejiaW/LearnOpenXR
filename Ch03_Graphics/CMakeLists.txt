@@ -56,6 +56,8 @@ set(SOURCES
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
     app/src/main/cpp/OpenXRTutorial/SceneRenderer.cpp
     app/src/main/cpp/OpenXRTutorial/TableFloorScene.cpp
+    app/src/main/cpp/OpenXRTutorial/OpenXRRenderer.cpp
+    app/src/main/cpp/OpenXRTutorial/XRMathUtils.cpp
 )
 set(HEADERS
     ../Common/DebugOutput.h
@@ -74,6 +76,8 @@ set(HEADERS
     app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
     app/src/main/cpp/OpenXRTutorial/SceneRenderer.h
     app/src/main/cpp/OpenXRTutorial/TableFloorScene.h
+    app/src/main/cpp/OpenXRTutorial/OpenXRRenderer.h
+    app/src/main/cpp/OpenXRTutorial/XRMathUtils.h
 )
 
 # XR_DOCS_TAG_BEGIN_HLSLShaders

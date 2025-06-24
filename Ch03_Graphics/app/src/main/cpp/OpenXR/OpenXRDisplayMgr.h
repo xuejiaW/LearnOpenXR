@@ -15,6 +15,7 @@ public:
 
     static int RefreshViewsData();
     static void AcquireSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage);
+    static void ReleaseSwapChainImages(int viewIndex);
 
     static void GenerateRenderLayerInfo();
     static void RefreshProjectionLayerViews(int viewIndex);
