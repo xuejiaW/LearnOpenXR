@@ -82,18 +82,11 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
     renderLayerInfo.layerProjectionViews.resize(viewCount, {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW});
     for (int i = 0; i < viewCount; ++i)
     {
-        uint32_t colorImageIndex = 0;
+        void* colorImage = nullptr;
+        void* depthImage = nullptr;
+        OpenXRDisplayMgr::AcquireSwapChainImages(i, colorImage, depthImage);
         SwapchainInfo& colorSwapchainInfo = OpenXRDisplayMgr::m_ColorSwapchainInfos[i];
-        OPENXR_CHECK(xrAcquireSwapchainImage(colorSwapchainInfo.swapchain, nullptr, &colorImageIndex), "Failed to acquire color swapchain image");
-
-        uint32_t depthImageIndex = 0;
         SwapchainInfo& depthSwapchainInfo = OpenXRDisplayMgr::m_DepthSwapchainInfos[i];
-        OPENXR_CHECK(xrAcquireSwapchainImage(depthSwapchainInfo.swapchain, nullptr, &depthImageIndex), "Failed to acquire depth swapchain image");
-
-        XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO, nullptr};
-        waitInfo.timeout = XR_INFINITE_DURATION;
-        OPENXR_CHECK(xrWaitSwapchainImage(colorSwapchainInfo.swapchain, &waitInfo), "Failed to wait for color swapchain image");
-        OPENXR_CHECK(xrWaitSwapchainImage(depthSwapchainInfo.swapchain, &waitInfo), "Failed to wait for depth swapchain image");
 
         const uint32_t& width = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[i].recommendedImageRectWidth;
         const uint32_t& height = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[i].recommendedImageRectHeight;
@@ -116,16 +109,13 @@ bool OpenXRTutorial::RenderLayer(RenderLayerInfo& renderLayerInfo)
 
         OpenXRCoreMgr::graphicsAPI->BeginRendering();
 
-        // Clear
         if (OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
         {
-            OpenXRCoreMgr::graphicsAPI->ClearColor(colorSwapchainInfo.imageViews[colorImageIndex], 0.17f, 0.17f, 0.17f, 1.00f);
+            OpenXRCoreMgr::graphicsAPI->ClearColor(colorImage, 0.17f, 0.17f, 0.17f, 1.00f);
         }
-        OpenXRCoreMgr::graphicsAPI->ClearDepth(depthSwapchainInfo.imageViews[depthImageIndex], 1.0f);
+        OpenXRCoreMgr::graphicsAPI->ClearDepth(depthImage, 1.0f);
 
-        // 设置渲染附件和视口
-        OpenXRCoreMgr::graphicsAPI->SetRenderAttachments(&colorSwapchainInfo.imageViews[colorImageIndex], 1,
-                                                         depthSwapchainInfo.imageViews[depthImageIndex], width,
+        OpenXRCoreMgr::graphicsAPI->SetRenderAttachments(&colorImage, 1, depthImage, width,
                                                          height, m_scene->GetPipeline());
         OpenXRCoreMgr::graphicsAPI->SetViewports(&viewport, 1);
         OpenXRCoreMgr::graphicsAPI->SetScissors(&scissor, 1);

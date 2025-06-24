@@ -237,5 +237,25 @@ int OpenXRDisplayMgr::RefreshViewsData()
     OPENXR_CHECK(xrLocateViews(OpenXRCoreMgr::xrSession, &viewLocateInfo, &viewState, static_cast<uint32_t>(views.size()), &viewCount,
                      views.data()), "Failed to locate views");
 
-    return viewCount;
+    return static_cast<uint32_t>(viewCount);
+}
+
+void OpenXRDisplayMgr::AcquireSwapChainImages(const int viewIndex, void*& colorImage, void*& depthImage)
+{
+
+    uint32_t colorImageIndex = 0, depthImageIndex = 0;
+    SwapchainInfo& colorSwapchainInfo = m_ColorSwapchainInfos[viewIndex];
+    OPENXR_CHECK(xrAcquireSwapchainImage(colorSwapchainInfo.swapchain, nullptr, &colorImageIndex), "Failed to acquire color swapchain image");
+
+    SwapchainInfo& depthSwapchainInfo = m_DepthSwapchainInfos[viewIndex];
+    OPENXR_CHECK(xrAcquireSwapchainImage(depthSwapchainInfo.swapchain, nullptr, &depthImageIndex), "Failed to acquire depth swapchain image");
+
+    XrSwapchainImageWaitInfo waitInfo{};
+    waitInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO;
+    waitInfo.timeout = XR_INFINITE_DURATION;
+    OPENXR_CHECK(xrWaitSwapchainImage(colorSwapchainInfo.swapchain, &waitInfo), "Failed to wait for color swapchain image");
+    OPENXR_CHECK(xrWaitSwapchainImage(depthSwapchainInfo.swapchain, &waitInfo), "Failed to wait for depth swapchain image");
+
+    colorImage = m_ColorSwapchainInfos[viewIndex].imageViews[colorImageIndex];
+    depthImage = m_DepthSwapchainInfos[viewIndex].imageViews[depthImageIndex];
 }

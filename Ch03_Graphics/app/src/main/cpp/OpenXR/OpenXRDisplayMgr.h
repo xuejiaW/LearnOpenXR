@@ -13,6 +13,7 @@ public:
     static void DestroySwapchains();
 
     static int RefreshViewsData();
+    static void AcquireSwapChainImages(const int viewIndex, void*& colorImage, void*& depthImage);
 
     static XrViewConfigurationType m_ActiveViewConfiguration;
     static XrEnvironmentBlendMode m_ActiveEnvironmentBlendMode;
