@@ -56,7 +56,7 @@ void OpenXRRenderer::RenderView(int viewIndex)
 
     OpenXRDisplayMgr::RefreshProjectionLayerViews(viewIndex);
 
-    OpenXRCoreMgr::graphicsAPI->BeginRendering();
+    OpenXRCoreMgr::GetGraphicsAPI()->BeginRendering();
 
     SetupRenderState(viewIndex, colorImage, depthImage);
 
@@ -64,7 +64,7 @@ void OpenXRRenderer::RenderView(int viewIndex)
 
     m_sceneRenderer->Render(viewProj);
 
-    OpenXRCoreMgr::graphicsAPI->EndRendering();
+    OpenXRCoreMgr::GetGraphicsAPI()->EndRendering();
 
     OpenXRDisplayMgr::ReleaseSwapChainImages(viewIndex);
 }
@@ -79,12 +79,12 @@ void OpenXRRenderer::SetupRenderState(int viewIndex, void* colorImage, void* dep
 
     if (OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
     {
-        OpenXRCoreMgr::graphicsAPI->ClearColor(colorImage, 0.17f, 0.17f, 0.17f, 1.00f);
+        OpenXRCoreMgr::GetGraphicsAPI()->ClearColor(colorImage, 0.17f, 0.17f, 0.17f, 1.00f);
     }
-    OpenXRCoreMgr::graphicsAPI->ClearDepth(depthImage, 1.0f);
+    OpenXRCoreMgr::GetGraphicsAPI()->ClearDepth(depthImage, 1.0f);
 
-    OpenXRCoreMgr::graphicsAPI->SetRenderAttachments(&colorImage, 1, depthImage, width, height,
+    OpenXRCoreMgr::GetGraphicsAPI()->SetRenderAttachments(&colorImage, 1, depthImage, width, height,
                                                      m_sceneRenderer->GetPipeline());
-    OpenXRCoreMgr::graphicsAPI->SetViewports(&viewport, 1);
-    OpenXRCoreMgr::graphicsAPI->SetScissors(&scissor, 1);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetViewports(&viewport, 1);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetScissors(&scissor, 1);
 }

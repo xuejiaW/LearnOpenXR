@@ -46,10 +46,12 @@ set(SOURCES
     ../Common/GraphicsAPI_OpenGL.cpp
     ../Common/GraphicsAPI_OpenGL_ES.cpp
     ../Common/GraphicsAPI_Vulkan.cpp
-    ../Common/OpenXRDebugUtils.cpp    app/src/main/cpp/main.cpp
+    ../Common/OpenXRDebugUtils.cpp
+    app/src/main/cpp/main.cpp
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.cpp
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
@@ -68,9 +70,12 @@ set(HEADERS
     ../Common/GraphicsAPI_Vulkan.h
     ../Common/HelperFunctions.h
     ../Common/OpenXRDebugUtils.h
-    ../Common/OpenXRHelper.h    app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
+    ../Common/OpenXRHelper.h    
+    app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/Application/OpenXRTutorial.h
     app/src/main/cpp/Rendering/SceneRenderer.h
     app/src/main/cpp/Scenes/TableFloorScene.h

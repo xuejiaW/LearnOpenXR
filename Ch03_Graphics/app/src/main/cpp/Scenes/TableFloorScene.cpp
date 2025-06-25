@@ -46,14 +46,14 @@ void TableFloorScene::CreateResources()
     vertexBufferInfo.stride = sizeof(float) * 4;
     vertexBufferInfo.size = sizeof(cubeVertices);
     vertexBufferInfo.data = &cubeVertices;
-    m_vertexBuffer = OpenXRCoreMgr::graphicsAPI->CreateBuffer(vertexBufferInfo);
+    m_vertexBuffer = OpenXRCoreMgr::GetGraphicsAPI()->CreateBuffer(vertexBufferInfo);
 
     GraphicsAPI::BufferCreateInfo indexBufferInfo;
     indexBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::INDEX;
     indexBufferInfo.stride = sizeof(uint32_t);
     indexBufferInfo.size = sizeof(cubeIndices);
     indexBufferInfo.data = &cubeIndices;
-    m_indexBuffer = OpenXRCoreMgr::graphicsAPI->CreateBuffer(indexBufferInfo);
+    m_indexBuffer = OpenXRCoreMgr::GetGraphicsAPI()->CreateBuffer(indexBufferInfo);
 
     size_t numberOfCuboids = 2;
     GraphicsAPI::BufferCreateInfo cameraBufferInfo;
@@ -61,14 +61,14 @@ void TableFloorScene::CreateResources()
     cameraBufferInfo.stride = 0;
     cameraBufferInfo.size = sizeof(CuboidConstants) * numberOfCuboids;
     cameraBufferInfo.data = nullptr;
-    m_uniformBuffer_Camera = OpenXRCoreMgr::graphicsAPI->CreateBuffer(cameraBufferInfo);
+    m_uniformBuffer_Camera = OpenXRCoreMgr::GetGraphicsAPI()->CreateBuffer(cameraBufferInfo);
 
     GraphicsAPI::BufferCreateInfo normalsBufferInfo;
     normalsBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::UNIFORM;
     normalsBufferInfo.stride = 0;
     normalsBufferInfo.size = sizeof(m_normals);
     normalsBufferInfo.data = &m_normals;
-    m_uniformBuffer_Normals = OpenXRCoreMgr::graphicsAPI->CreateBuffer(normalsBufferInfo);
+    m_uniformBuffer_Normals = OpenXRCoreMgr::GetGraphicsAPI()->CreateBuffer(normalsBufferInfo);
 
     if (m_apiType == VULKAN)
     {
@@ -155,7 +155,7 @@ void TableFloorScene::CreateResources()
     pipelineCreateInfo.layout[2].resource = nullptr;
     pipelineCreateInfo.layout[2].type = GraphicsAPI::DescriptorInfo::Type::BUFFER;
     pipelineCreateInfo.layout[2].stage = GraphicsAPI::DescriptorInfo::Stage::FRAGMENT;
-    m_pipeline = OpenXRCoreMgr::graphicsAPI->CreatePipeline(pipelineCreateInfo);
+    m_pipeline = OpenXRCoreMgr::GetGraphicsAPI()->CreatePipeline(pipelineCreateInfo);
 }
 
 void TableFloorScene::Render(const XrMatrix4x4f& viewProj)
@@ -175,8 +175,8 @@ void TableFloorScene::RenderCuboid(XrPosef pose, XrVector3f scale, XrVector3f co
 
     size_t offsetCameraUB = sizeof(CuboidConstants) * renderCuboidIndex;
 
-    OpenXRCoreMgr::graphicsAPI->SetPipeline(m_pipeline);
-    OpenXRCoreMgr::graphicsAPI->SetBufferData(m_uniformBuffer_Camera, offsetCameraUB, sizeof(CuboidConstants), &m_cuboidConstants);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetPipeline(m_pipeline);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetBufferData(m_uniformBuffer_Camera, offsetCameraUB, sizeof(CuboidConstants), &m_cuboidConstants);
 
     GraphicsAPI::DescriptorInfo descriptor1;
     descriptor1.bindingIndex = 0;
@@ -186,7 +186,7 @@ void TableFloorScene::RenderCuboid(XrPosef pose, XrVector3f scale, XrVector3f co
     descriptor1.readWrite = false;
     descriptor1.bufferOffset = offsetCameraUB;
     descriptor1.bufferSize = sizeof(CuboidConstants);
-    OpenXRCoreMgr::graphicsAPI->SetDescriptor(descriptor1);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetDescriptor(descriptor1);
 
     GraphicsAPI::DescriptorInfo descriptor2;
     descriptor2.bindingIndex = 1;
@@ -196,26 +196,26 @@ void TableFloorScene::RenderCuboid(XrPosef pose, XrVector3f scale, XrVector3f co
     descriptor2.readWrite = false;
     descriptor2.bufferOffset = 0;
     descriptor2.bufferSize = sizeof(m_normals);
-    OpenXRCoreMgr::graphicsAPI->SetDescriptor(descriptor2);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetDescriptor(descriptor2);
 
-    OpenXRCoreMgr::graphicsAPI->UpdateDescriptors();
+    OpenXRCoreMgr::GetGraphicsAPI()->UpdateDescriptors();
 
-    OpenXRCoreMgr::graphicsAPI->SetVertexBuffers(&m_vertexBuffer, 1);
-    OpenXRCoreMgr::graphicsAPI->SetIndexBuffer(m_indexBuffer);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetVertexBuffers(&m_vertexBuffer, 1);
+    OpenXRCoreMgr::GetGraphicsAPI()->SetIndexBuffer(m_indexBuffer);
 
-    OpenXRCoreMgr::graphicsAPI->DrawIndexed(36);
+    OpenXRCoreMgr::GetGraphicsAPI()->DrawIndexed(36);
     renderCuboidIndex++;
 }
 
 void TableFloorScene::DestroyResources()
 {
-    OpenXRCoreMgr::graphicsAPI->DestroyPipeline(m_pipeline);
-    OpenXRCoreMgr::graphicsAPI->DestroyShader(m_fragmentShader);
-    OpenXRCoreMgr::graphicsAPI->DestroyShader(m_vertexShader);
-    OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_uniformBuffer_Camera);
-    OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_uniformBuffer_Normals);
-    OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_indexBuffer);
-    OpenXRCoreMgr::graphicsAPI->DestroyBuffer(m_vertexBuffer);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyPipeline(m_pipeline);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyShader(m_fragmentShader);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyShader(m_vertexShader);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyBuffer(m_uniformBuffer_Camera);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyBuffer(m_uniformBuffer_Normals);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyBuffer(m_indexBuffer);
+    OpenXRCoreMgr::GetGraphicsAPI()->DestroyBuffer(m_vertexBuffer);
 
     m_pipeline = nullptr;
     m_fragmentShader = nullptr;

@@ -243,6 +243,142 @@ GraphicsAPI_Vulkan::GraphicsAPI_Vulkan() {
     descPoolCI.pNext = nullptr;
     descPoolCI.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     descPoolCI.maxSets = maxSets;
+    descPoolCI.poolSizeCount = static_cast<uint32_t>(poolSizes.size());    descPoolCI.pPoolSizes = poolSizes.data();
+    VULKAN_CHECK(vkCreateDescriptorPool(device, &descPoolCI, nullptr, &descriptorPool), "Failed to create DescriptorPool");
+}
+
+// New pure Vulkan constructor (without OpenXR dependencies)
+GraphicsAPI_Vulkan::GraphicsAPI_Vulkan(const VulkanInitInfo& initInfo) {
+    // Use provided Vulkan objects or create them
+    if (initInfo.instance != VK_NULL_HANDLE) {
+        // Use pre-created instance
+        instance = initInfo.instance;
+        // Note: We don't own this instance, so we shouldn't destroy it
+    } else {
+        // Create new instance with provided info
+        VkInstanceCreateInfo instanceCI{};
+        instanceCI.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        instanceCI.pApplicationInfo = &initInfo.applicationInfo;
+        instanceCI.enabledExtensionCount = static_cast<uint32_t>(initInfo.instanceExtensions.size());
+        instanceCI.ppEnabledExtensionNames = initInfo.instanceExtensions.data();
+        
+        VULKAN_CHECK(vkCreateInstance(&instanceCI, nullptr, &instance), "Failed to create Vulkan Instance.");
+    }
+
+    // Use provided physical device or select first available
+    if (initInfo.physicalDevice != VK_NULL_HANDLE) {
+        physicalDevice = initInfo.physicalDevice;
+    } else {
+        // Enumerate and select first available physical device
+        uint32_t physicalDeviceCount = 0;
+        VULKAN_CHECK(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr), "Failed to enumerate PhysicalDevices.");
+        
+        std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+        VULKAN_CHECK(vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data()), "Failed to enumerate PhysicalDevices.");
+        
+        if (physicalDeviceCount > 0) {
+            physicalDevice = physicalDevices[0];
+        } else {
+            std::cerr << "ERROR: No Vulkan physical devices found!" << std::endl;
+            return;
+        }
+    }
+
+    // Get queue family properties to determine queue indices
+    uint32_t queueFamilyPropertiesCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, nullptr);
+    std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyPropertiesCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertiesCount, queueFamilyProperties.data());
+
+    // Use provided queue family index or find a graphics queue
+    if (initInfo.queueFamilyIndex != UINT32_MAX) {
+        queueFamilyIndex = initInfo.queueFamilyIndex;
+        queueIndex = initInfo.queueIndex;
+    } else {
+        // Find first graphics queue family
+        queueFamilyIndex = UINT32_MAX;
+        queueIndex = 0;
+        for (size_t i = 0; i < queueFamilyProperties.size(); i++) {
+            if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                queueFamilyIndex = static_cast<uint32_t>(i);
+                break;
+            }
+        }
+        if (queueFamilyIndex == UINT32_MAX) {
+            std::cerr << "ERROR: No graphics queue family found!" << std::endl;
+            return;
+        }
+    }
+
+    // Create device queue create infos
+    std::vector<VkDeviceQueueCreateInfo> deviceQueueCIs;
+    std::vector<std::vector<float>> queuePriorities;
+    queuePriorities.resize(queueFamilyProperties.size());
+    deviceQueueCIs.resize(queueFamilyProperties.size());
+
+    for (size_t i = 0; i < deviceQueueCIs.size(); i++) {
+        for (size_t j = 0; j < queueFamilyProperties[i].queueCount; j++)
+            queuePriorities[i].push_back(1.0f);
+
+        deviceQueueCIs[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        deviceQueueCIs[i].pNext = nullptr;
+        deviceQueueCIs[i].flags = 0;
+        deviceQueueCIs[i].queueFamilyIndex = static_cast<uint32_t>(i);
+        deviceQueueCIs[i].queueCount = queueFamilyProperties[i].queueCount;
+        deviceQueueCIs[i].pQueuePriorities = queuePriorities[i].data();
+    }
+
+    // Get device features
+    VkPhysicalDeviceFeatures features;
+    vkGetPhysicalDeviceFeatures(physicalDevice, &features);
+
+    // Create logical device
+    VkDeviceCreateInfo deviceCI{};
+    deviceCI.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCI.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCIs.size());
+    deviceCI.pQueueCreateInfos = deviceQueueCIs.data();
+    deviceCI.enabledExtensionCount = static_cast<uint32_t>(initInfo.deviceExtensions.size());
+    deviceCI.ppEnabledExtensionNames = initInfo.deviceExtensions.data();
+    deviceCI.pEnabledFeatures = &features;
+    
+    VULKAN_CHECK(vkCreateDevice(physicalDevice, &deviceCI, nullptr, &device), "Failed to create Device.");
+
+    // Get queue handle
+    vkGetDeviceQueue(device, queueFamilyIndex, queueIndex, &queue);
+
+    // Create command pool
+    VkCommandPoolCreateInfo cmdPoolCI{};
+    cmdPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cmdPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    cmdPoolCI.queueFamilyIndex = queueFamilyIndex;    VULKAN_CHECK(vkCreateCommandPool(device, &cmdPoolCI, nullptr, &cmdPool), "Failed to create CommandPool");
+
+    // Create command buffer
+    VkCommandBufferAllocateInfo cmdBufferAI{};
+    cmdBufferAI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdBufferAI.commandPool = cmdPool;
+    cmdBufferAI.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cmdBufferAI.commandBufferCount = 1;
+    VULKAN_CHECK(vkAllocateCommandBuffers(device, &cmdBufferAI, &cmdBuffer), "Failed to allocate CommandBuffer");
+
+    // Create fence
+    VkFenceCreateInfo fenceCI{};
+    fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    VULKAN_CHECK(vkCreateFence(device, &fenceCI, nullptr, &fence), "Failed to create Fence.");
+
+    // Create descriptor pool
+    uint32_t maxSets = 1024;
+    std::vector<VkDescriptorPoolSize> poolSizes{
+        {VK_DESCRIPTOR_TYPE_SAMPLER, 16 * maxSets},
+        {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 16 * maxSets},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 16 * maxSets},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 16 * maxSets},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16 * maxSets}};
+
+    VkDescriptorPoolCreateInfo descPoolCI{};
+    descPoolCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    descPoolCI.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    descPoolCI.maxSets = maxSets;
     descPoolCI.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     descPoolCI.pPoolSizes = poolSizes.data();
     VULKAN_CHECK(vkCreateDescriptorPool(device, &descPoolCI, nullptr, &descriptorPool), "Failed to create DescriptorPool");

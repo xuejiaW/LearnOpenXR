@@ -8,10 +8,23 @@
 #include <GraphicsAPI.h>
 
 #if defined(XR_USE_GRAPHICS_API_VULKAN)
+
+// Structure to pass Vulkan initialization data (without OpenXR dependencies)
+struct VulkanInitInfo {
+    VkApplicationInfo applicationInfo;
+    std::vector<const char*> instanceExtensions;
+    std::vector<const char*> deviceExtensions;
+    VkInstance instance = VK_NULL_HANDLE;           // Pre-created instance (optional)
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE; // Pre-selected physical device (optional)
+    uint32_t queueFamilyIndex = UINT32_MAX;
+    uint32_t queueIndex = 0;
+};
+
 class GraphicsAPI_Vulkan : public GraphicsAPI {
 public:
     GraphicsAPI_Vulkan();
-    GraphicsAPI_Vulkan(XrInstance m_xrInstance, XrSystemId systemId);
+    GraphicsAPI_Vulkan(XrInstance m_xrInstance, XrSystemId systemId);  // Legacy OpenXR constructor
+    GraphicsAPI_Vulkan(const VulkanInitInfo& initInfo);                // New pure Vulkan constructor
     ~GraphicsAPI_Vulkan();
 
     virtual void* CreateDesktopSwapchain(const SwapchainCreateInfo& swapchainCI) override;
@@ -74,9 +87,16 @@ public:
     virtual void SetDescriptor(const DescriptorInfo& descriptorInfo) override;
     virtual void UpdateDescriptors() override;
     virtual void SetVertexBuffers(void** vertexBuffers, size_t count) override;
-    virtual void SetIndexBuffer(void* indexBuffer) override;
-    virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1, uint32_t firstIndex = 0, int32_t vertexOffset = 0, uint32_t firstInstance = 0) override;
+    virtual void SetIndexBuffer(void* indexBuffer) override;    virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1, uint32_t firstIndex = 0, int32_t vertexOffset = 0, uint32_t firstInstance = 0) override;
     virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1, uint32_t firstVertex = 0, uint32_t firstInstance = 0) override;
+
+    // Getter methods for OpenXR integration
+    VkInstance GetInstance() const { return instance; }
+    VkPhysicalDevice GetPhysicalDevice() const { return physicalDevice; }
+    VkDevice GetDevice() const { return device; }
+    VkQueue GetQueue() const { return queue; }
+    uint32_t GetQueueFamilyIndex() const { return queueFamilyIndex; }
+    uint32_t GetQueueIndex() const { return queueIndex; }
 
 private:
     void LoadPFN_XrFunctions(XrInstance m_xrInstance);

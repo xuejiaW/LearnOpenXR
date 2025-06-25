@@ -4,14 +4,14 @@
 #include <OpenXRDebugUtils.h>
 #include <openxr/openxr.h>
 
-#include "GraphicsAPI_Vulkan.h"
+#include "OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h"
 #include "HelperFunctions.h"
 #include "../Application/OpenXRTutorial.h"
 
 XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
 XrSession OpenXRCoreMgr::xrSession = XR_NULL_HANDLE;
 XrSystemId OpenXRCoreMgr::systemID = XR_NULL_SYSTEM_ID;
-std::unique_ptr<GraphicsAPI> OpenXRCoreMgr::graphicsAPI = nullptr;
+std::unique_ptr<OpenXRGraphicsAPI> OpenXRCoreMgr::openxrGraphicsAPI = nullptr;
 XrSpace OpenXRCoreMgr::m_ActiveSpaces = XR_NULL_HANDLE;
 
 std::vector<std::string> OpenXRCoreMgr::m_RequestApiLayers{};
@@ -74,12 +74,24 @@ void OpenXRCoreMgr::GetSystemID()
 void OpenXRCoreMgr::CreateSession()
 {
     XrSessionCreateInfo sessionCreateInfo{XR_TYPE_SESSION_CREATE_INFO};
-    graphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(m_xrInstance, systemID);
-    sessionCreateInfo.next = graphicsAPI->GetGraphicsBinding();
+#if defined(XR_USE_GRAPHICS_API_VULKAN) || defined(XR_TUTORIAL_USE_VULKAN)
+    openxrGraphicsAPI = std::unique_ptr<OpenXRGraphicsAPI>(new OpenXRGraphicsAPI_Vulkan(m_xrInstance, systemID));
+#endif
+    sessionCreateInfo.next = openxrGraphicsAPI->GetGraphicsBinding();
     sessionCreateInfo.createFlags = 0;  // There are currently no session creation flag bits defined. This is reserved for future use.
     sessionCreateInfo.systemId = systemID;
 
     OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &xrSession), "Failed to create OpenXR session");
+}
+
+GraphicsAPI* OpenXRCoreMgr::GetGraphicsAPI()
+{
+    return openxrGraphicsAPI ? openxrGraphicsAPI->GetGraphicsAPI() : nullptr;
+}
+
+OpenXRGraphicsAPI* OpenXRCoreMgr::GetOpenXRGraphicsAPI()
+{
+    return openxrGraphicsAPI.get();
 }
 
 void OpenXRCoreMgr::DestroySession()

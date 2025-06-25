@@ -79,5 +79,5 @@ void* SceneRenderer::CreateShaderFromFile(const std::string& filename, GraphicsA
     shaderCreateInfo.sourceData = shaderSource.data();
     shaderCreateInfo.sourceSize = shaderSource.size();
 
-    return OpenXRCoreMgr::graphicsAPI->CreateShader(shaderCreateInfo);
+    return OpenXRCoreMgr::GetGraphicsAPI()->CreateShader(shaderCreateInfo);
 }

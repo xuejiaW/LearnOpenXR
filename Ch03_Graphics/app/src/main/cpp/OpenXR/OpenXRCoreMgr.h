@@ -1,7 +1,13 @@
 ﻿#pragma once
 
-#include <GraphicsAPI.h>
 #include <openxr/openxr.h>
+#include <memory>
+#include <vector>
+#include <string>
+
+// Forward declarations
+class OpenXRGraphicsAPI;
+class GraphicsAPI;
 
 class OpenXRCoreMgr
 {
@@ -20,12 +26,13 @@ public:
     static void GetInstanceProperties();
 
     static void CreateReferenceSpaces();
-    static void DestroyReferenceSpace();
-
-    static XrInstance m_xrInstance;
+    static void DestroyReferenceSpace();    static XrInstance m_xrInstance;
     static XrSystemId systemID;
     static XrSession xrSession;
-    static std::unique_ptr<GraphicsAPI> graphicsAPI;
+    static std::unique_ptr<OpenXRGraphicsAPI> openxrGraphicsAPI;
+    static GraphicsAPI* GetGraphicsAPI();
+    
+    static OpenXRGraphicsAPI* GetOpenXRGraphicsAPI();
 
     static XrSpace m_ActiveSpaces;
 
