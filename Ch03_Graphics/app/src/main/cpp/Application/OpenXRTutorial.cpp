@@ -57,7 +57,7 @@ void OpenXRTutorial::InitializeOpenXR()
     OpenXRCoreMgr::CreateInstance();
     OpenXRCoreMgr::CreateDebugMessenger();
     OpenXRCoreMgr::GetSystemID();
-    OpenXRCoreMgr::CreateSession();
+    OpenXRCoreMgr::CreateSession(m_apiType);
     OpenXRDisplayMgr::GetViewConfigurationViews();
     OpenXRDisplayMgr::CreateSwapchains();
     OpenXRDisplayMgr::GetEnvironmentBlendModes();

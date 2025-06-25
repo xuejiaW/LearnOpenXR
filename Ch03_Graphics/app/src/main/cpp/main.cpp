@@ -37,12 +37,12 @@ void android_main(struct android_app *app) {
     app->userData = &OpenXRTutorial::androidAppState;
     app->onAppCmd = OpenXRTutorial::AndroidAppHandleCmd;
     OpenXRTutorial::androidApp = app;
-    OpenXRTutorial_Main(XR_TUTORIAL_GRAPHICS_API);
+    OpenXRTutorial_Main(VULKAN);
 }
 #else
 int main(int argc, char** argv)
 {
-    OpenXRTutorial_Main(XR_TUTORIAL_GRAPHICS_API);
+    OpenXRTutorial_Main(VULKAN);
     return 0;
 }
 #endif

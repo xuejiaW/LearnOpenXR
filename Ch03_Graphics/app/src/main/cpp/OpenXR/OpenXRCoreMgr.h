@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#include "GraphicsAPI.h"
+
 // Forward declarations
 class OpenXRGraphicsAPI;
 class GraphicsAPI;
@@ -20,13 +22,14 @@ public:
 
     static void GetSystemID();
 
-    static void CreateSession();
+    static void CreateSession(GraphicsAPI_Type apiType);
     static void DestroySession();
 
     static void GetInstanceProperties();
 
     static void CreateReferenceSpaces();
-    static void DestroyReferenceSpace();    static XrInstance m_xrInstance;
+    static void DestroyReferenceSpace();
+    static XrInstance m_xrInstance;
     static XrSystemId systemID;
     static XrSession xrSession;
     static std::unique_ptr<OpenXRGraphicsAPI> openxrGraphicsAPI;

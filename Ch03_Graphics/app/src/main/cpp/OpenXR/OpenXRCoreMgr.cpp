@@ -71,12 +71,18 @@ void OpenXRCoreMgr::GetSystemID()
     OPENXR_CHECK(xrGetSystemProperties(m_xrInstance, systemID, &m_systemProperties), "Failed to get OpenXR system properties");
 }
 
-void OpenXRCoreMgr::CreateSession()
+void OpenXRCoreMgr::CreateSession(GraphicsAPI_Type apiType)
 {
     XrSessionCreateInfo sessionCreateInfo{XR_TYPE_SESSION_CREATE_INFO};
-#if defined(XR_USE_GRAPHICS_API_VULKAN) || defined(XR_TUTORIAL_USE_VULKAN)
-    openxrGraphicsAPI = std::unique_ptr<OpenXRGraphicsAPI>(new OpenXRGraphicsAPI_Vulkan(m_xrInstance, systemID));
-#endif
+    if (apiType == VULKAN)
+    {
+        openxrGraphicsAPI = std::make_unique<OpenXRGraphicsAPI_Vulkan>(m_xrInstance, systemID);
+    }
+    else
+    {
+        XR_TUT_LOG_ERROR("Unsupported Graphics API type for OpenXR session creation: " << apiType);
+        return;
+    }
     sessionCreateInfo.next = openxrGraphicsAPI->GetGraphicsBinding();
     sessionCreateInfo.createFlags = 0;  // There are currently no session creation flag bits defined. This is reserved for future use.
     sessionCreateInfo.systemId = systemID;
