@@ -12,5 +12,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Ch01_Introduction"
+rootProject.name = "Ch02_DevelopmentEnvironment"
 include ':app'
+

@@ -3,7 +3,7 @@
 
 static void OpenXRTutorial_Main(GraphicsAPI_Type apiType)
 {
-    XR_TUT_LOG("OpenXR Tutorial Ch01_Introduction");
+    XR_TUT_LOG("OpenXR Tutorial Ch02_DevelopmentEnvironment");
 
     XR_TUT_LOG("Graphics API Type: " << apiType);
 

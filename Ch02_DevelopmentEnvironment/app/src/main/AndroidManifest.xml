@@ -42,7 +42,7 @@
             <!-- Tell NativeActivity the name of our .so. -->
             <meta-data
                 android:name="android.app.lib_name"
-                android:value="Ch01_Introduction" />
+                android:value="Ch02_DevelopmentEnvironment" />
 
             <!-- Standard Khronos OpenXR launcher intent filter. -->
             <intent-filter>
@@ -63,3 +63,4 @@
     </application>
 
 </manifest>
+

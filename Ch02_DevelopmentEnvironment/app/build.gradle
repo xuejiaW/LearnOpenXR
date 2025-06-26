@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'org.khronos.Ch01_Introduction'
+    namespace 'org.khronos.Ch02_DevelopmentEnvironment'
     compileSdk 29
     ndkVersion '23.1.7779620'
 
     defaultConfig {
-        applicationId "org.khronos.Ch01_Introduction"
+        applicationId "org.khronos.Ch02_DevelopmentEnvironment"
         minSdk 24
         targetSdk 29
         versionCode 1
@@ -38,3 +38,4 @@ android {
 dependencies {
     implementation 'org.khronos.openxr:openxr_loader_for_android:1.0.34'
 }
+

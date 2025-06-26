@@ -4,7 +4,7 @@
 
 # XR_DOCS_TAG_BEGIN_SetProjectName3
 cmake_minimum_required(VERSION 3.22.1)
-set(PROJECT_NAME Ch01_Introduction)
+set(PROJECT_NAME Ch02_DevelopmentEnvironment)
 project("${PROJECT_NAME}")
 # XR_DOCS_TAG_END_SetProjectName3
 
@@ -222,3 +222,5 @@ else() # Windows / Linux
     endif()
     # XR_DOCS_TAG_END_BuildShadersVulkanWindowsLinux
 endif() # EOF
+
+
