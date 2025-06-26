@@ -1,9 +1,3 @@
-// Copyright 2023, The Khronos Group Inc.
-//
-// SPDX-License-Identifier: Apache-2.0
-
-// OpenXR Tutorial for Khronos Group
-
 #if defined(_WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif

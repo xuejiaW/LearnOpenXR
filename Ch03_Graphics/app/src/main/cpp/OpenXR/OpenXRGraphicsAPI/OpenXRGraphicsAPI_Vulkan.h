@@ -1,9 +1,3 @@
-// Copyright 2023, The Khronos Group Inc.
-//
-// SPDX-License-Identifier: Apache-2.0
-
-// OpenXR Tutorial for Khronos Group
-
 #pragma once
 
 #include "OpenXRGraphicsAPI.h"
@@ -18,30 +12,31 @@
 #include <vector>
 #include <unordered_map>
 
-class OpenXRGraphicsAPI_Vulkan : public OpenXRGraphicsAPI {
+class OpenXRGraphicsAPI_Vulkan : public OpenXRGraphicsAPI
+{
 public:
     OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSystemId systemId);
-    ~OpenXRGraphicsAPI_Vulkan();
+    ~OpenXRGraphicsAPI_Vulkan() override;
 
-    // OpenXR-specific implementations
-    virtual void* GetGraphicsBinding() override;
-    virtual XrSwapchainImageBaseHeader* AllocateSwapchainImageData(XrSwapchain swapchain, SwapchainType type, uint32_t count) override;
-    virtual void FreeSwapchainImageData(XrSwapchain swapchain) override;
-    virtual XrSwapchainImageBaseHeader* GetSwapchainImageData(XrSwapchain swapchain, uint32_t index) override;
-    virtual void* GetSwapchainImage(XrSwapchain swapchain, uint32_t index) override;
+    void* GetGraphicsBinding() override;
+    XrSwapchainImageBaseHeader* AllocateSwapchainImageData(XrSwapchain swapchain, SwapchainType type, uint32_t count) override;
+    void FreeSwapchainImageData(XrSwapchain swapchain) override;
+    XrSwapchainImageBaseHeader* GetSwapchainImageData(XrSwapchain swapchain, uint32_t index) override;
+    void* GetSwapchainImage(XrSwapchain swapchain, uint32_t index) override;
 
 private:
     void LoadPFN_XrFunctions(XrInstance xrInstance);
     std::vector<std::string> GetInstanceExtensionsForOpenXR(XrInstance xrInstance, XrSystemId systemId);
     std::vector<std::string> GetDeviceExtensionsForOpenXR(XrInstance xrInstance, XrSystemId systemId);
-    
-    // Vulkan data structures for OpenXR integration
-    struct VulkanRequirements {
+
+    struct VulkanRequirements
+    {
         XrVersion minApiVersionSupported;
         XrVersion maxApiVersionSupported;
     };
-    
-    struct VulkanDeviceInfo {
+
+    struct VulkanDeviceInfo
+    {
         VkInstance instance;
         VkPhysicalDevice physicalDevice;
         uint32_t queueFamilyIndex;
@@ -54,13 +49,10 @@ private:
     PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR = nullptr;
     PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR = nullptr;
 
-    // Graphics binding for OpenXR
     XrGraphicsBindingVulkanKHR graphicsBinding{};
 
-    // Swapchain image management
     std::unordered_map<XrSwapchain, std::pair<int, std::vector<XrSwapchainImageVulkanKHR>>> swapchainImagesMap{};
 
-    // Keep extension name strings alive
     std::vector<const char*> m_instanceExtensionNames;
     std::vector<const char*> m_deviceExtensionNames;
 };
