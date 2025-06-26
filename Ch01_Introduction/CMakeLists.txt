@@ -2,17 +2,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# XR_DOCS_TAG_BEGIN_SetProjectName1
+# XR_DOCS_TAG_BEGIN_SetProjectName3
 cmake_minimum_required(VERSION 3.22.1)
 set(PROJECT_NAME Ch01_Introduction)
 project("${PROJECT_NAME}")
-# XR_DOCS_TAG_END_SetProjectName1
+# XR_DOCS_TAG_END_SetProjectName3
 
 # XR_DOCS_TAG_BEGIN_CMakeModulePath
 # Additional Directories for find_package() to search within.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
-# XR_DOCS_TAG_END_CMakeModulePath
-include("../cmake/graphics_api_select.cmake")
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/glsl_shader.cmake")
 
 # XR_DOCS_TAG_BEGIN_FetchContent
 # For FetchContent_Declare() and FetchContent_MakeAvailable()
@@ -39,31 +39,27 @@ FetchContent_MakeAvailable(OpenXR)
 
 # Files
 set(SOURCES
-    app/src/main/cpp/main.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Android.cpp
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial_Windows.cpp
     ../Common/GraphicsAPI.cpp
-    ../Common/GraphicsAPI_D3D11.cpp
-    ../Common/GraphicsAPI_D3D12.cpp
-    ../Common/GraphicsAPI_OpenGL.cpp
-    ../Common/GraphicsAPI_OpenGL_ES.cpp
     ../Common/GraphicsAPI_Vulkan.cpp
     ../Common/OpenXRDebugUtils.cpp
+    app/src/main/cpp/main.cpp
+    app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
+    app/src/main/cpp/Application/OpenXRTutorial.cpp
+    app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
 )
 set(HEADERS
-    app/src/main/cpp/OpenXRTutorial/OpenXRTutorial.h
     ../Common/DebugOutput.h
     ../Common/GraphicsAPI.h
-    ../Common/GraphicsAPI_D3D11.h
-    ../Common/GraphicsAPI_D3D12.h
-    ../Common/GraphicsAPI_OpenGL.h
-    ../Common/GraphicsAPI_OpenGL_ES.h
     ../Common/GraphicsAPI_Vulkan.h
     ../Common/HelperFunctions.h
     ../Common/OpenXRDebugUtils.h
     ../Common/OpenXRHelper.h
+    app/src/main/cpp/Application/OpenXRTutorial.h
 )
+
+# XR_DOCS_TAG_BEGIN_GLSLShaders
+set(GLSL_SHADERS "../Shaders/VertexShader.glsl" "../Shaders/PixelShader.glsl")
+# XR_DOCS_TAG_END_GLSLShaders
 
 if(ANDROID) # Android
     # XR_DOCS_TAG_BEGIN_Android
@@ -72,7 +68,6 @@ if(ANDROID) # Android
         ${PROJECT_NAME}
         PRIVATE
             # In this repo
-            app/src/main/cpp/ # Add app/src/main/cpp to include paths
             ../Common/
             # From OpenXR repo
             "${openxr_SOURCE_DIR}/src/common"
@@ -93,7 +88,9 @@ if(ANDROID) # Android
     target_link_libraries(${PROJECT_NAME} android native_app_glue openxr_loader)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-cast-calling-convention)
     # XR_DOCS_TAG_END_Android
-    addgraphicsapidefine(${PROJECT_NAME})
+    
+    # Force Vulkan Graphics API for Android
+    target_compile_definitions(${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_VULKAN)
 
     # XR_DOCS_TAG_BEGIN_VulkanNDK
     # VulkanNDK
@@ -110,15 +107,36 @@ if(ANDROID) # Android
     endif()
     # XR_DOCS_TAG_END_VulkanNDK
 
-    # XR_DOCS_TAG_BEGIN_Gfxwrapper
-    include(../cmake/gfxwrapper.cmake)
-    if(TARGET openxr-gfxwrapper)
-        target_link_libraries(${PROJECT_NAME} openxr-gfxwrapper)
-        target_compile_definitions(
-            ${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_OPENGL_ES
+    # XR_DOCS_TAG_BEGIN_CompileAndroidGLSLShaders
+    # Vulkan GLSL
+    set(SHADER_DEST "${CMAKE_CURRENT_SOURCE_DIR}/app/src/main/assets/shaders")
+    include(../cmake/glsl_shader.cmake)
+    set_source_files_properties(
+        ../Shaders/VertexShader.glsl PROPERTIES ShaderType "vert"
+    )
+    set_source_files_properties(
+        ../Shaders/PixelShader.glsl PROPERTIES ShaderType "frag"
+    )
+
+    foreach(FILE ${GLSL_SHADERS})
+        get_filename_component(FILE_WE ${FILE} NAME_WE)
+        get_source_file_property(shadertype ${FILE} ShaderType)
+        glsl_spv_shader(
+            INPUT
+            "${CMAKE_CURRENT_SOURCE_DIR}/${FILE}"
+            OUTPUT
+            "${SHADER_DEST}/${FILE_WE}.spv"
+            STAGE
+            ${shadertype}
+            ENTRY_POINT
+            main
+            TARGET_ENV
+            vulkan1.0
         )
-    endif()
-    # XR_DOCS_TAG_END_Gfxwrapper
+        # Make our project depend on these files
+        target_sources(${PROJECT_NAME} PRIVATE "${SHADER_DEST}/${FILE_WE}.spv")
+    endforeach()
+    # XR_DOCS_TAG_END_CompileAndroidGLSLShaders
 
 else() # Windows / Linux
     # XR_DOCS_TAG_BEGIN_WindowsLinux
@@ -135,7 +153,6 @@ else() # Windows / Linux
         ${PROJECT_NAME}
         PRIVATE
             # In this repo
-            app/src/main/cpp/ # Add app/src/main/cpp to include paths
             ../Common/
             # From OpenXR repo
             "${openxr_SOURCE_DIR}/src/common"
@@ -143,23 +160,11 @@ else() # Windows / Linux
     )
     target_link_libraries(${PROJECT_NAME} openxr_loader)
     # XR_DOCS_TAG_END_WindowsLinux
-    addgraphicsapidefine(${PROJECT_NAME})
+    
+    # Force Vulkan Graphics API for Windows/Linux
+    target_compile_definitions(${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_VULKAN)
 
     if(WIN32) # Windows
-        # XR_DOCS_TAG_BEGIN_D3D11
-        # D3D11
-        target_link_libraries(${PROJECT_NAME} "d3d11.lib")
-        target_compile_definitions(${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_D3D11)
-        # XR_DOCS_TAG_END_D3D11
-        # XR_DOCS_TAG_BEGIN_D3D12
-        # D3D12
-        target_link_libraries(${PROJECT_NAME} "d3d12.lib")
-        target_compile_definitions(${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_D3D12)
-        # XR_DOCS_TAG_END_D3D12
-        # XR_DOCS_TAG_BEGIN_D3D11_12
-        # D3D11 / D3D12
-        target_link_libraries(${PROJECT_NAME} "dxgi.lib")
-        # XR_DOCS_TAG_END_D3D11_12
     else() # Linux
         # XR_DOCS_TAG_BEGIN_Linux
         target_compile_definitions(
@@ -182,17 +187,38 @@ else() # Windows / Linux
     endif()
     # XR_DOCS_TAG_END_VulkanSDK
 
-    # XR_DOCS_TAG_BEGIN_OpenGL
-    # OpenGL
-    include(../cmake/gfxwrapper.cmake)
-    if(TARGET openxr-gfxwrapper)
-        target_include_directories(
-            ${PROJECT_NAME} PUBLIC ${openxr_SOURCE_DIR}/src/common
+    # XR_DOCS_TAG_BEGIN_BuildShadersVulkanWindowsLinux
+    # Vulkan GLSL
+    set(SHADER_DEST "${CMAKE_CURRENT_BINARY_DIR}")
+    if(Vulkan_FOUND)
+        include(../cmake/glsl_shader.cmake)
+        set_source_files_properties(
+            ../Shaders/VertexShader.glsl PROPERTIES ShaderType "vert"
         )
-        target_link_libraries(${PROJECT_NAME} openxr-gfxwrapper)
-        target_compile_definitions(
-            ${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_OPENGL
+        set_source_files_properties(
+            ../Shaders/PixelShader.glsl PROPERTIES ShaderType "frag"
         )
+
+        foreach(FILE ${GLSL_SHADERS})
+            get_filename_component(FILE_WE ${FILE} NAME_WE)
+            get_source_file_property(shadertype ${FILE} ShaderType)
+            glsl_spv_shader(
+                INPUT
+                "${CMAKE_CURRENT_SOURCE_DIR}/${FILE}"
+                OUTPUT
+                "${SHADER_DEST}/${FILE_WE}.spv"
+                STAGE
+                ${shadertype}
+                ENTRY_POINT
+                main
+                TARGET_ENV
+                vulkan1.0
+            )
+            # Make our project depend on these files
+            target_sources(
+                ${PROJECT_NAME} PRIVATE "${SHADER_DEST}/${FILE_WE}.spv"
+            )
+        endforeach()
     endif()
-    # XR_DOCS_TAG_END_OpenGL
+    # XR_DOCS_TAG_END_BuildShadersVulkanWindowsLinux
 endif() # EOF

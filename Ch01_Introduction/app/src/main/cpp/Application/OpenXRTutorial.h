@@ -1,6 +1,8 @@
 #pragma once
 
 #include <GraphicsAPI.h>
+#include <xr_linear_algebra.h>
+#include <openxr/openxr.h>
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -8,11 +10,13 @@
 
 class OpenXRTutorial
 {
-  public:
+public:
     OpenXRTutorial(GraphicsAPI_Type apiType);
     ~OpenXRTutorial();
 
     void Run();
+
+    static GraphicsAPI_Type m_apiType;
 
 #if defined(__ANDROID__)
   public:
@@ -28,11 +32,6 @@ class OpenXRTutorial
     static void AndroidAppHandleCmd(struct android_app *app, int32_t cmd);
 #endif
 
-  private:
+private:
     void PollSystemEvents();
-
-  private:
-    bool m_applicationRunning = true;
-    bool m_sessionRunning = false;
-    GraphicsAPI_Type m_apiType;
 };
