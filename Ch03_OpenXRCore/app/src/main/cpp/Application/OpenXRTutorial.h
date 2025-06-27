@@ -33,5 +33,7 @@ public:
 #endif
 
 private:
+    void InitializeOpenXR();
+    void ShutDownOpenXR();
     void PollSystemEvents();
 };
