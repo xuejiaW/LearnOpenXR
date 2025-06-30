@@ -16,7 +16,6 @@ XrSpace OpenXRCoreMgr::m_ActiveSpaces = XR_NULL_HANDLE;
 
 std::vector<std::string> OpenXRCoreMgr::m_RequestApiLayers{};
 std::vector<const char*> OpenXRCoreMgr::m_ActiveApiLayers{};
-std::vector<std::string> OpenXRCoreMgr::m_RequestExtensions{};
 std::vector<const char*> OpenXRCoreMgr::m_ActiveExtensions{};
 XrDebugUtilsMessengerEXT OpenXRCoreMgr::m_DebugUtilsMessenger{};
 
@@ -133,7 +132,7 @@ void OpenXRCoreMgr::ActiveAvailableApiLayers()
 
 void OpenXRCoreMgr::ActiveAvailableExtensions()
 {
-    // We always request the debug utils extension and the graphics API instance extension.
+    std::vector<std::string> m_RequestExtensions{};
     m_RequestExtensions.emplace_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
     m_RequestExtensions.emplace_back(GetGraphicsAPIInstanceExtensionString(OpenXRTutorial::m_apiType));
 

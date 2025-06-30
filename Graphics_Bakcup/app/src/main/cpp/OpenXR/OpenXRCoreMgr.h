@@ -46,7 +46,6 @@ private:
     static std::vector<std::string> m_RequestApiLayers;
     static std::vector<const char*> m_ActiveApiLayers;
 
-    static std::vector<std::string> m_RequestExtensions;
     static std::vector<const char*> m_ActiveExtensions;
 
     static XrDebugUtilsMessengerEXT m_DebugUtilsMessenger;
