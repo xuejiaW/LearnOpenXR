@@ -1,5 +1,4 @@
 #include "OpenXRTutorial.h"
-#include <DebugOutput.h>
 
 #include <GraphicsAPI_Vulkan.h>
 
@@ -26,6 +25,7 @@ void OpenXRTutorial::Run()
 void OpenXRTutorial::InitializeOpenXR()
 {
     OpenXRCoreMgr::CreateInstance();
+    OpenXRCoreMgr::GetSystemID();
 }
 
 void OpenXRTutorial::ShutDownOpenXR()

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <GraphicsAPI.h>
-#include <xr_linear_algebra.h>
-#include <openxr/openxr.h>
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>

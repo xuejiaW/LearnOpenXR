@@ -30,8 +30,8 @@ public:
     static void CreateReferenceSpaces();
     static void DestroyReferenceSpace();
     static XrInstance m_xrInstance;
-    static XrSystemId systemID;
-    static XrSession xrSession;
+    static XrSystemId systemID
+    static XrSession xrSession
     static std::unique_ptr<OpenXRGraphicsAPI> openxrGraphicsAPI;
     static GraphicsAPI* GetGraphicsAPI();
     

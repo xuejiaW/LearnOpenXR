@@ -84,7 +84,6 @@ void OpenXRCoreMgr::CreateSession(GraphicsAPI_Type apiType)
         return;
     }
     sessionCreateInfo.next = openxrGraphicsAPI->GetGraphicsBinding();
-    sessionCreateInfo.createFlags = 0;  // There are currently no session creation flag bits defined. This is reserved for future use.
     sessionCreateInfo.systemId = systemID;
 
     OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &xrSession), "Failed to create OpenXR session");
