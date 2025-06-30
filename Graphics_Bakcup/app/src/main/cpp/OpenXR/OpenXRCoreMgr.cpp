@@ -134,8 +134,8 @@ void OpenXRCoreMgr::ActiveAvailableApiLayers()
 void OpenXRCoreMgr::ActiveAvailableExtensions()
 {
     // We always request the debug utils extension and the graphics API instance extension.
-    m_ActiveExtensions.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    m_ActiveExtensions.push_back(GetGraphicsAPIInstanceExtensionString(OpenXRTutorial::m_apiType));
+    m_RequestExtensions.emplace_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    m_RequestExtensions.emplace_back(GetGraphicsAPIInstanceExtensionString(OpenXRTutorial::m_apiType));
 
     uint32_t extensionCount = 0;
     std::vector<XrExtensionProperties> availableExtensions;

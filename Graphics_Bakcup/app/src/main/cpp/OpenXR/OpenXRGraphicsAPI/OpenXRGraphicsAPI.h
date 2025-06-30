@@ -2,6 +2,7 @@
 
 #include <openxr/openxr.h>
 #include <memory>
+#include "GraphicsAPI.h"
 
 class GraphicsAPI;
 
@@ -10,6 +11,8 @@ enum class SwapchainType : uint8_t
     COLOR,
     DEPTH
 };
+
+const char* GetGraphicsAPIInstanceExtensionString(GraphicsAPI_Type type);
 
 class OpenXRGraphicsAPI
 {

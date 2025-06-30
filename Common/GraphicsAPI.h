@@ -114,10 +114,6 @@ enum GraphicsAPI_Type : uint8_t {
     VULKAN
 };
 
-bool CheckGraphicsAPI_TypeIsValidForPlatform(GraphicsAPI_Type type);
-
-const char* GetGraphicsAPIInstanceExtensionString(GraphicsAPI_Type type);
-
 class GraphicsAPI {
 public:
 // Pipeline Helpers

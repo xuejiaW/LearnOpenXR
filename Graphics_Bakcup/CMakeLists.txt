@@ -52,6 +52,7 @@ set(SOURCES
     app/src/main/cpp/Rendering/SceneRenderer.cpp
     app/src/main/cpp/Scenes/TableFloorScene.cpp
     app/src/main/cpp/Rendering/OpenXRRenderer.cpp
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/Utils/XRMathUtils.cpp
 )
