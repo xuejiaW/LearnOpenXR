@@ -118,10 +118,6 @@ class GraphicsAPI {
 public:
 // Pipeline Helpers
 #pragma region Pipeline Helpers
-    enum class SwapchainType : uint8_t {
-        COLOR,
-        DEPTH
-    };
     enum class VertexType : uint8_t {
         FLOAT,
         VEC2,
@@ -473,12 +469,6 @@ public:
     virtual void PresentDesktopSwapchainImage(void* swapchain, uint32_t index) = 0;
 
     virtual int64_t GetDepthFormat() = 0;
-
-    virtual void* GetGraphicsBinding() = 0;
-    virtual XrSwapchainImageBaseHeader* AllocateSwapchainImageData(XrSwapchain swapchain, SwapchainType type, uint32_t count) = 0;
-    virtual void FreeSwapchainImageData(XrSwapchain swapchain) = 0;
-    virtual XrSwapchainImageBaseHeader* GetSwapchainImageData(XrSwapchain swapchain, uint32_t index) = 0;
-    virtual void* GetSwapchainImage(XrSwapchain swapchain, uint32_t index) = 0;
 
     virtual void* CreateImage(const ImageCreateInfo& imageCI) = 0;
     virtual void DestroyImage(void*& image) = 0;

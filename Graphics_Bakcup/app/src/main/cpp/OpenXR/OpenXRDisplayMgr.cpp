@@ -5,6 +5,7 @@
 #include "OpenXRCoreMgr.h"
 #include "OpenXRHelper.h"
 #include "OpenXRSessionMgr.h"
+#include "OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
 
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_ColorSwapchainInfos = {};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_DepthSwapchainInfos = {};
@@ -147,7 +148,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         OPENXR_CHECK(xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, 0, &colorSwapchainImageCount, nullptr),
                      "Failed to get color swapchain images count");
         XrSwapchainImageBaseHeader* colorSwapchainImages =
-            OpenXRCoreMgr::GetGraphicsAPI()->AllocateSwapchainImageData(colorSwapchainInfo.swapchain, GraphicsAPI::SwapchainType::COLOR,
+            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(colorSwapchainInfo.swapchain, SwapchainType::COLOR,
                                                                    colorSwapchainImageCount);
         OPENXR_CHECK(
             xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, colorSwapchainImageCount, &colorSwapchainImageCount, colorSwapchainImages),
@@ -157,7 +158,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         OPENXR_CHECK(xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, 0, &depthSwapchainImageCount, nullptr),
                      "Failed to get depth swapchain images count");
         XrSwapchainImageBaseHeader* depthSwapchainImages =
-            OpenXRCoreMgr::GetGraphicsAPI()->AllocateSwapchainImageData(depthSwapchainInfo.swapchain, GraphicsAPI::SwapchainType::DEPTH,
+            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(depthSwapchainInfo.swapchain, SwapchainType::DEPTH,
                                                                    depthSwapchainImageCount);
         OPENXR_CHECK(
             xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, depthSwapchainImageCount, &depthSwapchainImageCount, depthSwapchainImages),
@@ -166,7 +167,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         for (uint32_t j = 0; j < colorSwapchainImageCount; ++j)
         {
             GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
-            imageViewCreateInfo.image = OpenXRCoreMgr::GetGraphicsAPI()->GetSwapchainImage(colorSwapchainInfo.swapchain, j);
+            imageViewCreateInfo.image = OpenXRCoreMgr::GetOpenXRGraphicsAPI()->GetSwapchainImage(colorSwapchainInfo.swapchain, j);
             imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::RTV; // Render Target View
             imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
             imageViewCreateInfo.format = colorSwapchainInfo.swapchainFormat;
@@ -181,7 +182,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         for (uint32_t j = 0; j < depthSwapchainImageCount; ++j)
         {
             GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
-            imageViewCreateInfo.image = OpenXRCoreMgr::GetGraphicsAPI()->GetSwapchainImage(depthSwapchainInfo.swapchain, j);
+            imageViewCreateInfo.image = OpenXRCoreMgr::GetOpenXRGraphicsAPI()->GetSwapchainImage(depthSwapchainInfo.swapchain, j);
             imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::DSV; // Depth Stencil View
             imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
             imageViewCreateInfo.format = depthSwapchainInfo.swapchainFormat;
@@ -206,13 +207,13 @@ void OpenXRDisplayMgr::DestroySwapchains()
         {
             OpenXRCoreMgr::GetGraphicsAPI()->DestroyImageView(imageView);
         }
-        OpenXRCoreMgr::GetGraphicsAPI()->FreeSwapchainImageData(colorSwapchainInfo.swapchain);
+        OpenXRCoreMgr::GetOpenXRGraphicsAPI()->FreeSwapchainImageData(colorSwapchainInfo.swapchain);
 
         for (auto& imageView : depthSwapchainInfo.imageViews)
         {
             OpenXRCoreMgr::GetGraphicsAPI()->DestroyImageView(imageView);
         }
-        OpenXRCoreMgr::GetGraphicsAPI()->FreeSwapchainImageData(depthSwapchainInfo.swapchain);
+        OpenXRCoreMgr::GetOpenXRGraphicsAPI()->FreeSwapchainImageData(depthSwapchainInfo.swapchain);
 
         OPENXR_CHECK(xrDestroySwapchain(colorSwapchainInfo.swapchain), "Failed to destroy OpenXR color swapchain");
         OPENXR_CHECK(xrDestroySwapchain(depthSwapchainInfo.swapchain), "Failed to destroy OpenXR depth swapchain");

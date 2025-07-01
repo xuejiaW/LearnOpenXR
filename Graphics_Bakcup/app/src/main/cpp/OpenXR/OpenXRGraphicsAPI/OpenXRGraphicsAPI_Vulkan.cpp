@@ -12,6 +12,7 @@
 #include <OpenXRHelper.h>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 OpenXRGraphicsAPI_Vulkan::OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSystemId systemId)
 {
@@ -51,17 +52,36 @@ OpenXRGraphicsAPI_Vulkan::OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSyst
         m_deviceExtensionNames.push_back(ext.c_str());
     }
 
+    // Create Vulkan instance first
+    VkInstanceCreateInfo instanceCreateInfo{};
+    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pApplicationInfo = &appInfo;
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(m_instanceExtensionNames.size());
+    instanceCreateInfo.ppEnabledExtensionNames = m_instanceExtensionNames.data();
+    instanceCreateInfo.enabledLayerCount = 0;
+    instanceCreateInfo.ppEnabledLayerNames = nullptr;
+
+    VkInstance instance;
+    VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create Vulkan instance");
+    }
+
+    // Let OpenXR select the physical device
+    VkPhysicalDevice physicalDevice;
+    OPENXR_CHECK(xrGetVulkanGraphicsDeviceKHR(xrInstance, systemId, instance, &physicalDevice),
+                 "Failed to get Vulkan graphics device from OpenXR.");
+
     // Create VulkanInitInfo for the GraphicsAPI_Vulkan constructor
     VulkanInitInfo initInfo{};
     initInfo.applicationInfo = appInfo;
     initInfo.instanceExtensions = m_instanceExtensionNames;
     initInfo.deviceExtensions = m_deviceExtensionNames;
-    // Let GraphicsAPI_Vulkan create the instance and select physical device
-    initInfo.instance = VK_NULL_HANDLE;
-    initInfo.physicalDevice = VK_NULL_HANDLE;
+    initInfo.instance = instance; // Use the instance we created
+    initInfo.physicalDevice = physicalDevice; // Use OpenXR selected device
     initInfo.queueFamilyIndex = UINT32_MAX; // Let it find the graphics queue
 
-    m_graphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(xrInstance, systemId);
+    m_graphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(initInfo);
 
     auto* vulkanAPI = static_cast<GraphicsAPI_Vulkan*>(m_graphicsAPI.get());
 
