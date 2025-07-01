@@ -5,9 +5,11 @@
 #include "OpenXRHelper.h"
 #include "../Application/OpenXRTutorial.h"
 #include "OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
+#include "OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h"
 
 XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
 XrSystemId OpenXRCoreMgr::systemID = XR_NULL_SYSTEM_ID;
+std::unique_ptr<OpenXRGraphicsAPI> OpenXRCoreMgr::openxrGraphicsAPI = nullptr;
 
 void OpenXRCoreMgr::CreateInstance()
 {
@@ -26,7 +28,7 @@ void OpenXRCoreMgr::CreateInstance()
     XrInstanceCreateInfo instanceCreateInfo = {};
     instanceCreateInfo.type = XR_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.applicationInfo = appInfo;
-    instanceCreateInfo.enabledExtensionCount = activeExtensions.size();
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(activeExtensions.size());
     instanceCreateInfo.enabledExtensionNames = activeExtensions.data();
     OPENXR_CHECK(xrCreateInstance(&instanceCreateInfo, &m_xrInstance), "Failed to create OpenXR instance");
     XR_TUT_LOG("OpenXR instance created successfully");
@@ -37,7 +39,6 @@ void OpenXRCoreMgr::CreateInstance()
     XR_TUT_LOG("OpenXR Runtime: " << instanceProperties.runtimeName << " - " << XR_VERSION_MAJOR(instanceProperties.runtimeVersion) << "."
         << XR_VERSION_MINOR(instanceProperties.runtimeVersion) << "."
         << XR_VERSION_PATCH(instanceProperties.runtimeVersion));
-
 }
 
 void OpenXRCoreMgr::DestroyInstance()
@@ -103,3 +104,14 @@ void OpenXRCoreMgr::FindRequiredExtensions(const std::vector<std::string>& reque
         }
     }
 }
+
+void OpenXRCoreMgr::CreateSession(GraphicsAPI_Type apiType)
+{
+    if (apiType == VULKAN)
+    {
+        openxrGraphicsAPI = std::make_unique<OpenXRGraphicsAPI_Vulkan>(m_xrInstance, systemID);
+    }
+}
+
+void OpenXRCoreMgr::DestroySession()
+{}

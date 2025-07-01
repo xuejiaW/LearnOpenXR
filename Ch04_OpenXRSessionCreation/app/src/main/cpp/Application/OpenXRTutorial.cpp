@@ -26,6 +26,7 @@ void OpenXRTutorial::InitializeOpenXR()
 {
     OpenXRCoreMgr::CreateInstance();
     OpenXRCoreMgr::GetSystemID();
+    OpenXRCoreMgr::CreateSession(m_apiType);
 }
 
 void OpenXRTutorial::ShutDownOpenXR()
