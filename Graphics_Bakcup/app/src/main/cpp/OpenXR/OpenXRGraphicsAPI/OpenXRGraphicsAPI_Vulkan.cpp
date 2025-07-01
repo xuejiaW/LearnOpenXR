@@ -74,12 +74,10 @@ OpenXRGraphicsAPI_Vulkan::OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSyst
 
     // Create VulkanInitInfo for the GraphicsAPI_Vulkan constructor
     VulkanInitInfo initInfo{};
-    initInfo.applicationInfo = appInfo;
     initInfo.instanceExtensions = m_instanceExtensionNames;
     initInfo.deviceExtensions = m_deviceExtensionNames;
     initInfo.instance = instance; // Use the instance we created
     initInfo.physicalDevice = physicalDevice; // Use OpenXR selected device
-    initInfo.queueFamilyIndex = UINT32_MAX; // Let it find the graphics queue
 
     m_graphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(initInfo);
 

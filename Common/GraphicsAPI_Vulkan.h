@@ -11,18 +11,14 @@
 
 // Structure to pass Vulkan initialization data (without OpenXR dependencies)
 struct VulkanInitInfo {
-    VkApplicationInfo applicationInfo;
     std::vector<const char*> instanceExtensions;
     std::vector<const char*> deviceExtensions;
     VkInstance instance = VK_NULL_HANDLE;           // Pre-created instance (optional)
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE; // Pre-selected physical device (optional)
-    uint32_t queueFamilyIndex = UINT32_MAX;
-    uint32_t queueIndex = 0;
 };
 
 class GraphicsAPI_Vulkan : public GraphicsAPI {
 public:
-    GraphicsAPI_Vulkan();
     GraphicsAPI_Vulkan(const VulkanInitInfo& initInfo);                // New pure Vulkan constructor
     ~GraphicsAPI_Vulkan();
 
