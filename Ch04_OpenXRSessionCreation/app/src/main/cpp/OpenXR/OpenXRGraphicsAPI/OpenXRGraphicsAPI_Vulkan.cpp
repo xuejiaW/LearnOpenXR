@@ -7,7 +7,7 @@
 
 OpenXRGraphicsAPI_Vulkan::OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSystemId systemID)
 {
-    LoadXRFunctionsPointers(xrInstance);
+    // LoadXRFunctionsPointers(xrInstance);
 }
 
 OpenXRGraphicsAPI_Vulkan::~OpenXRGraphicsAPI_Vulkan()

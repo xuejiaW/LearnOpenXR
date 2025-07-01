@@ -9,6 +9,8 @@
 
 XrInstance OpenXRCoreMgr::m_xrInstance = XR_NULL_HANDLE;
 XrSystemId OpenXRCoreMgr::systemID = XR_NULL_SYSTEM_ID;
+XrSession OpenXRCoreMgr::xrSession = XR_NULL_SYSTEM_ID;
+
 std::unique_ptr<OpenXRGraphicsAPI> OpenXRCoreMgr::openxrGraphicsAPI = nullptr;
 
 void OpenXRCoreMgr::CreateInstance()
@@ -107,10 +109,21 @@ void OpenXRCoreMgr::FindRequiredExtensions(const std::vector<std::string>& reque
 
 void OpenXRCoreMgr::CreateSession(GraphicsAPI_Type apiType)
 {
+    XrSessionCreateInfo sessionCreateInfo{};
+    sessionCreateInfo.type = XR_TYPE_SESSION_CREATE_INFO;
     if (apiType == VULKAN)
     {
         openxrGraphicsAPI = std::make_unique<OpenXRGraphicsAPI_Vulkan>(m_xrInstance, systemID);
     }
+    else
+    {
+        XR_TUT_LOG_ERROR("Unsupported Graphics API type for OpenXR session creation: " << apiType);
+        return;
+    }
+    sessionCreateInfo.next = openxrGraphicsAPI->GetGraphicsBinding();
+    sessionCreateInfo.systemId = systemID;
+
+    OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &xrSession), "Failed to create OpenXR session");
 }
 
 void OpenXRCoreMgr::DestroySession()

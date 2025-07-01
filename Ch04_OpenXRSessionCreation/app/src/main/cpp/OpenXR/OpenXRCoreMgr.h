@@ -22,6 +22,7 @@ public:
     
     static XrSystemId systemID;
     static XrInstance m_xrInstance;
+    static XrSession xrSession;
     static std::unique_ptr<OpenXRGraphicsAPI> openxrGraphicsAPI;
 private:
     static void CreateRequiredExtensions(std::vector<std::string>& requiredExtensions);
