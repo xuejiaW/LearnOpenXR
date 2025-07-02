@@ -124,6 +124,8 @@ void OpenXRCoreMgr::CreateSession(GraphicsAPI_Type apiType)
     sessionCreateInfo.systemId = systemID;
 
     OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &xrSession), "Failed to create OpenXR session");
+
+    XR_TUT_LOG("Session created");
 }
 
 void OpenXRCoreMgr::DestroySession()
