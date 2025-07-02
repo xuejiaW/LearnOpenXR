@@ -125,8 +125,10 @@ void OpenXRCoreMgr::CreateSession(GraphicsAPI_Type apiType)
 
     OPENXR_CHECK(xrCreateSession(m_xrInstance, &sessionCreateInfo, &xrSession), "Failed to create OpenXR session");
 
-    XR_TUT_LOG("Session created");
+    XR_TUT_LOG("Session Created");
 }
 
 void OpenXRCoreMgr::DestroySession()
-{}
+{
+    OPENXR_CHECK(xrDestroySession(xrSession), "Failed to destroy OpenXR session");
+}

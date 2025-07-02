@@ -6,7 +6,6 @@
 
 #include "DebugOutput.h"
 
-
 OpenXRGraphicsAPI_Vulkan::OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSystemId systemID)
 {
     LoadXRFunctionsPointers(xrInstance);
@@ -60,16 +59,6 @@ OpenXRGraphicsAPI_Vulkan::OpenXRGraphicsAPI_Vulkan(XrInstance xrInstance, XrSyst
     initInfo.physicalDevice = physicalDevice; // Use OpenXR selected device
 
     graphicsAPI = std::make_unique<GraphicsAPI_Vulkan>(initInfo);
-
-    auto* vulkanAPI = dynamic_cast<GraphicsAPI_Vulkan*>(graphicsAPI.get());
-
-    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
-    graphicsBinding.instance = vulkanAPI->GetInstance();
-    graphicsBinding.physicalDevice = vulkanAPI->GetPhysicalDevice();
-    graphicsBinding.device = vulkanAPI->GetDevice();
-    graphicsBinding.queueFamilyIndex = vulkanAPI->GetQueueFamilyIndex();
-    graphicsBinding.queueIndex = vulkanAPI->GetQueueIndex();
-
 }
 
 static std::vector<std::string> ParseExtensionString(const std::vector<char>& extensionNames)
@@ -118,6 +107,13 @@ OpenXRGraphicsAPI_Vulkan::~OpenXRGraphicsAPI_Vulkan() = default;
 
 void* OpenXRGraphicsAPI_Vulkan::GetGraphicsBinding()
 {
+    auto* vulkanAPI = dynamic_cast<GraphicsAPI_Vulkan*>(graphicsAPI.get());
+    graphicsBinding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
+    graphicsBinding.instance = vulkanAPI->GetInstance();
+    graphicsBinding.physicalDevice = vulkanAPI->GetPhysicalDevice();
+    graphicsBinding.device = vulkanAPI->GetDevice();
+    graphicsBinding.queueFamilyIndex = vulkanAPI->GetQueueFamilyIndex();
+    graphicsBinding.queueIndex = vulkanAPI->GetQueueIndex();
     return &graphicsBinding;
 }
 

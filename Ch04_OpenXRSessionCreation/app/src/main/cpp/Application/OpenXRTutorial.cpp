@@ -31,5 +31,6 @@ void OpenXRTutorial::InitializeOpenXR()
 
 void OpenXRTutorial::ShutDownOpenXR()
 {
+    OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyInstance();
 }
