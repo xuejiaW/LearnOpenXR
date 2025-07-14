@@ -1,5 +1,7 @@
 ﻿#include "OpenXRCoreMgr.h"
 
+#include <openxr/openxr.h>
+
 #include "DebugOutput.h"
 #include "HelperFunctions.h"
 #include "OpenXRHelper.h"
@@ -50,7 +52,7 @@ void OpenXRCoreMgr::DestroyInstance()
 
 void OpenXRCoreMgr::GetSystemID()
 {
-    XrSystemGetInfo systemGetInfo;
+    XrSystemGetInfo systemGetInfo{};
     systemGetInfo.type = XR_TYPE_SYSTEM_GET_INFO;
     systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
