@@ -2,7 +2,9 @@
 
 #include <GraphicsAPI_Vulkan.h>
 
+#include "DebugOutput.h"
 #include "../OpenXR/OpenXRCoreMgr.h"
+#include "../OpenXR/OpenXRSessionMgr.h"
 
 GraphicsAPI_Type OpenXRTutorial::m_apiType = UNKNOWN;
 
@@ -19,6 +21,10 @@ void OpenXRTutorial::Run()
     while (true)
     {
         PollSystemEvents();
+        OpenXRSessionMgr::PollEvent();
+        if (OpenXRSessionMgr::IsSessionRunning())
+        {
+        }
     }
 }
 

@@ -46,6 +46,7 @@ set(SOURCES
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.cpp
+    app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
@@ -60,6 +61,7 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
+    app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/Application/OpenXRTutorial.h
 )
 
