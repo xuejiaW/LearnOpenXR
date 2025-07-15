@@ -211,7 +211,6 @@ GraphicsAPI_Vulkan::~GraphicsAPI_Vulkan()
     vkDestroyDevice(device, nullptr);
     vkDestroyInstance(instance, nullptr);
 }
-// XR_DOCS_TAG_END_GraphicsAPI_Vulkan
 
 void *GraphicsAPI_Vulkan::CreateDesktopSwapchain(const SwapchainCreateInfo &swapchainCI)
 {
@@ -1262,11 +1261,10 @@ void GraphicsAPI_Vulkan::Draw(uint32_t vertexCount, uint32_t instanceCount, uint
     vkCmdDraw(cmdBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-// XR_DOCS_TAG_BEGIN_GraphicsAPI_Vulkan_GetSupportedSwapchainFormats
 const std::vector<int64_t> GraphicsAPI_Vulkan::GetSupportedColorSwapchainFormats()
 {
     return {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM};
 }
 const std::vector<int64_t> GraphicsAPI_Vulkan::GetSupportedDepthSwapchainFormats() { return {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D16_UNORM}; }
-// XR_DOCS_TAG_END_GraphicsAPI_Vulkan_GetSupportedSwapchainFormats
+
 #endif

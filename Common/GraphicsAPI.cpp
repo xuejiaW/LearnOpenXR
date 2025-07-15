@@ -7,7 +7,6 @@
 #include <GraphicsAPI.h>
 
 
-// XR_DOCS_TAG_BEGIN_GraphicsAPI_SelectSwapchainFormats
 int64_t GraphicsAPI::SelectColorSwapchainFormat(const std::vector<int64_t> &formats) {
     const std::vector<int64_t> &supportSwapchainFormats = GetSupportedColorSwapchainFormats();
 
@@ -35,4 +34,3 @@ int64_t GraphicsAPI::SelectDepthSwapchainFormat(const std::vector<int64_t> &form
 
     return *swapchainFormatIt;
 }
-// XR_DOCS_TAG_END_GraphicsAPI_SelectSwapchainFormats
