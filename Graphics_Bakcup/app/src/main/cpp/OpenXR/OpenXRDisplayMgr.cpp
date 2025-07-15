@@ -47,7 +47,7 @@ void OpenXRDisplayMgr::GetViewConfigurationViews()
     OPENXR_CHECK(
         xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0, &
             viewConfigurationViewsCount, nullptr),
-        "Failed to enumerate OpenXR view configuration views");
+        "Failed to enumerate OpenXR view configuration iews");
 
     XrViewConfigurationView templateConfigurationView{};
     templateConfigurationView.type = XR_TYPE_VIEW_CONFIGURATION_VIEW;

@@ -14,6 +14,5 @@ struct RenderLayerInfo
         projectionLayer.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
         layers = {};
         layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&projectionLayer));
-        
     }
 };

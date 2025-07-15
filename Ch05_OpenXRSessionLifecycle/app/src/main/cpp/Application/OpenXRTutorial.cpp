@@ -2,7 +2,6 @@
 
 #include <GraphicsAPI_Vulkan.h>
 
-#include "DebugOutput.h"
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 
@@ -24,6 +23,10 @@ void OpenXRTutorial::Run()
         OpenXRSessionMgr::PollEvent();
         if (OpenXRSessionMgr::IsSessionRunning())
         {
+            OpenXRSessionMgr::WaitFrame();
+            OpenXRSessionMgr::BeginFrame();
+            // TODO: Add rendering code here
+            OpenXRSessionMgr::EndFrame();
         }
     }
 }

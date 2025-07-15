@@ -6,6 +6,7 @@
 
 XrSessionState OpenXRSessionMgr::m_xrSessionState = XR_SESSION_STATE_UNKNOWN;
 bool OpenXRSessionMgr::m_IsSessionRunning = false;
+XrFrameState OpenXRSessionMgr::frameState{};
 
 void OpenXRSessionMgr::PollEvent()
 {
@@ -65,4 +66,28 @@ void OpenXRSessionMgr::OnSessionChanged(const XrEventDataSessionStateChanged* se
 bool OpenXRSessionMgr::IsSessionRunning()
 {
     return m_IsSessionRunning;
+}
+
+void OpenXRSessionMgr::WaitFrame()
+{
+    frameState.type = XR_TYPE_FRAME_STATE;
+    frameState.next = nullptr;
+    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO, nullptr};
+    OPENXR_CHECK(xrWaitFrame(OpenXRCoreMgr::xrSession, &frameWaitInfo, &frameState), "Failed to wait for OpenXR frame");
+}
+
+void OpenXRSessionMgr::BeginFrame()
+{
+    XrFrameBeginInfo frameBeginInfo{};
+    frameBeginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
+    OPENXR_CHECK(xrBeginFrame(OpenXRCoreMgr::xrSession, &frameBeginInfo), "Failed to begin OpenXR frame");
+}
+
+void OpenXRSessionMgr::EndFrame()
+{
+    XrFrameEndInfo frameEndInfo{};
+    frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
+    frameEndInfo.displayTime = frameState.predictedDisplayTime;
+    frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
 }
