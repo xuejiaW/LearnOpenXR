@@ -3,6 +3,7 @@
 #include <openxr/openxr.h>
 
 #include <HelperFunctions.h>
+#include "EnumToString.h"
 
 inline void OpenXRDebugBreak() {
     std::cerr << "Breakpoint here to debug." << std::endl;
@@ -23,3 +24,5 @@ inline const char* GetXRErrorString(XrResult result) {
             OpenXRDebugBreak();                                                                                                                             \
         }                                                                                                                                                   \
     } while (0)
+
+#define XR_ENUM_STR(enumValue) EnumToString(enumValue)

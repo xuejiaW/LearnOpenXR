@@ -53,6 +53,7 @@ set(SOURCES
 )
 set(HEADERS
     ../Common/DebugOutput.h
+    ../Common/EnumToString.h
     ../Common/GraphicsAPI.h
     ../Common/GraphicsAPI_Vulkan.h
     ../Common/HelperFunctions.h
@@ -230,11 +231,3 @@ else() # Windows / Linux
     endif()
     # XR_DOCS_TAG_END_BuildShadersVulkanWindowsLinux
 endif() # EOF
-
-
-
-
-
-
-
-

@@ -40,7 +40,7 @@ void OpenXRSessionMgr::PollEvent()
 void OpenXRSessionMgr::OnSessionChanged(const XrEventDataSessionStateChanged* sessionStateChanged)
 {
     m_xrSessionState = sessionStateChanged->state;
-    XR_TUT_LOG("OpenXR session state changed: " << m_xrSessionState);
+    XR_TUT_LOG("OpenXR session state changed: " << XR_ENUM_STR(m_xrSessionState));
 
     if (m_xrSessionState == XR_SESSION_STATE_READY)
     {
