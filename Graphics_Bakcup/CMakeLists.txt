@@ -49,12 +49,14 @@ set(SOURCES
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
-    app/src/main/cpp/Rendering/SceneRenderer.cpp
-    app/src/main/cpp/Scenes/TableFloorScene.cpp
-    app/src/main/cpp/Rendering/OpenXRRenderer.cpp
+    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.cpp
+    app/src/main/cpp/ScenesRendering/TableFloorScene.cpp
+    app/src/main/cpp/OpenXRRenderer.cpp
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/Utils/XRMathUtils.cpp
+    app/src/main/cpp/ScenesRendering/Rendering/Material.cpp
+    app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.cpp
 )
 set(HEADERS
     ../Common/DebugOutput.h
@@ -67,12 +69,16 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
     app/src/main/cpp/Application/OpenXRTutorial.h
-    app/src/main/cpp/Rendering/SceneRenderer.h
-    app/src/main/cpp/Scenes/TableFloorScene.h
-    app/src/main/cpp/Rendering/OpenXRRenderer.h
+    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.h
+    app/src/main/cpp/ScenesRendering/TableFloorScene.h
+    app/src/main/cpp/ScenesRendering/Scenes/IScene.h
+    app/src/main/cpp/OpenXRRenderer.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/Utils/XRMathUtils.h
+    app/src/main/cpp/ScenesRendering/Rendering/Material.h
+    app/src/main/cpp/ScenesRendering/Rendering/Geometry/IRenderableGeometry.h
+    app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.h
 )
 
 # XR_DOCS_TAG_BEGIN_GLSLShaders

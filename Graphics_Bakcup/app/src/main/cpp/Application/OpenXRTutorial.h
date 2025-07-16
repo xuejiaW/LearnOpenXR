@@ -4,8 +4,10 @@
 #include <xr_linear_algebra.h>
 #include <openxr/openxr.h>
 #include "../OpenXR/OpenXRDisplay/RenderLayerInfo.h"
-#include "../Scenes/TableFloorScene.h"
-#include "../Rendering/OpenXRRenderer.h"
+#include "../OpenXRRenderer.h"
+#include <memory>
+
+class TableFloorScene;
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -40,6 +42,6 @@ private:
     void InitializeOpenXR();
     void ShutdownOpenXR();
 
-    OpenXRRenderer* m_renderer = nullptr;
-    TableFloorScene* m_scene = nullptr;
+    std::unique_ptr<OpenXRRenderer> m_renderer;
+    std::shared_ptr<TableFloorScene> m_scene;
 };

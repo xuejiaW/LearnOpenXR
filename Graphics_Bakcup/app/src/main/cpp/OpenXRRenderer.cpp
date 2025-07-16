@@ -1,20 +1,30 @@
 #include "OpenXRRenderer.h"
-#include "../Utils/XRMathUtils.h"
+#include "ScenesRendering/Scenes/SceneRenderer.h"
+#include "ScenesRendering/Scenes/IScene.h"
+#include "Utils/XRMathUtils.h"
 #include <DebugOutput.h>
-#include <OpenXRDebugUtils.h>
-#include "../OpenXR/OpenXRCoreMgr.h"
-#include "../OpenXR/OpenXRDisplayMgr.h"
-#include "../OpenXR/OpenXRSessionMgr.h"
+#include "OpenXR/OpenXRCoreMgr.h"
+#include "OpenXR/OpenXRDisplayMgr.h"
+#include "OpenXR/OpenXRSessionMgr.h"
 
 OpenXRRenderer::OpenXRRenderer(GraphicsAPI_Type apiType)
-    : m_apiType(apiType)
+    : m_apiType(apiType), m_sceneRenderer(std::make_unique<SceneRenderer>(apiType))
 {}
 
 OpenXRRenderer::~OpenXRRenderer() = default;
 
-void OpenXRRenderer::SetSceneRenderer(SceneRenderer* sceneRenderer)
+void OpenXRRenderer::SetScene(std::shared_ptr<IScene> scene)
 {
-    m_sceneRenderer = sceneRenderer;
+    m_scene = scene;
+    m_sceneRenderer->SetScene(scene);
+}
+
+void OpenXRRenderer::Initialize()
+{
+    if (m_scene) {
+        m_scene->Initialize();
+    }
+    m_sceneRenderer->CreateResources();
 }
 
 void OpenXRRenderer::RenderFrame()
@@ -83,8 +93,15 @@ void OpenXRRenderer::SetupRenderState(int viewIndex, void* colorImage, void* dep
     }
     OpenXRCoreMgr::GetGraphicsAPI()->ClearDepth(depthImage, 1.0f);
 
-    OpenXRCoreMgr::GetGraphicsAPI()->SetRenderAttachments(&colorImage, 1, depthImage, width, height,
-                                                     m_sceneRenderer->GetPipeline());
-    OpenXRCoreMgr::GetGraphicsAPI()->SetViewports(&viewport, 1);
-    OpenXRCoreMgr::GetGraphicsAPI()->SetScissors(&scissor, 1);
+    void* defaultPipeline = m_sceneRenderer->GetDefaultPipeline();
+    if (defaultPipeline) {
+        OpenXRCoreMgr::GetGraphicsAPI()->SetRenderAttachments(&colorImage, 1, depthImage, width, height, defaultPipeline);
+        OpenXRCoreMgr::GetGraphicsAPI()->SetViewports(&viewport, 1);
+        OpenXRCoreMgr::GetGraphicsAPI()->SetScissors(&scissor, 1);
+    }
+}
+
+void OpenXRRenderer::Cleanup()
+{
+    m_sceneRenderer->DestroyResources();
 }

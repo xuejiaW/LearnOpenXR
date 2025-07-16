@@ -1,7 +1,10 @@
 #pragma once
 
 #include <GraphicsAPI.h>
-#include "SceneRenderer.h"
+#include <memory>
+
+class SceneRenderer;
+class IScene;
 
 class OpenXRRenderer
 {
@@ -9,17 +12,19 @@ public:
     OpenXRRenderer(GraphicsAPI_Type apiType);
     ~OpenXRRenderer();
 
-    void SetSceneRenderer(SceneRenderer* sceneRenderer);
+    void SetScene(std::shared_ptr<IScene> scene);
+    void Initialize();
     void RenderFrame();
+    void Cleanup();
 
 private:
     void RenderLayer();
     void RenderView(int viewIndex);
-
     void SetupRenderState(int viewIndex, void* colorImage, void* depthImage);
 
     GraphicsAPI_Type m_apiType;
-    SceneRenderer* m_sceneRenderer = nullptr;
+    std::unique_ptr<SceneRenderer> m_sceneRenderer;
+    std::shared_ptr<IScene> m_scene;
 
     float m_nearPlane = 0.05f;
     float m_farPlane = 1000.0f;

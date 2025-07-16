@@ -1,4 +1,5 @@
 #include "OpenXRTutorial.h"
+#include "../ScenesRendering/TableFloorScene.h"
 #include <DebugOutput.h>
 
 #include <GraphicsAPI_Vulkan.h>
@@ -11,31 +12,18 @@ GraphicsAPI_Type OpenXRTutorial::m_apiType = UNKNOWN;
 OpenXRTutorial::OpenXRTutorial(GraphicsAPI_Type apiType)
 {
     m_apiType = apiType;
-    m_scene = new TableFloorScene(apiType);
-    m_renderer = new OpenXRRenderer(apiType);
+    m_scene = std::make_shared<TableFloorScene>();
+    m_renderer = std::make_unique<OpenXRRenderer>(apiType);
 }
 
-OpenXRTutorial::~OpenXRTutorial()
-{
-    if (m_renderer)
-    {
-        delete m_renderer;
-        m_renderer = nullptr;
-    }
-
-    if (m_scene)
-    {
-        delete m_scene;
-        m_scene = nullptr;
-    }
-}
+OpenXRTutorial::~OpenXRTutorial() = default;
 
 void OpenXRTutorial::Run()
 {
     InitializeOpenXR();
 
-    m_scene->CreateResources();
-    m_renderer->SetSceneRenderer(m_scene);
+    m_renderer->SetScene(m_scene);
+    m_renderer->Initialize();
 
     while (OpenXRSessionMgr::applicationRunning)
     {
@@ -47,7 +35,7 @@ void OpenXRTutorial::Run()
         }
     }
 
-    m_scene->DestroyResources();
+    m_renderer->Cleanup();
 
     ShutdownOpenXR();
 }
