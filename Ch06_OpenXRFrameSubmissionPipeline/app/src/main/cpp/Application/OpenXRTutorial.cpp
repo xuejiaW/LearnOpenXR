@@ -39,11 +39,11 @@ void OpenXRTutorial::Run()
                     void* depthImage = nullptr;
                     OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(i, colorImage, depthImage);
 
-                    // Actually Render work
+                    // Todo: use color image and depth image to do actually rendering work
 
                     OpenXRDisplayMgr::ReleaseSwapChainImages(i);
                 }
-
+                OpenXRRenderMgr::UpdateRenderLayerInfo();
             }
 
             OpenXRSessionMgr::EndFrame();
