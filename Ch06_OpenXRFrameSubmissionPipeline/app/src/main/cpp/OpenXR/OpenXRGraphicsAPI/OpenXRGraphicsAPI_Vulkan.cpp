@@ -125,3 +125,28 @@ void OpenXRGraphicsAPI_Vulkan::LoadXRFunctionsPointers(XrInstance xrInstance)
     xrGetInstanceProcAddr(xrInstance, "xrGetVulkanDeviceExtensionsKHR", reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtensionsKHR));
     xrGetInstanceProcAddr(xrInstance, "xrGetVulkanGraphicsDeviceKHR", reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsDeviceKHR));
 }
+
+XrSwapchainImageBaseHeader* OpenXRGraphicsAPI_Vulkan::AllocateSwapchainImagesMemory(XrSwapchain swapchain, uint32_t count)
+{
+    XrSwapchainImageVulkanKHR swapchainImageTemplate{};
+    swapchainImageTemplate.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
+    swapchainImagesMap[swapchain].resize(count, swapchainImageTemplate);
+
+    return reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImagesMap[swapchain].data());
+}
+
+void OpenXRGraphicsAPI_Vulkan::FreeSwapchainImagesMemory(XrSwapchain swapchain)
+{
+    swapchainImagesMap[swapchain].clear();
+    swapchainImagesMap.erase(swapchain);
+}
+
+XrSwapchainImageBaseHeader* OpenXRGraphicsAPI_Vulkan::GetSwapchainImageData(XrSwapchain swapchain, uint32_t index)
+{
+    return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImagesMap[swapchain][index]);
+}
+
+void* OpenXRGraphicsAPI_Vulkan::GetSwapchainImage(XrSwapchain swapchain, uint32_t index)
+{
+    return reinterpret_cast<void*>(swapchainImagesMap[swapchain][index].image);
+}

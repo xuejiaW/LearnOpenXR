@@ -8,7 +8,7 @@
 class OpenXRDisplayMgr
 {
 public:
-    static void GetViewConfigurationViews();
+    static void GetViewConfigurationViewsInfo();
 
     static XrViewConfigurationType activeViewConfigurationType;
     static std::vector<XrViewConfigurationView> activeViewConfigurationViews;

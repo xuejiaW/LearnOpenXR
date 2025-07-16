@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "GraphicsAPI.h"
-#include "SwapchainType.h"
 
 class OpenXRGraphicsAPI
 {
@@ -12,8 +11,8 @@ public:
 
     virtual void* GetGraphicsBinding() = 0;
 
-    virtual XrSwapchainImageBaseHeader* AllocateSwapchainImageData(XrSwapchain swapchain, SwapchainType type, uint32_t count) = 0;
-    virtual void FreeSwapchainImageData(XrSwapchain swapchain) = 0;
+    virtual XrSwapchainImageBaseHeader* AllocateSwapchainImagesMemory(XrSwapchain swapchain, uint32_t count) = 0;
+    virtual void FreeSwapchainImagesMemory(XrSwapchain swapchain) = 0;
     virtual XrSwapchainImageBaseHeader* GetSwapchainImageData(XrSwapchain swapchain, uint32_t index) = 0;
     virtual void* GetSwapchainImage(XrSwapchain swapchain, uint32_t index) = 0;
 
