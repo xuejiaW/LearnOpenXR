@@ -5,7 +5,7 @@
 
 #include "OpenXRDisplay/SwapchainInfo.h"
 
-class OpenXRFrameDataMgr
+class OpenXRDisplayMgr
 {
 public:
     static void GetViewConfigurationViews();

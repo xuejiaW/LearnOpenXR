@@ -61,6 +61,7 @@ set(HEADERS
     ../Common/OpenXRHelper.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/SwapchainType.h
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/Application/OpenXRTutorial.h
