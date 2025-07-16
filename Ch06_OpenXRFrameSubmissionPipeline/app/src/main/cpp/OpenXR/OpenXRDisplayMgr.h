@@ -19,6 +19,8 @@ public:
     static std::vector<SwapchainInfo> colorSwapchainInfos;
     static std::vector<SwapchainInfo> depthSwapchainInfos;
 
+    static size_t GetViewsCount();
+
 private:
     static std::vector<XrViewConfigurationType> m_ExpectedViewConfigurationTypes;
     static std::vector<XrViewConfigurationType> m_AvailableViewConfigurationTypes;

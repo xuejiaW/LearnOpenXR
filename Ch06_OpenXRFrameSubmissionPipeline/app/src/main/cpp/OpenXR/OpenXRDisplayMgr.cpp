@@ -7,7 +7,8 @@
 
 XrViewConfigurationType OpenXRDisplayMgr::activeViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
 std::vector<XrViewConfigurationView> OpenXRDisplayMgr::activeViewConfigurationViews{};
-std::vector<XrViewConfigurationType> OpenXRDisplayMgr::m_ExpectedViewConfigurationTypes{};
+std::vector<XrViewConfigurationType> OpenXRDisplayMgr::m_ExpectedViewConfigurationTypes{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+                                                                                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO};
 std::vector<XrViewConfigurationType> OpenXRDisplayMgr::m_AvailableViewConfigurationTypes{};
 
 std::vector<SwapchainInfo> OpenXRDisplayMgr::colorSwapchainInfos{};
@@ -55,7 +56,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
     std::vector<int64_t> swapchainFormats(swapchainFormatCount);
     xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, swapchainFormatCount, &swapchainFormatCount, swapchainFormats.data());
 
-    int viewsCount = static_cast<int>(activeViewConfigurationViews.size());
+    int viewsCount = GetViewsCount();
     colorSwapchainInfos.resize(viewsCount);
     depthSwapchainInfos.resize(viewsCount);
 
@@ -136,7 +137,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
 
 void OpenXRDisplayMgr::DestroySwapchains()
 {
-    for (size_t i = 0; i != activeViewConfigurationViews.size(); i++)
+    for (size_t i = 0; i != GetViewsCount(); i++)
     {
         // Destroy Color Swapchain
         SwapchainInfo& colorSwapchainInfo = colorSwapchainInfos[i];
@@ -154,4 +155,9 @@ void OpenXRDisplayMgr::DestroySwapchains()
         }
         OpenXRCoreMgr::openxrGraphicsAPI->FreeSwapchainImagesMemory(depthSwapchainInfo.swapchain);
     }
+}
+
+size_t OpenXRDisplayMgr::GetViewsCount()
+{
+    return static_cast<int>(activeViewConfigurationViews.size());
 }

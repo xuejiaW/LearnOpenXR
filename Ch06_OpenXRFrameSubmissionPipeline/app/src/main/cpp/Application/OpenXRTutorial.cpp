@@ -4,6 +4,7 @@
 
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
+#include "../OpenXR/OpenXRRenderMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 #include "../OpenXR/OpenXRSpaceMgr.h"
 
@@ -28,6 +29,12 @@ void OpenXRTutorial::Run()
             OpenXRSessionMgr::WaitFrame();
             OpenXRSessionMgr::BeginFrame();
             // TODO: Add rendering code here
+
+            if (OpenXRSessionMgr::IsShouldRender())
+            {
+                OpenXRRenderMgr::RefreshViewsData();
+            }
+
             OpenXRSessionMgr::EndFrame();
         }
     }

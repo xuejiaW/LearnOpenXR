@@ -11,8 +11,11 @@ public:
     static void BeginFrame();
     static void EndFrame();
 
+    static bool IsShouldRender();
+
+    static XrFrameState frameState;
+
 private:
     static XrSessionState m_xrSessionState;
-    static XrFrameState frameState;
     static bool m_IsSessionRunning;
 };

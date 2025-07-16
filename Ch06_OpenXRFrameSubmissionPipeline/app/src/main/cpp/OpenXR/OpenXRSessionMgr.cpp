@@ -91,3 +91,9 @@ void OpenXRSessionMgr::EndFrame()
     frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
     OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
 }
+
+bool OpenXRSessionMgr::IsShouldRender()
+{
+    return frameState.shouldRender && m_IsSessionRunning
+           && (m_xrSessionState == XR_SESSION_STATE_FOCUSED || m_xrSessionState == XR_SESSION_STATE_VISIBLE);
+}
