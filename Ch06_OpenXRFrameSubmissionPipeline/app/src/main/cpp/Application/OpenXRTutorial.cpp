@@ -33,6 +33,17 @@ void OpenXRTutorial::Run()
             if (OpenXRSessionMgr::IsShouldRender())
             {
                 OpenXRRenderMgr::RefreshViewsData();
+                for (int i = 0; i != static_cast<int>(OpenXRDisplayMgr::GetViewsCount()); ++i)
+                {
+                    void* colorImage = nullptr;
+                    void* depthImage = nullptr;
+                    OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(i, colorImage, depthImage);
+
+                    // Actually Render work
+
+                    OpenXRDisplayMgr::ReleaseSwapChainImages(i);
+                }
+
             }
 
             OpenXRSessionMgr::EndFrame();

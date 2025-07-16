@@ -16,6 +16,9 @@ public:
     static void CreateSwapchains();
     static void DestroySwapchains();
 
+    static void AcquireAndWaitSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage);
+    static void ReleaseSwapChainImages(int viewIndex);
+
     static std::vector<SwapchainInfo> colorSwapchainInfos;
     static std::vector<SwapchainInfo> depthSwapchainInfos;
 

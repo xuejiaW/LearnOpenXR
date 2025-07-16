@@ -161,3 +161,32 @@ size_t OpenXRDisplayMgr::GetViewsCount()
 {
     return static_cast<int>(activeViewConfigurationViews.size());
 }
+
+void OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage)
+{
+    uint32_t colorImageIndex = 0, depthImageIndex = 0;
+    SwapchainInfo& colorSwapchainInfo = colorSwapchainInfos[viewIndex];
+    OPENXR_CHECK(xrAcquireSwapchainImage(colorSwapchainInfo.swapchain, nullptr, &colorImageIndex), "Failed to acquire color swapchain image");
+
+    SwapchainInfo& depthSwapchainInfo = depthSwapchainInfos[viewIndex];
+    OPENXR_CHECK(xrAcquireSwapchainImage(depthSwapchainInfo.swapchain, nullptr, &depthImageIndex), "Failed to acquire depth swapchain image");
+
+    XrSwapchainImageWaitInfo waitInfo{};
+    waitInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO;
+    waitInfo.timeout = XR_INFINITE_DURATION;
+    OPENXR_CHECK(xrWaitSwapchainImage(colorSwapchainInfo.swapchain, &waitInfo), "Failed to wait for color swapchain image");
+    OPENXR_CHECK(xrWaitSwapchainImage(depthSwapchainInfo.swapchain, &waitInfo), "Failed to wait for depth swapchain image");
+
+    colorImage = colorSwapchainInfo.imageViews[colorImageIndex];
+    depthImage = depthSwapchainInfo.imageViews[depthImageIndex];
+}
+
+void OpenXRDisplayMgr::ReleaseSwapChainImages(int viewIndex)
+{
+    XrSwapchainImageReleaseInfo releaseInfo{};
+    releaseInfo.type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO;
+    OPENXR_CHECK(xrReleaseSwapchainImage(colorSwapchainInfos[viewIndex].swapchain, &releaseInfo),
+                 "Failed to release Image back to the Color Swapchain");
+    OPENXR_CHECK(xrReleaseSwapchainImage(depthSwapchainInfos[viewIndex].swapchain, &releaseInfo),
+                 "Failed to release Image back to the Depth Swapchain");
+}
