@@ -5,6 +5,7 @@
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
+#include "../OpenXR/OpenXRSpaceMgr.h"
 
 GraphicsAPI_Type OpenXRTutorial::m_apiType = UNKNOWN;
 
@@ -39,6 +40,7 @@ void OpenXRTutorial::InitializeOpenXR()
     OpenXRCoreMgr::CreateSession(m_apiType);
     OpenXRDisplayMgr::GetViewConfigurationViewsInfo();
     OpenXRDisplayMgr::CreateSwapchains();
+    OpenXRSpaceMgr::CreateReferenceSpace();
 }
 
 void OpenXRTutorial::ShutDownOpenXR()
@@ -46,4 +48,5 @@ void OpenXRTutorial::ShutDownOpenXR()
     OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyInstance();
     OpenXRDisplayMgr::DestroySwapchains();
+    OpenXRSpaceMgr::DestroyReferenceSpace();
 }
