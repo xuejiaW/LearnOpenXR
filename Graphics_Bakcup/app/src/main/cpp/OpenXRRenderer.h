@@ -18,7 +18,6 @@ public:
     void Cleanup();
 
 private:
-    void RenderLayer();
     void RenderView(int viewIndex);
     void SetupRenderState(int viewIndex, void* colorImage, void* depthImage);
 
