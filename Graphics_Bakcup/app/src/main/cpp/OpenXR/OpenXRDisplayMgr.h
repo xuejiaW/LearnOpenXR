@@ -17,8 +17,7 @@ public:
     static void AcquireSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage);
     static void ReleaseSwapChainImages(int viewIndex);
 
-    static void GenerateRenderLayerInfo();
-    static void RefreshProjectionLayerViews(int viewIndex);
+    static void UpdateRenderLayerInfo();
 
     static XrViewConfigurationType m_ActiveViewConfiguration;
     static XrEnvironmentBlendMode m_ActiveEnvironmentBlendMode;

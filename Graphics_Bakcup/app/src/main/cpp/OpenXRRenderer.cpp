@@ -36,12 +36,13 @@ void OpenXRRenderer::RenderFrame()
     if (shouldRender)
     {
         const int viewCount = OpenXRDisplayMgr::RefreshViewsData();
-        OpenXRDisplayMgr::GenerateRenderLayerInfo();
 
         for (int i = 0; i < viewCount; ++i)
         {
             RenderView(i);
         }
+
+        OpenXRDisplayMgr::UpdateRenderLayerInfo();
     }
 
     OpenXRSessionMgr::EndFrame(shouldRender);
@@ -58,8 +59,6 @@ void OpenXRRenderer::RenderView(int viewIndex)
     void* colorImage = nullptr;
     void* depthImage = nullptr;
     OpenXRDisplayMgr::AcquireSwapChainImages(viewIndex, colorImage, depthImage);
-
-    OpenXRDisplayMgr::RefreshProjectionLayerViews(viewIndex);
 
     OpenXRCoreMgr::GetGraphicsAPI()->BeginRendering();
 

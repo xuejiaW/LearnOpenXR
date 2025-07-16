@@ -7,7 +7,6 @@
 #include "OpenXRHelper.h"
 #include "OpenXRSessionMgr.h"
 
-
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_ColorSwapchainInfos = {};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_DepthSwapchainInfos = {};
 std::vector<XrViewConfigurationType> OpenXRDisplayMgr::m_ExpectedViewConfiguration = {XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
@@ -151,7 +150,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         OPENXR_CHECK(xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, 0, &depthSwapchainImageCount, nullptr),
                      "Failed to get depth swapchain images count");
         XrSwapchainImageBaseHeader* depthSwapchainImages =
-            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(depthSwapchainInfo.swapchain,depthSwapchainImageCount);
+            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(depthSwapchainInfo.swapchain, depthSwapchainImageCount);
         OPENXR_CHECK(
             xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, depthSwapchainImageCount, &depthSwapchainImageCount, depthSwapchainImages),
             "Failed to get depth swapchain images");
@@ -264,22 +263,7 @@ void OpenXRDisplayMgr::ReleaseSwapChainImages(int viewIndex)
                  "Failed to release Image back to the Depth Swapchain");
 }
 
-void OpenXRDisplayMgr::RefreshProjectionLayerViews(int viewIndex)
-{
-    const uint32_t& width = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth;
-    const uint32_t& height = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectHeight;
-
-    renderLayerInfo.layerProjectionViews[viewIndex].pose = views[viewIndex].pose;
-    renderLayerInfo.layerProjectionViews[viewIndex].fov = views[viewIndex].fov;
-    renderLayerInfo.layerProjectionViews[viewIndex].subImage.swapchain = m_ColorSwapchainInfos[viewIndex].swapchain;
-    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.offset.x = 0;
-    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.offset.y = 0;
-    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.extent.width = static_cast<int32_t>(width);
-    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.extent.height = static_cast<int32_t>(height);
-    renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageArrayIndex = 0;
-}
-
-void OpenXRDisplayMgr::GenerateRenderLayerInfo()
+void OpenXRDisplayMgr::UpdateRenderLayerInfo()
 {
     XrCompositionLayerProjectionView layerProjectionViewTemplate = {};
     layerProjectionViewTemplate.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
@@ -290,4 +274,19 @@ void OpenXRDisplayMgr::GenerateRenderLayerInfo()
     renderLayerInfo.projectionLayer.space = OpenXRCoreMgr::m_ActiveSpaces;
     renderLayerInfo.projectionLayer.viewCount = static_cast<uint32_t>(renderLayerInfo.layerProjectionViews.size());
     renderLayerInfo.projectionLayer.views = renderLayerInfo.layerProjectionViews.data();
+
+    for (int viewIndex = 0; viewIndex != views.size(); ++viewIndex)
+    {
+        const uint32_t& width = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth;
+        const uint32_t& height = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectHeight;
+
+        renderLayerInfo.layerProjectionViews[viewIndex].pose = views[viewIndex].pose;
+        renderLayerInfo.layerProjectionViews[viewIndex].fov = views[viewIndex].fov;
+        renderLayerInfo.layerProjectionViews[viewIndex].subImage.swapchain = m_ColorSwapchainInfos[viewIndex].swapchain;
+        renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.offset.x = 0;
+        renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.offset.y = 0;
+        renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.extent.width = static_cast<int32_t>(width);
+        renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageRect.extent.height = static_cast<int32_t>(height);
+        renderLayerInfo.layerProjectionViews[viewIndex].subImage.imageArrayIndex = 0;
+    }
 }
