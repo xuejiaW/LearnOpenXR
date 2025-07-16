@@ -19,7 +19,7 @@ public:
     ~OpenXRGraphicsAPI_Vulkan() override;
 
     void* GetGraphicsBinding() override;
-    XrSwapchainImageBaseHeader* AllocateSwapchainImageData(XrSwapchain swapchain, SwapchainType type, uint32_t count) override;
+    XrSwapchainImageBaseHeader* AllocateSwapchainImageData(XrSwapchain swapchain, uint32_t count) override;
     void FreeSwapchainImageData(XrSwapchain swapchain) override;
     XrSwapchainImageBaseHeader* GetSwapchainImageData(XrSwapchain swapchain, uint32_t index) override;
     void* GetSwapchainImage(XrSwapchain swapchain, uint32_t index) override;
@@ -51,7 +51,7 @@ private:
 
     XrGraphicsBindingVulkanKHR graphicsBinding{};
 
-    std::unordered_map<XrSwapchain, std::pair<int, std::vector<XrSwapchainImageVulkanKHR>>> swapchainImagesMap{};
+    std::unordered_map<XrSwapchain, std::vector<XrSwapchainImageVulkanKHR>> swapchainImagesMap{};
 
     std::vector<const char*> m_instanceExtensionNames;
     std::vector<const char*> m_deviceExtensionNames;

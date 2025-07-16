@@ -3,9 +3,10 @@
 #include "DebugOutput.h"
 #include "GraphicsAPI.h"
 #include "OpenXRCoreMgr.h"
+#include "OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
 #include "OpenXRHelper.h"
 #include "OpenXRSessionMgr.h"
-#include "OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
+
 
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_ColorSwapchainInfos = {};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::m_DepthSwapchainInfos = {};
@@ -28,10 +29,9 @@ void OpenXRDisplayMgr::GetViewConfigurationViews()
                  "Failed to enumerate OpenXR view configurations");
 
     m_AvailableViewConfigurations.resize(viewConfigurationCount);
-    OPENXR_CHECK(
-        xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, viewConfigurationCount, &viewConfigurationCount,
-            m_AvailableViewConfigurations.data()),
-        "Failed to enumerate OpenXR view configurations");
+    OPENXR_CHECK(xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, viewConfigurationCount, &viewConfigurationCount,
+                                               m_AvailableViewConfigurations.data()),
+                 "Failed to enumerate OpenXR view configurations");
 
     for (const XrViewConfigurationType& expectViewConfiguration : m_ExpectedViewConfiguration)
     {
@@ -44,19 +44,16 @@ void OpenXRDisplayMgr::GetViewConfigurationViews()
     }
 
     uint32_t viewConfigurationViewsCount = 0;
-    OPENXR_CHECK(
-        xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0, &
-            viewConfigurationViewsCount, nullptr),
-        "Failed to enumerate OpenXR view configuration iews");
+    OPENXR_CHECK(xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0,
+                                                   &viewConfigurationViewsCount, nullptr),
+                 "Failed to enumerate OpenXR view configuration iews");
 
     XrViewConfigurationView templateConfigurationView{};
     templateConfigurationView.type = XR_TYPE_VIEW_CONFIGURATION_VIEW;
     m_ActiveViewConfigurationViews.resize(viewConfigurationViewsCount, templateConfigurationView);
-    OPENXR_CHECK(
-        xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration,
-            viewConfigurationViewsCount,
-            &viewConfigurationViewsCount, m_ActiveViewConfigurationViews.data()),
-        "Failed to enumerate OpenXR view configuration views");
+    OPENXR_CHECK(xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration,
+                                                   viewConfigurationViewsCount, &viewConfigurationViewsCount, m_ActiveViewConfigurationViews.data()),
+                 "Failed to enumerate OpenXR view configuration views");
 
     XR_TUT_LOG("OpenXR view configuration type: " << m_ActiveViewConfiguration);
     XR_TUT_LOG("OpenXR view configuration views count: " << m_ActiveViewConfigurationViews.size());
@@ -65,17 +62,14 @@ void OpenXRDisplayMgr::GetViewConfigurationViews()
 void OpenXRDisplayMgr::GetEnvironmentBlendModes()
 {
     uint32_t environmentBlendModeCount = 0;
-    OPENXR_CHECK(
-        xrEnumerateEnvironmentBlendModes(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0, &
-            environmentBlendModeCount, nullptr),
-        "Failed to enumerate OpenXR environment blend modes");
+    OPENXR_CHECK(xrEnumerateEnvironmentBlendModes(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration, 0,
+                                                  &environmentBlendModeCount, nullptr),
+                 "Failed to enumerate OpenXR environment blend modes");
 
     m_AvailableEnvironmentBlendModes.resize(environmentBlendModeCount);
-    OPENXR_CHECK(
-        xrEnumerateEnvironmentBlendModes(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration,
-            environmentBlendModeCount,
-            &environmentBlendModeCount, m_AvailableEnvironmentBlendModes.data()),
-        "Failed to enumerate OpenXR environment blend modes");
+    OPENXR_CHECK(xrEnumerateEnvironmentBlendModes(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, m_ActiveViewConfiguration,
+                                                  environmentBlendModeCount, &environmentBlendModeCount, m_AvailableEnvironmentBlendModes.data()),
+                 "Failed to enumerate OpenXR environment blend modes");
 
     for (const auto& expectedEnvironmentBlendMode : m_ExpectedEnvironmentBlendModes)
     {
@@ -91,7 +85,7 @@ void OpenXRDisplayMgr::GetEnvironmentBlendModes()
     if (m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM)
     {
         XR_TUT_LOG_ERROR("No suitable environment blend mode found");
-        m_ActiveEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE; // Fallback to opaque mode
+        m_ActiveEnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;  // Fallback to opaque mode
     }
 }
 
@@ -148,8 +142,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         OPENXR_CHECK(xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, 0, &colorSwapchainImageCount, nullptr),
                      "Failed to get color swapchain images count");
         XrSwapchainImageBaseHeader* colorSwapchainImages =
-            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(colorSwapchainInfo.swapchain, SwapchainType::COLOR,
-                                                                   colorSwapchainImageCount);
+            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(colorSwapchainInfo.swapchain, colorSwapchainImageCount);
         OPENXR_CHECK(
             xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, colorSwapchainImageCount, &colorSwapchainImageCount, colorSwapchainImages),
             "Failed to get color swapchain images");
@@ -158,8 +151,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         OPENXR_CHECK(xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, 0, &depthSwapchainImageCount, nullptr),
                      "Failed to get depth swapchain images count");
         XrSwapchainImageBaseHeader* depthSwapchainImages =
-            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(depthSwapchainInfo.swapchain, SwapchainType::DEPTH,
-                                                                   depthSwapchainImageCount);
+            OpenXRCoreMgr::GetOpenXRGraphicsAPI()->AllocateSwapchainImageData(depthSwapchainInfo.swapchain,depthSwapchainImageCount);
         OPENXR_CHECK(
             xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, depthSwapchainImageCount, &depthSwapchainImageCount, depthSwapchainImages),
             "Failed to get depth swapchain images");
@@ -168,7 +160,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         {
             GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
             imageViewCreateInfo.image = OpenXRCoreMgr::GetOpenXRGraphicsAPI()->GetSwapchainImage(colorSwapchainInfo.swapchain, j);
-            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::RTV; // Render Target View
+            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::RTV;  // Render Target View
             imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
             imageViewCreateInfo.format = colorSwapchainInfo.swapchainFormat;
             imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::COLOR_BIT;
@@ -183,7 +175,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
         {
             GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
             imageViewCreateInfo.image = OpenXRCoreMgr::GetOpenXRGraphicsAPI()->GetSwapchainImage(depthSwapchainInfo.swapchain, j);
-            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::DSV; // Depth Stencil View
+            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::DSV;  // Depth Stencil View
             imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
             imageViewCreateInfo.format = depthSwapchainInfo.swapchainFormat;
             imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::DEPTH_BIT;
@@ -236,8 +228,8 @@ int OpenXRDisplayMgr::RefreshViewsData()
     viewLocateInfo.space = OpenXRCoreMgr::m_ActiveSpaces;
     uint32_t viewCount = 0;
 
-    OPENXR_CHECK(xrLocateViews(OpenXRCoreMgr::xrSession, &viewLocateInfo, &viewState, static_cast<uint32_t>(views.size()), &viewCount,
-                     views.data()), "Failed to locate views");
+    OPENXR_CHECK(xrLocateViews(OpenXRCoreMgr::xrSession, &viewLocateInfo, &viewState, static_cast<uint32_t>(views.size()), &viewCount, views.data()),
+                 "Failed to locate views");
 
     return static_cast<uint32_t>(viewCount);
 }
@@ -272,7 +264,6 @@ void OpenXRDisplayMgr::ReleaseSwapChainImages(int viewIndex)
                  "Failed to release Image back to the Depth Swapchain");
 }
 
-
 void OpenXRDisplayMgr::RefreshProjectionLayerViews(int viewIndex)
 {
     const uint32_t& width = m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth;
@@ -294,8 +285,8 @@ void OpenXRDisplayMgr::GenerateRenderLayerInfo()
     layerProjectionViewTemplate.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
     renderLayerInfo.layerProjectionViews.resize(views.size(), layerProjectionViewTemplate);
 
-    renderLayerInfo.projectionLayer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT |
-                                                 XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
+    renderLayerInfo.projectionLayer.layerFlags =
+        XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT;
     renderLayerInfo.projectionLayer.space = OpenXRCoreMgr::m_ActiveSpaces;
     renderLayerInfo.projectionLayer.viewCount = static_cast<uint32_t>(renderLayerInfo.layerProjectionViews.size());
     renderLayerInfo.projectionLayer.views = renderLayerInfo.layerProjectionViews.data();

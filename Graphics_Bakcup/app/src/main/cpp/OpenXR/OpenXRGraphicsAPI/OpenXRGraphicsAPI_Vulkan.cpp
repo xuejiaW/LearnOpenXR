@@ -149,29 +149,28 @@ void* OpenXRGraphicsAPI_Vulkan::GetGraphicsBinding()
     return &graphicsBinding;
 }
 
-XrSwapchainImageBaseHeader* OpenXRGraphicsAPI_Vulkan::AllocateSwapchainImageData(XrSwapchain swapchain, SwapchainType type, uint32_t count)
+XrSwapchainImageBaseHeader* OpenXRGraphicsAPI_Vulkan::AllocateSwapchainImageData(XrSwapchain swapchain, uint32_t count)
 {
     XrSwapchainImageVulkanKHR swapchainImageTemplate{};
     swapchainImageTemplate.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
-    swapchainImagesMap[swapchain].first = static_cast<int>(type);
-    swapchainImagesMap[swapchain].second.resize(count, swapchainImageTemplate);
-    return reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImagesMap[swapchain].second.data());
+    swapchainImagesMap[swapchain].resize(count, swapchainImageTemplate);
+    return reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImagesMap[swapchain].data());
 }
 
 void OpenXRGraphicsAPI_Vulkan::FreeSwapchainImageData(XrSwapchain swapchain)
 {
-    swapchainImagesMap[swapchain].second.clear();
+    swapchainImagesMap[swapchain].clear();
     swapchainImagesMap.erase(swapchain);
 }
 
 XrSwapchainImageBaseHeader* OpenXRGraphicsAPI_Vulkan::GetSwapchainImageData(XrSwapchain swapchain, uint32_t index)
 {
-    return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImagesMap[swapchain].second[index]);
+    return reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImagesMap[swapchain][index]);
 }
 
 void* OpenXRGraphicsAPI_Vulkan::GetSwapchainImage(XrSwapchain swapchain, uint32_t index)
 {
-    return reinterpret_cast<void*>(swapchainImagesMap[swapchain].second[index].image);
+    return reinterpret_cast<void*>(swapchainImagesMap[swapchain][index].image);
 }
 
 #endif // XR_USE_GRAPHICS_API_VULKAN || XR_TUTORIAL_USE_VULKAN
