@@ -2,37 +2,44 @@
 
 #include "DebugOutput.h"
 #include "OpenXRCoreMgr.h"
-#include "OpenXRHelper.h"
 #include "OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
+#include "OpenXRHelper.h"
+
 
 XrViewConfigurationType OpenXRDisplayMgr::activeViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
 std::vector<XrViewConfigurationView> OpenXRDisplayMgr::activeViewConfigurationViews{};
-std::vector<XrViewConfigurationType> OpenXRDisplayMgr::m_ExpectedViewConfigurationTypes{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
-                                                                                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO};
-std::vector<XrViewConfigurationType> OpenXRDisplayMgr::m_AvailableViewConfigurationTypes{};
 
 std::vector<SwapchainInfo> OpenXRDisplayMgr::colorSwapchainInfos{};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::depthSwapchainInfos{};
 
-
-void OpenXRDisplayMgr::GetViewConfigurationViewsInfo()
+void OpenXRDisplayMgr::GetActiveViewConfigurationType()
 {
     uint32_t viewConfigurationCount = 0;
-    xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, 0, &viewConfigurationCount, nullptr);
-    m_AvailableViewConfigurationTypes.resize(viewConfigurationCount);
-    xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, viewConfigurationCount, &viewConfigurationCount,
-                                  m_AvailableViewConfigurationTypes.data());
 
-    for (const auto& expectedViewConfigurationType : m_ExpectedViewConfigurationTypes)
+    std::vector<XrViewConfigurationType> availableViewConfigurationTypes{};
+
+    xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, 0, &viewConfigurationCount, nullptr);
+    availableViewConfigurationTypes.resize(viewConfigurationCount);
+    xrEnumerateViewConfigurations(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, viewConfigurationCount, &viewConfigurationCount,
+                                  availableViewConfigurationTypes.data());
+
+    XR_TUT_LOG("Supported OpenXR view configurations count is " << viewConfigurationCount);
+
+    std::vector<XrViewConfigurationType> expectedViewConfigurationTypes{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+                                                                        XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO};
+    for (const auto& expectedViewConfigurationType : expectedViewConfigurationTypes)
     {
-        if (std::find(m_AvailableViewConfigurationTypes.begin(), m_AvailableViewConfigurationTypes.end(), expectedViewConfigurationType) !=
-            m_AvailableViewConfigurationTypes.end())
+        if (std::find(availableViewConfigurationTypes.begin(), availableViewConfigurationTypes.end(), expectedViewConfigurationType) !=
+            availableViewConfigurationTypes.end())
         {
             activeViewConfigurationType = expectedViewConfigurationType;
             break;
         }
     }
+}
 
+void OpenXRDisplayMgr::GetViewConfigurationViewsInfo()
+{
     uint32_t viewConfigurationViewsCount = 0;
     xrEnumerateViewConfigurationViews(OpenXRCoreMgr::m_xrInstance, OpenXRCoreMgr::systemID, activeViewConfigurationType, 0,
                                       &viewConfigurationViewsCount, nullptr);
@@ -50,11 +57,7 @@ void OpenXRDisplayMgr::GetViewConfigurationViewsInfo()
 
 void OpenXRDisplayMgr::CreateSwapchains()
 {
-    uint32_t swapchainFormatCount = 0;
-    xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, 0, &swapchainFormatCount, nullptr);
-
-    std::vector<int64_t> swapchainFormats(swapchainFormatCount);
-    xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, swapchainFormatCount, &swapchainFormatCount, swapchainFormats.data());
+    std::vector<int64_t> swapchainFormats = GetSupportedSwapchainFormats();
 
     int viewsCount = GetViewsCount();
     colorSwapchainInfos.resize(viewsCount);
@@ -63,75 +66,7 @@ void OpenXRDisplayMgr::CreateSwapchains()
     for (int i = 0; i < viewsCount; i++)
     {
         const XrViewConfigurationView& viewConfigurationView = activeViewConfigurationViews[i];
-
-        XrSwapchainCreateInfo swapchainCreateInfo{};
-        swapchainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
-        swapchainCreateInfo.sampleCount = viewConfigurationView.recommendedSwapchainSampleCount;
-        swapchainCreateInfo.width = viewConfigurationView.recommendedImageRectWidth;
-        swapchainCreateInfo.height = viewConfigurationView.recommendedImageRectHeight;
-        swapchainCreateInfo.faceCount = 1;
-        swapchainCreateInfo.arraySize = 1;
-        swapchainCreateInfo.mipCount = 1;
-
-        // Create Color Swapchain
-        SwapchainInfo& colorSwapchainInfo = colorSwapchainInfos[i];
-        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
-        swapchainCreateInfo.format = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SelectColorSwapchainFormat(swapchainFormats);
-        OPENXR_CHECK(xrCreateSwapchain(OpenXRCoreMgr::xrSession, &swapchainCreateInfo, &colorSwapchainInfo.swapchain),
-                     "Failed to create OpenXR color swapchain");
-        colorSwapchainInfo.swapchainFormat = swapchainCreateInfo.format;
-
-        // Create Depth Swapchain
-        SwapchainInfo& depthSwapchainInfo = depthSwapchainInfos[i];
-        swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
-        swapchainCreateInfo.format = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SelectDepthSwapchainFormat(swapchainFormats);
-        OPENXR_CHECK(xrCreateSwapchain(OpenXRCoreMgr::xrSession, &swapchainCreateInfo, &depthSwapchainInfo.swapchain),
-                     "Failed to create OpenXR depth swapchain");
-        depthSwapchainInfo.swapchainFormat = swapchainCreateInfo.format;
-
-        // Create Color Swapchain Images
-        uint32_t colorSwapchainImageCount = 0;
-        xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, 0, &colorSwapchainImageCount, nullptr);
-        XrSwapchainImageBaseHeader* colorSwapChainImages = OpenXRCoreMgr::openxrGraphicsAPI->AllocateSwapchainImagesMemory(
-            colorSwapchainInfo.swapchain, colorSwapchainImageCount);
-        xrEnumerateSwapchainImages(colorSwapchainInfo.swapchain, colorSwapchainImageCount, &colorSwapchainImageCount, colorSwapChainImages);
-
-        for (uint32_t j = 0; j < colorSwapchainImageCount; ++j)
-        {
-            GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
-            imageViewCreateInfo.image = OpenXRCoreMgr::openxrGraphicsAPI->GetSwapchainImage(colorSwapchainInfo.swapchain, j);
-            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::RTV;  // Render Target View
-            imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
-            imageViewCreateInfo.format = colorSwapchainInfo.swapchainFormat;
-            imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::COLOR_BIT;
-            imageViewCreateInfo.baseMipLevel = 0;
-            imageViewCreateInfo.levelCount = 1;
-            imageViewCreateInfo.baseArrayLayer = 0;
-            imageViewCreateInfo.layerCount = 1;
-            colorSwapchainInfo.imageViews.push_back(OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateImageView(imageViewCreateInfo));
-        }
-
-        // Create Depth Swapchain Images
-        uint32_t depthSwapchainImageCount = 0;
-        xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, 0, &depthSwapchainImageCount, nullptr);
-        XrSwapchainImageBaseHeader* depthSwapChainImages = OpenXRCoreMgr::openxrGraphicsAPI->AllocateSwapchainImagesMemory(
-            depthSwapchainInfo.swapchain, depthSwapchainImageCount);
-        xrEnumerateSwapchainImages(depthSwapchainInfo.swapchain, depthSwapchainImageCount, &depthSwapchainImageCount, depthSwapChainImages);
-
-        for (uint32_t j = 0; j < depthSwapchainImageCount; ++j)
-        {
-            GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
-            imageViewCreateInfo.image = OpenXRCoreMgr::openxrGraphicsAPI->GetSwapchainImage(depthSwapchainInfo.swapchain, j);
-            imageViewCreateInfo.type = GraphicsAPI::ImageViewCreateInfo::Type::DSV;  // Depth Stencil View
-            imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
-            imageViewCreateInfo.format = depthSwapchainInfo.swapchainFormat;
-            imageViewCreateInfo.aspect = GraphicsAPI::ImageViewCreateInfo::Aspect::DEPTH_BIT;
-            imageViewCreateInfo.baseMipLevel = 0;
-            imageViewCreateInfo.levelCount = 1;
-            imageViewCreateInfo.baseArrayLayer = 0;
-            imageViewCreateInfo.layerCount = 1;
-            depthSwapchainInfo.imageViews.push_back(OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateImageView(imageViewCreateInfo));
-        }
+        CreateSwapchainForView(i, viewConfigurationView, swapchainFormats);
     }
 }
 
@@ -157,10 +92,7 @@ void OpenXRDisplayMgr::DestroySwapchains()
     }
 }
 
-size_t OpenXRDisplayMgr::GetViewsCount()
-{
-    return static_cast<int>(activeViewConfigurationViews.size());
-}
+size_t OpenXRDisplayMgr::GetViewsCount() { return static_cast<int>(activeViewConfigurationViews.size()); }
 
 void OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage)
 {
@@ -189,4 +121,80 @@ void OpenXRDisplayMgr::ReleaseSwapChainImages(int viewIndex)
                  "Failed to release Image back to the Color Swapchain");
     OPENXR_CHECK(xrReleaseSwapchainImage(depthSwapchainInfos[viewIndex].swapchain, &releaseInfo),
                  "Failed to release Image back to the Depth Swapchain");
+}
+
+std::vector<int64_t> OpenXRDisplayMgr::GetSupportedSwapchainFormats()
+{
+    uint32_t swapchainFormatCount = 0;
+    xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, 0, &swapchainFormatCount, nullptr);
+
+    std::vector<int64_t> swapchainFormats(swapchainFormatCount);
+    xrEnumerateSwapchainFormats(OpenXRCoreMgr::xrSession, swapchainFormatCount, &swapchainFormatCount, swapchainFormats.data());
+
+    return swapchainFormats;
+}
+
+void OpenXRDisplayMgr::CreateSwapchainForView(int viewIndex, const XrViewConfigurationView& viewConfigurationView,
+                                              const std::vector<int64_t>& swapchainFormats)
+{
+    XrSwapchainCreateInfo swapchainCreateInfo{};
+    swapchainCreateInfo.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
+    swapchainCreateInfo.sampleCount = viewConfigurationView.recommendedSwapchainSampleCount;
+    swapchainCreateInfo.width = viewConfigurationView.recommendedImageRectWidth;
+    swapchainCreateInfo.height = viewConfigurationView.recommendedImageRectHeight;
+    swapchainCreateInfo.faceCount = 1;
+    swapchainCreateInfo.arraySize = 1;
+    swapchainCreateInfo.mipCount = 1;
+
+    // Create Color Swapchain
+    SwapchainConfig colorConfig{XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT, false,
+                                [](const std::vector<int64_t>& formats)
+                                { return OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SelectColorSwapchainFormat(formats); }};
+    CreateSwapchain(viewIndex, swapchainCreateInfo, swapchainFormats, colorConfig, colorSwapchainInfos[viewIndex]);
+    CreateSwapchainImages(colorSwapchainInfos[viewIndex], colorConfig.isDepth);
+
+    // Create Depth Swapchain
+    SwapchainConfig depthConfig{XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_SAMPLED_BIT, true,
+                                [](const std::vector<int64_t>& formats)
+                                { return OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SelectDepthSwapchainFormat(formats); }};
+    CreateSwapchain(viewIndex, swapchainCreateInfo, swapchainFormats, depthConfig, depthSwapchainInfos[viewIndex]);
+    CreateSwapchainImages(depthSwapchainInfos[viewIndex], depthConfig.isDepth);
+}
+
+void OpenXRDisplayMgr::CreateSwapchain(int viewIndex, const XrSwapchainCreateInfo& baseCreateInfo, const std::vector<int64_t>& swapchainFormats,
+                                       const SwapchainConfig& config, SwapchainInfo& swapchainInfo)
+{
+    XrSwapchainCreateInfo swapchainCreateInfo = baseCreateInfo;
+    swapchainCreateInfo.usageFlags = config.usageFlags;
+    swapchainCreateInfo.format = config.formatSelector(swapchainFormats);
+
+    const char* swapchainType = config.isDepth ? "depth" : "color";
+    OPENXR_CHECK(xrCreateSwapchain(OpenXRCoreMgr::xrSession, &swapchainCreateInfo, &swapchainInfo.swapchain),
+                 ("Failed to create OpenXR " + std::string(swapchainType) + " swapchain").c_str());
+    swapchainInfo.swapchainFormat = swapchainCreateInfo.format;
+}
+
+void OpenXRDisplayMgr::CreateSwapchainImages(SwapchainInfo& swapchainInfo, bool isDepth)
+{
+    uint32_t swapchainImageCount = 0;
+    xrEnumerateSwapchainImages(swapchainInfo.swapchain, 0, &swapchainImageCount, nullptr);
+    XrSwapchainImageBaseHeader* swapChainImages =
+        OpenXRCoreMgr::openxrGraphicsAPI->AllocateSwapchainImagesMemory(swapchainInfo.swapchain, swapchainImageCount);
+    xrEnumerateSwapchainImages(swapchainInfo.swapchain, swapchainImageCount, &swapchainImageCount, swapChainImages);
+
+    for (uint32_t j = 0; j < swapchainImageCount; ++j)
+    {
+        GraphicsAPI::ImageViewCreateInfo imageViewCreateInfo = {};
+        imageViewCreateInfo.image = OpenXRCoreMgr::openxrGraphicsAPI->GetSwapchainImage(swapchainInfo.swapchain, j);
+        imageViewCreateInfo.type = isDepth ? GraphicsAPI::ImageViewCreateInfo::Type::DSV : GraphicsAPI::ImageViewCreateInfo::Type::RTV;
+        imageViewCreateInfo.view = GraphicsAPI::ImageViewCreateInfo::View::TYPE_2D;
+        imageViewCreateInfo.format = swapchainInfo.swapchainFormat;
+        imageViewCreateInfo.aspect =
+            isDepth ? GraphicsAPI::ImageViewCreateInfo::Aspect::DEPTH_BIT : GraphicsAPI::ImageViewCreateInfo::Aspect::COLOR_BIT;
+        imageViewCreateInfo.baseMipLevel = 0;
+        imageViewCreateInfo.levelCount = 1;
+        imageViewCreateInfo.baseArrayLayer = 0;
+        imageViewCreateInfo.layerCount = 1;
+        swapchainInfo.imageViews.push_back(OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateImageView(imageViewCreateInfo));
+    }
 }
