@@ -74,16 +74,11 @@ void OpenXRTutorial::InitializeOpenXR()
 
 void OpenXRTutorial::InitializeSceneRendering()
 {
-    XR_TUT_LOG("sss before scene creation");
     m_scene = std::make_shared<TableFloorScene>();
-    XR_TUT_LOG("sss before scene initialize");
     m_scene->Initialize();
-    XR_TUT_LOG("sss after scene creation");
     m_sceneRenderer = std::make_unique<SceneRenderer>(m_apiType);
     m_sceneRenderer->SetScene(m_scene);
-    XR_TUT_LOG("sss after set scene");
     m_sceneRenderer->CreateResources();
-    XR_TUT_LOG("sss after scene renderer creation");
 }
 
 
