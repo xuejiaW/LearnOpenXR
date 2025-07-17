@@ -3,6 +3,7 @@
 
 #include "DebugOutput.h"
 #include "OpenXRCoreMgr.h"
+#include "OpenXRRenderMgr.h"
 
 XrSessionState OpenXRSessionMgr::m_xrSessionState = XR_SESSION_STATE_UNKNOWN;
 bool OpenXRSessionMgr::m_IsSessionRunning = false;
@@ -83,12 +84,14 @@ void OpenXRSessionMgr::BeginFrame()
     OPENXR_CHECK(xrBeginFrame(OpenXRCoreMgr::xrSession, &frameBeginInfo), "Failed to begin OpenXR frame");
 }
 
-void OpenXRSessionMgr::EndFrame()
+void OpenXRSessionMgr::EndFrame(const bool rendered)
 {
     XrFrameEndInfo frameEndInfo{};
     frameEndInfo.type = XR_TYPE_FRAME_END_INFO;
     frameEndInfo.displayTime = frameState.predictedDisplayTime;
     frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    frameEndInfo.layerCount = rendered ? static_cast<uint32_t>(OpenXRRenderMgr::renderLayerInfo.layers.size()) : 0;
+    frameEndInfo.layers = rendered ? OpenXRRenderMgr::renderLayerInfo.layers.data() : nullptr;
     OPENXR_CHECK(xrEndFrame(OpenXRCoreMgr::xrSession, &frameEndInfo), "Failed to end the XR Frame.");
 }
 

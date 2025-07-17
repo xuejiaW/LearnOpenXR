@@ -9,7 +9,7 @@ public:
     static bool IsSessionRunning();
     static void WaitFrame();
     static void BeginFrame();
-    static void EndFrame();
+    static void EndFrame(bool rendered);
 
     static bool IsShouldRender();
 

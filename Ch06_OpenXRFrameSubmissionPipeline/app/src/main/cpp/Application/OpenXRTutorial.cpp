@@ -28,9 +28,10 @@ void OpenXRTutorial::Run()
         {
             OpenXRSessionMgr::WaitFrame();
             OpenXRSessionMgr::BeginFrame();
-            // TODO: Add rendering code here
-
-            if (OpenXRSessionMgr::IsShouldRender())
+            
+            const bool shouldRender = OpenXRSessionMgr::IsShouldRender();
+            
+            if (shouldRender)
             {
                 OpenXRRenderMgr::RefreshViewsData();
                 for (int i = 0; i != static_cast<int>(OpenXRDisplayMgr::GetViewsCount()); ++i)
@@ -46,7 +47,7 @@ void OpenXRTutorial::Run()
                 OpenXRRenderMgr::UpdateRenderLayerInfo();
             }
 
-            OpenXRSessionMgr::EndFrame();
+            OpenXRSessionMgr::EndFrame(shouldRender);
         }
     }
 }
