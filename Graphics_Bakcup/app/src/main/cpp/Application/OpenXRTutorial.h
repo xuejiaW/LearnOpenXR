@@ -4,7 +4,7 @@
 #include <xr_linear_algebra.h>
 #include <openxr/openxr.h>
 #include "../OpenXR/OpenXRDisplay/RenderLayerInfo.h"
-#include "../OpenXRRenderer.h"
+#include "../OpenXR/OpenXRRenderer.h"
 #include <memory>
 
 class TableFloorScene;

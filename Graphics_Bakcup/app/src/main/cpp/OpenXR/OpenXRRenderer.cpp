@@ -1,11 +1,11 @@
 #include "OpenXRRenderer.h"
 #include <DebugOutput.h>
-#include "OpenXR/OpenXRCoreMgr.h"
-#include "OpenXR/OpenXRDisplayMgr.h"
-#include "OpenXR/OpenXRSessionMgr.h"
-#include "ScenesRendering/Scenes/IScene.h"
-#include "ScenesRendering/Scenes/SceneRenderer.h"
-#include "Utils/XRMathUtils.h"
+#include "OpenXRCoreMgr.h"
+#include "OpenXRDisplayMgr.h"
+#include "OpenXRSessionMgr.h"
+#include "../ScenesRendering/Scenes/IScene.h"
+#include "../ScenesRendering/Scenes/SceneRenderer.h"
+#include "../Utils/XRMathUtils.h"
 
 OpenXRRenderer::OpenXRRenderer(GraphicsAPI_Type apiType) : m_apiType(apiType), m_sceneRenderer(std::make_unique<SceneRenderer>(apiType)) {}
 
