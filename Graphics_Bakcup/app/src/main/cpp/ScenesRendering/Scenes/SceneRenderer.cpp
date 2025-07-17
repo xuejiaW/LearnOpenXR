@@ -27,6 +27,23 @@ void SceneRenderer::CreateResources()
     m_uniformBuffer_ObjectData = OpenXRCoreMgr::GetGraphicsAPI()->CreateBuffer(objectDataBufferInfo);
 }
 
+void SceneRenderer::Render(const XrMatrix4x4f& viewProj, const RenderSettings& settings)
+{
+    if (!m_scene) return;
+
+    OpenXRCoreMgr::GetGraphicsAPI()->BeginRendering();
+    
+    SetupRenderTarget(settings);
+    
+    const auto& objects = m_scene->GetObjects();
+    for (size_t i = 0; i < objects.size(); ++i)
+    {
+        RenderObject(objects[i], viewProj, i);
+    }
+    
+    OpenXRCoreMgr::GetGraphicsAPI()->EndRendering();
+}
+
 void SceneRenderer::Render(const XrMatrix4x4f& viewProj)
 {
     if (!m_scene) return;
@@ -35,6 +52,45 @@ void SceneRenderer::Render(const XrMatrix4x4f& viewProj)
     for (size_t i = 0; i < objects.size(); ++i)
     {
         RenderObject(objects[i], viewProj, i);
+    }
+}
+
+void SceneRenderer::SetupRenderTarget(const RenderSettings& settings)
+{
+    GraphicsAPI::Viewport viewport = {
+        0.0f, 0.0f, 
+        static_cast<float>(settings.width), 
+        static_cast<float>(settings.height), 
+        0.0f, 1.0f
+    };
+    GraphicsAPI::Rect2D scissor = {{0, 0}, {settings.width, settings.height}};
+
+    // Clear color buffer for opaque blend mode
+    if (settings.blendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
+    {
+        OpenXRCoreMgr::GetGraphicsAPI()->ClearColor(
+            settings.colorImage, 
+            settings.clearColor.x, 
+            settings.clearColor.y, 
+            settings.clearColor.z, 
+            settings.clearColor.w
+        );
+    }
+    
+    // Clear depth buffer
+    OpenXRCoreMgr::GetGraphicsAPI()->ClearDepth(settings.depthImage, 1.0f);
+
+    if (settings.pipeline)
+    {
+        void* colorImages[] = { settings.colorImage };
+        OpenXRCoreMgr::GetGraphicsAPI()->SetRenderAttachments(
+            colorImages, 1, 
+            settings.depthImage, 
+            settings.width, settings.height, 
+            settings.pipeline
+        );
+        OpenXRCoreMgr::GetGraphicsAPI()->SetViewports(&viewport, 1);
+        OpenXRCoreMgr::GetGraphicsAPI()->SetScissors(&scissor, 1);
     }
 }
 

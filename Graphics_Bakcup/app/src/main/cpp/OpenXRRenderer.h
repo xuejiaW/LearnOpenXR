@@ -5,6 +5,7 @@
 
 class SceneRenderer;
 class IScene;
+struct RenderSettings; // 前向声明
 
 class OpenXRRenderer
 {
@@ -19,7 +20,6 @@ public:
 
 private:
     void RenderView(int viewIndex);
-    void SetupRenderState(int viewIndex, void* colorImage, void* depthImage);
 
     GraphicsAPI_Type m_apiType;
     std::unique_ptr<SceneRenderer> m_sceneRenderer;

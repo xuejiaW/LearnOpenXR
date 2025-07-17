@@ -7,7 +7,6 @@
 #include "ScenesRendering/Scenes/SceneRenderer.h"
 #include "Utils/XRMathUtils.h"
 
-
 OpenXRRenderer::OpenXRRenderer(GraphicsAPI_Type apiType) : m_apiType(apiType), m_sceneRenderer(std::make_unique<SceneRenderer>(apiType)) {}
 
 OpenXRRenderer::~OpenXRRenderer() = default;
@@ -60,40 +59,18 @@ void OpenXRRenderer::RenderView(int viewIndex)
     void* depthImage = nullptr;
     OpenXRDisplayMgr::AcquireSwapChainImages(viewIndex, colorImage, depthImage);
 
-    OpenXRCoreMgr::GetGraphicsAPI()->BeginRendering();
-
-    SetupRenderState(viewIndex, colorImage, depthImage);
+    RenderSettings settings{colorImage,
+                            depthImage,
+                            OpenXRDisplayMgr::m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth,
+                            OpenXRDisplayMgr::m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectHeight,
+                            OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode,
+                            m_sceneRenderer->GetDefaultPipeline()};
 
     XrMatrix4x4f viewProj = XRMathUtils::CreateViewProjectionMatrix(m_apiType, OpenXRDisplayMgr::views[viewIndex], m_nearPlane, m_farPlane);
 
-    m_sceneRenderer->Render(viewProj);
-
-    OpenXRCoreMgr::GetGraphicsAPI()->EndRendering();
+    m_sceneRenderer->Render(viewProj, settings);
 
     OpenXRDisplayMgr::ReleaseSwapChainImages(viewIndex);
-}
-
-void OpenXRRenderer::SetupRenderState(int viewIndex, void* colorImage, void* depthImage)
-{
-    const uint32_t& width = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectWidth;
-    const uint32_t& height = OpenXRDisplayMgr::m_ActiveViewConfigurationViews[viewIndex].recommendedImageRectHeight;
-
-    GraphicsAPI::Viewport viewport = {0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f};
-    GraphicsAPI::Rect2D scissor = {{0, 0}, {width, height}};
-
-    if (OpenXRDisplayMgr::m_ActiveEnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
-    {
-        OpenXRCoreMgr::GetGraphicsAPI()->ClearColor(colorImage, 0.17f, 0.17f, 0.17f, 1.00f);
-    }
-    OpenXRCoreMgr::GetGraphicsAPI()->ClearDepth(depthImage, 1.0f);
-
-    void* defaultPipeline = m_sceneRenderer->GetDefaultPipeline();
-    if (defaultPipeline)
-    {
-        OpenXRCoreMgr::GetGraphicsAPI()->SetRenderAttachments(&colorImage, 1, depthImage, width, height, defaultPipeline);
-        OpenXRCoreMgr::GetGraphicsAPI()->SetViewports(&viewport, 1);
-        OpenXRCoreMgr::GetGraphicsAPI()->SetScissors(&scissor, 1);
-    }
 }
 
 void OpenXRRenderer::Cleanup() { m_sceneRenderer->DestroyResources(); }

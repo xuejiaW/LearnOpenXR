@@ -5,9 +5,22 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <openxr/openxr.h>
 
 class IScene;
 class Material;
+
+// Render settings for scene rendering
+struct RenderSettings
+{
+    void* colorImage;
+    void* depthImage;
+    uint32_t width;
+    uint32_t height;
+    XrEnvironmentBlendMode blendMode;
+    void* pipeline;
+    XrVector4f clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
+};
 
 class SceneRenderer
 {
@@ -17,7 +30,10 @@ public:
 
     void SetScene(std::shared_ptr<IScene> scene);
     void CreateResources();
-    void Render(const XrMatrix4x4f& viewProj);
+    
+    void Render(const XrMatrix4x4f& viewProj, const RenderSettings& settings);
+    void Render(const XrMatrix4x4f& viewProj); // Backward compatibility
+    
     void DestroyResources();
     void* GetDefaultPipeline();
 
@@ -41,4 +57,5 @@ private:
     
     void* GetOrCreatePipeline(std::shared_ptr<Material> material);
     void RenderObject(const struct SceneObject& object, const XrMatrix4x4f& viewProj, size_t objectIndex);
+    void SetupRenderTarget(const RenderSettings& settings);
 };
