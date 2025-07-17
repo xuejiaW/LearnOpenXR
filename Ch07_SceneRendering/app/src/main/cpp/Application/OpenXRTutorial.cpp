@@ -67,6 +67,7 @@ void OpenXRTutorial::InitializeOpenXR()
     OpenXRCoreMgr::CreateInstance();
     OpenXRCoreMgr::GetSystemID();
     OpenXRCoreMgr::CreateSession(m_apiType);
+    OpenXRDisplayMgr::GetActiveViewConfigurationType();
     OpenXRDisplayMgr::GetViewConfigurationViewsInfo();
     OpenXRDisplayMgr::CreateSwapchains();
     OpenXRSpaceMgr::CreateReferenceSpace();
