@@ -9,8 +9,6 @@
 class OpenXRDisplayMgr
 {
   public:
-    // Swapchain configuration structure
-
     static void GetActiveViewConfigurationType();
     static void GetViewConfigurationViewsInfo();
     static size_t GetViewsCount();
