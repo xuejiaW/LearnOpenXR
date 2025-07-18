@@ -28,9 +28,9 @@ void OpenXRTutorial::Run()
         {
             OpenXRSessionMgr::WaitFrame();
             OpenXRSessionMgr::BeginFrame();
-            
+
             const bool shouldRender = OpenXRSessionMgr::IsShouldRender();
-            
+
             if (shouldRender)
             {
                 OpenXRRenderMgr::RefreshViewsData();
@@ -60,6 +60,8 @@ void OpenXRTutorial::InitializeOpenXR()
     OpenXRDisplayMgr::GetActiveViewConfigurationType();
     OpenXRDisplayMgr::GetViewConfigurationViewsInfo();
     OpenXRDisplayMgr::CreateSwapchains();
+    OpenXRDisplayMgr::CreateSwapchainImages();
+    OpenXRDisplayMgr::CreateSwapchainImageViews();
     OpenXRSpaceMgr::CreateReferenceSpace();
 }
 
@@ -67,6 +69,6 @@ void OpenXRTutorial::ShutDownOpenXR()
 {
     OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyInstance();
-    OpenXRDisplayMgr::DestroySwapchains();
+    OpenXRDisplayMgr::DestroySwapchainsRelatedData();
     OpenXRSpaceMgr::DestroyReferenceSpace();
 }

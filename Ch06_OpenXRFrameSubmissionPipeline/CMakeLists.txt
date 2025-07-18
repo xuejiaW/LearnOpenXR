@@ -65,6 +65,9 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
+    app/src/main/cpp/OpenXR/OpenXRDisplay/RenderLayerInfo.h
+    app/src/main/cpp/OpenXR/OpenXRDisplay/SwapchainConfig.h
+    app/src/main/cpp/OpenXR/OpenXRDisplay/SwapchainInfo.h
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
     app/src/main/cpp/OpenXR/OpenXRSpaceMgr.h
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
