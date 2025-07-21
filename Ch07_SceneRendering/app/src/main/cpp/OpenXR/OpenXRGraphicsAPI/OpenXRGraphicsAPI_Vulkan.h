@@ -25,6 +25,5 @@ private:
     std::vector<std::string> GetInstanceExtensionsForOpenXR(XrInstance xrInstance, XrSystemId systemId);
     std::vector<std::string> GetDeviceExtensionsForOpenXR(XrInstance xrInstance, XrSystemId systemId);
 
-    // Key: xrSwapchain handle
     std::unordered_map<XrSwapchain, std::vector<XrSwapchainImageVulkanKHR>> swapchainImagesMap{};
 };

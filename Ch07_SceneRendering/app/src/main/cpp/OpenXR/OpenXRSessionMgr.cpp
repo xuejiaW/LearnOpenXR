@@ -3,7 +3,6 @@
 
 #include "DebugOutput.h"
 #include "OpenXRCoreMgr.h"
-#include "OpenXRDisplayMgr.h"
 #include "OpenXRRenderMgr.h"
 
 XrSessionState OpenXRSessionMgr::m_xrSessionState = XR_SESSION_STATE_UNKNOWN;

@@ -1,29 +1,22 @@
 ﻿#pragma once
 #include <openxr/openxr.h>
 
-#include <functional>
 #include <vector>
 
-
 #include "OpenXRDisplay/SwapchainInfo.h"
+#include "OpenXRDisplay/SwapchainConfig.h"
 
 class OpenXRDisplayMgr
 {
   public:
-    // Swapchain configuration structure
-    struct SwapchainConfig
-    {
-        XrSwapchainUsageFlags usageFlags;
-        bool isDepth;
-        std::function<int64_t(const std::vector<int64_t>&)> formatSelector;
-    };
-
     static void GetActiveViewConfigurationType();
     static void GetViewConfigurationViewsInfo();
     static size_t GetViewsCount();
 
     static void CreateSwapchains();
-    static void DestroySwapchains();
+    static void CreateSwapchainImages();
+    static void CreateSwapchainImageViews();
+    static void DestroySwapchainsRelatedData();
 
     static void AcquireAndWaitSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage);
     static void ReleaseSwapChainImages(int viewIndex);
@@ -36,7 +29,7 @@ class OpenXRDisplayMgr
 
   private:
     static std::vector<int64_t> GetAvailableSwapchainFormats();
-    static void CreateSwapchain(const XrSwapchainCreateInfo& baseCreateInfo, const std::vector<int64_t>& swapchainFormats,
+    static void CreateSwapchain(const XrSwapchainCreateInfo& baseCreateInfo, const std::vector<int64_t>& availableSwapchainFormats,
                                 const SwapchainConfig& config, SwapchainInfo& swapchainInfo);
     static void CreateSwapchainImages(const SwapchainInfo& swapchainInfo);
     static void CreateSwapchainImageViews(SwapchainInfo& swapchainInfo, bool isDepth);

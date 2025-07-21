@@ -1,9 +1,10 @@
 #include "OpenXRTutorial.h"
 
 #include <GraphicsAPI_Vulkan.h>
+#include <openxr/openxr.h>
 
-#include "DebugOutput.h"
 #include "XRMathUtils.h"
+
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
 #include "../OpenXR/OpenXRRenderMgr.h"
@@ -62,17 +63,6 @@ void OpenXRTutorial::Run()
     }
 }
 
-void OpenXRTutorial::InitializeOpenXR()
-{
-    OpenXRCoreMgr::CreateInstance();
-    OpenXRCoreMgr::GetSystemID();
-    OpenXRCoreMgr::CreateSession(m_apiType);
-    OpenXRDisplayMgr::GetActiveViewConfigurationType();
-    OpenXRDisplayMgr::GetViewConfigurationViewsInfo();
-    OpenXRDisplayMgr::CreateSwapchains();
-    OpenXRSpaceMgr::CreateReferenceSpace();
-}
-
 void OpenXRTutorial::InitializeSceneRendering()
 {
     m_scene = std::make_shared<TableFloorScene>();
@@ -82,11 +72,23 @@ void OpenXRTutorial::InitializeSceneRendering()
     m_sceneRenderer->CreateResources();
 }
 
+void OpenXRTutorial::InitializeOpenXR()
+{
+    OpenXRCoreMgr::CreateInstance();
+    OpenXRCoreMgr::GetSystemID();
+    OpenXRCoreMgr::CreateSession(m_apiType);
+    OpenXRDisplayMgr::GetActiveViewConfigurationType();
+    OpenXRDisplayMgr::GetViewConfigurationViewsInfo();
+    OpenXRDisplayMgr::CreateSwapchains();
+    OpenXRDisplayMgr::CreateSwapchainImages();
+    OpenXRDisplayMgr::CreateSwapchainImageViews();
+    OpenXRSpaceMgr::CreateReferenceSpace();
+}
 
 void OpenXRTutorial::ShutDownOpenXR()
 {
     OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyInstance();
-    OpenXRDisplayMgr::DestroySwapchains();
+    OpenXRDisplayMgr::DestroySwapchainsRelatedData();
     OpenXRSpaceMgr::DestroyReferenceSpace();
 }

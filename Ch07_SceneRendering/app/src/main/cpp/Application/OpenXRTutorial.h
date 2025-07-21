@@ -35,6 +35,7 @@ public:
 private:
     void InitializeOpenXR();
     void InitializeSceneRendering();
+
     void ShutDownOpenXR();
     void PollSystemEvents();
 

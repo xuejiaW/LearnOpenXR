@@ -71,13 +71,17 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
+    app/src/main/cpp/OpenXR/OpenXRDisplay/RenderLayerInfo.h
+    app/src/main/cpp/OpenXR/OpenXRDisplay/SwapchainConfig.h
+    app/src/main/cpp/OpenXR/OpenXRDisplay/SwapchainInfo.h
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.h
     app/src/main/cpp/OpenXR/OpenXRSpaceMgr.h
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.h
     app/src/main/cpp/Application/OpenXRTutorial.h
+    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.h
+    app/src/main/cpp/ScenesRendering/TableFloorScene.h
     app/src/main/cpp/ScenesRendering/Rendering/Material.h
-    app/src/main/cpp/ScenesRendering/Rendering/Geometry/IRenderableGeometry.h
     app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.h
 )
 
@@ -112,7 +116,7 @@ if(ANDROID) # Android
     target_link_libraries(${PROJECT_NAME} android native_app_glue openxr_loader)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-cast-calling-convention)
     # XR_DOCS_TAG_END_Android
-    
+
     # Force Vulkan Graphics API for Android
     target_compile_definitions(${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_VULKAN)
 
@@ -134,6 +138,10 @@ if(ANDROID) # Android
     # XR_DOCS_TAG_BEGIN_CompileAndroidGLSLShaders
     # Vulkan GLSL
     set(SHADER_DEST "${CMAKE_CURRENT_SOURCE_DIR}/app/src/main/assets/shaders")
+
+    # Ensure the shader destination directory exists
+    file(MAKE_DIRECTORY ${SHADER_DEST})
+
     include(../cmake/glsl_shader.cmake)
     set_source_files_properties(
         ../Shaders/VertexShader.glsl PROPERTIES ShaderType "vert"
@@ -142,14 +150,19 @@ if(ANDROID) # Android
         ../Shaders/PixelShader.glsl PROPERTIES ShaderType "frag"
     )
 
+    # Create a list to hold all shader targets
+    set(SHADER_TARGETS)
+
     foreach(FILE ${GLSL_SHADERS})
         get_filename_component(FILE_WE ${FILE} NAME_WE)
         get_source_file_property(shadertype ${FILE} ShaderType)
+        set(SHADER_SPV_FILE "${SHADER_DEST}/${FILE_WE}.spv")
+
         glsl_spv_shader(
             INPUT
             "${CMAKE_CURRENT_SOURCE_DIR}/${FILE}"
             OUTPUT
-            "${SHADER_DEST}/${FILE_WE}.spv"
+            "${SHADER_SPV_FILE}"
             STAGE
             ${shadertype}
             ENTRY_POINT
@@ -157,9 +170,24 @@ if(ANDROID) # Android
             TARGET_ENV
             vulkan1.0
         )
-        # Make our project depend on these files
-        target_sources(${PROJECT_NAME} PRIVATE "${SHADER_DEST}/${FILE_WE}.spv")
+
+        # Create a custom target for each shader
+        add_custom_target(${FILE_WE}_shader_target
+            DEPENDS "${SHADER_SPV_FILE}"
+            COMMENT "Building shader ${FILE_WE}.spv"
+        )
+
+        list(APPEND SHADER_TARGETS ${FILE_WE}_shader_target)
     endforeach()
+
+    # Create a single target that depends on all shaders
+    add_custom_target(compile_all_shaders
+        DEPENDS ${SHADER_TARGETS}
+        COMMENT "Compiling all shaders"
+    )
+
+    # Make the main project depend on all shaders being compiled first
+    add_dependencies(${PROJECT_NAME} compile_all_shaders)
     # XR_DOCS_TAG_END_CompileAndroidGLSLShaders
 
 else() # Windows / Linux
@@ -184,7 +212,7 @@ else() # Windows / Linux
     )
     target_link_libraries(${PROJECT_NAME} openxr_loader)
     # XR_DOCS_TAG_END_WindowsLinux
-    
+
     # Force Vulkan Graphics API for Windows/Linux
     target_compile_definitions(${PROJECT_NAME} PUBLIC XR_TUTORIAL_USE_VULKAN)
 
@@ -246,7 +274,3 @@ else() # Windows / Linux
     endif()
     # XR_DOCS_TAG_END_BuildShadersVulkanWindowsLinux
 endif() # EOF
-
-
-
-
