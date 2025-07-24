@@ -1,0 +1,74 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'org.khronos.Ch08_OpenXRInputAndHaptics'
+    compileSdk 29
+    ndkVersion '23.1.7779620'
+
+    defaultConfig {
+        applicationId "org.khronos.Ch08_OpenXRInputAndHaptics"
+        minSdk 24
+        targetSdk 29
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            version '3.22.1'
+            path '../CMakeLists.txt'
+        }
+    }
+
+    // Enable prefab support for the OpenXR AAR
+    buildFeatures {
+        prefab true
+    }
+}
+
+// Custom task to ensure shaders are available before merging assets
+task ensureShaders {
+    doLast {
+        def shadersDir = file("src/main/assets/shaders")
+        if (!shadersDir.exists()) {
+            shadersDir.mkdirs()
+        }
+
+        // Verify shaders exist
+        def vertexShader = file("src/main/assets/shaders/VertexShader.spv")
+        def fragmentShader = file("src/main/assets/shaders/PixelShader.spv")
+
+        if (!vertexShader.exists() || !fragmentShader.exists()) {
+            println "Warning: Shader files not found in assets directory"
+            println "VertexShader exists: ${vertexShader.exists()}"
+            println "FragmentShader exists: ${fragmentShader.exists()}"
+        } else {
+            println "Shaders verified: VertexShader=${vertexShader.exists()}, FragmentShader=${fragmentShader.exists()}"
+        }
+    }
+}
+
+// Make sure ensureShaders runs after native build and before merging assets
+afterEvaluate {
+    tasks.matching { it.name.startsWith('externalNativeBuild') }.all { Task task ->
+        ensureShaders.mustRunAfter task
+    }
+
+    tasks.matching { it.name.contains('mergeDebugAssets') || it.name.contains('mergeAssets') }.all { Task task ->
+        task.dependsOn ensureShaders
+    }
+}
+
+dependencies {
+    implementation 'org.khronos.openxr:openxr_loader_for_android:1.0.34'
+}
+
