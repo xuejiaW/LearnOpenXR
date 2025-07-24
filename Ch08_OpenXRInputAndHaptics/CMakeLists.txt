@@ -43,6 +43,7 @@ set(SOURCES
     ../Common/GraphicsAPI_Vulkan.cpp
     ../Common/OpenXRDebugUtils.cpp
     ../Common/XRMathUtils.cpp
+    ../Common/XrPathUtils.cpp
     app/src/main/cpp/main.cpp
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
@@ -51,6 +52,7 @@ set(SOURCES
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSpaceMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.cpp
+    app/src/main/cpp/OpenXR/OpenXRInputMgr.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
@@ -68,6 +70,7 @@ set(HEADERS
     ../Common/OpenXRDebugUtils.h
     ../Common/OpenXRHelper.h
     ../Common/XRMathUtils.h
+    ../Common/XrPathUtils.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
@@ -78,6 +81,11 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRSpaceMgr.h
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.h
+    app/src/main/cpp/OpenXR/OpenXRInputMgr.h
+    app/src/main/cpp/OpenXR/Input/ActionInfo.h
+    app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
+    app/src/main/cpp/OpenXR/Input/InputStructs.h
+    app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
     app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.h
     app/src/main/cpp/ScenesRendering/TableFloorScene.h
