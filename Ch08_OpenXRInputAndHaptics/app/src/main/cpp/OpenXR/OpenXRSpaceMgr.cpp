@@ -7,7 +7,9 @@ XrSpace OpenXRSpaceMgr::activeSpaces = XR_NULL_HANDLE;
 
 void OpenXRSpaceMgr::CreateReferenceSpace()
 {
-    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO, nullptr};
+    XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = {};
+    referenceSpaceCreateInfo.type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO;
+    referenceSpaceCreateInfo.next = nullptr;
     referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
     referenceSpaceCreateInfo.poseInReferenceSpace = XrPosef{{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
     OPENXR_CHECK(xrCreateReferenceSpace(OpenXRCoreMgr::xrSession, &referenceSpaceCreateInfo, &activeSpaces),

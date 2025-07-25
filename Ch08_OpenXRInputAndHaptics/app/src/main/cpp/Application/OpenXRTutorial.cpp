@@ -3,10 +3,12 @@
 #include <GraphicsAPI_Vulkan.h>
 #include <openxr/openxr.h>
 
+#include "DebugOutput.h"
 #include "XRMathUtils.h"
 
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
+#include "../OpenXR/OpenXRInputMgr.h"
 #include "../OpenXR/OpenXRRenderMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 #include "../OpenXR/OpenXRSpaceMgr.h"
@@ -32,6 +34,11 @@ void OpenXRTutorial::Run()
         {
             OpenXRSessionMgr::WaitFrame();
             OpenXRSessionMgr::BeginFrame();
+
+            OpenXRInputMgr::Tick(OpenXRSessionMgr::frameState.predictedDisplayTime, 
+                                OpenXRSpaceMgr::activeSpaces);
+
+            ProcessInputLogic();
 
             const bool shouldRender = OpenXRSessionMgr::IsShouldRender();
 
@@ -70,6 +77,9 @@ void OpenXRTutorial::InitializeSceneRendering()
     m_sceneRenderer = std::make_unique<SceneRenderer>(m_apiType);
     m_sceneRenderer->SetScene(m_scene);
     m_sceneRenderer->CreateResources();
+
+    // Initialize the refactored input manager
+    OpenXRInputMgr::Initialize();
 }
 
 void OpenXRTutorial::InitializeOpenXR()
@@ -87,8 +97,40 @@ void OpenXRTutorial::InitializeOpenXR()
 
 void OpenXRTutorial::ShutDownOpenXR()
 {
+    // Shutdown the refactored input manager
+    OpenXRInputMgr::Shutdown();
+
     OpenXRCoreMgr::DestroySession();
     OpenXRCoreMgr::DestroyInstance();
     OpenXRDisplayMgr::DestroySwapchainsRelatedData();
     OpenXRSpaceMgr::DestroyReferenceSpace();
+}
+
+void OpenXRTutorial::ProcessInputLogic()
+{
+    for (int handIndex = 0; handIndex < 2; ++handIndex)
+    {
+        if (OpenXRInputMgr::GetSelectDown(handIndex))
+        {
+            XR_TUT_LOG("Hand " << handIndex << " select button pressed! Applying haptic feedback...");
+            ApplyHapticFeedback(handIndex);
+        }
+
+        bool poseActive;
+        XrPosef pose = OpenXRInputMgr::GetHandPose(handIndex, &poseActive);
+        if (poseActive)
+        {
+            XR_TUT_LOG("Hand " << handIndex << " pose - Position: (" << pose.position.x << ", " << pose.position.y 
+                      << ", " << pose.position.z << "), Orientation: (" << pose.orientation.x << ", " 
+                      << pose.orientation.y << ", " << pose.orientation.z << ", " << pose.orientation.w << ")");
+        }
+    }
+}
+
+void OpenXRTutorial::ApplyHapticFeedback(int handIndex)
+{
+    float amplitude = 0.5f;
+    XrDuration duration = 100000000; // 100ms in nanoseconds
+    
+    OpenXRInputMgr::TriggerHapticFeedback(handIndex, amplitude, duration);
 }

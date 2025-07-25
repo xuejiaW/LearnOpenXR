@@ -73,7 +73,9 @@ void OpenXRSessionMgr::WaitFrame()
 {
     frameState.type = XR_TYPE_FRAME_STATE;
     frameState.next = nullptr;
-    XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO, nullptr};
+    XrFrameWaitInfo frameWaitInfo = {};
+    frameWaitInfo.type = XR_TYPE_FRAME_WAIT_INFO;
+    frameWaitInfo.next = nullptr;
     OPENXR_CHECK(xrWaitFrame(OpenXRCoreMgr::xrSession, &frameWaitInfo, &frameState), "Failed to wait for OpenXR frame");
 }
 
@@ -99,4 +101,9 @@ bool OpenXRSessionMgr::IsShouldRender()
 {
     return frameState.shouldRender && m_IsSessionRunning
            && (m_xrSessionState == XR_SESSION_STATE_FOCUSED || m_xrSessionState == XR_SESSION_STATE_VISIBLE);
+}
+
+bool OpenXRSessionMgr::IsShouldProcessInput()
+{
+    return m_IsSessionRunning && m_xrSessionState == XR_SESSION_STATE_FOCUSED;
 }

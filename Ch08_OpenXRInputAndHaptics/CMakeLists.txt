@@ -43,16 +43,16 @@ set(SOURCES
     ../Common/GraphicsAPI_Vulkan.cpp
     ../Common/OpenXRDebugUtils.cpp
     ../Common/XRMathUtils.cpp
-    ../Common/XrPathUtils.cpp
+    ../Common/XRPathUtils.cpp
     app/src/main/cpp/main.cpp
-    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
-    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSpaceMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRInputMgr.cpp
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
@@ -70,7 +70,7 @@ set(HEADERS
     ../Common/OpenXRDebugUtils.h
     ../Common/OpenXRHelper.h
     ../Common/XRMathUtils.h
-    ../Common/XrPathUtils.h
+    ../Common/XRPathUtils.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
@@ -282,5 +282,3 @@ else() # Windows / Linux
     endif()
     # XR_DOCS_TAG_END_BuildShadersVulkanWindowsLinux
 endif() # EOF
-
-

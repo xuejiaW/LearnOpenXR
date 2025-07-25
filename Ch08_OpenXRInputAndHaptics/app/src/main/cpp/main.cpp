@@ -27,7 +27,9 @@ void android_main(struct android_app *app)
         return;
     }
 
-    XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
+    XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid = {};
+    loaderInitializeInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
+    loaderInitializeInfoAndroid.next = nullptr;
     loaderInitializeInfoAndroid.applicationVM = app->activity->vm;
     loaderInitializeInfoAndroid.applicationContext = app->activity->clazz;
     if (XR_FAILED(xrInitializeLoaderKHR((const XrLoaderInitInfoBaseHeaderKHR *)&loaderInitializeInfoAndroid))) {
@@ -49,9 +51,3 @@ int main(int argc, char** argv)
     return 0;
 }
 #endif
-
-
-
-
-
-

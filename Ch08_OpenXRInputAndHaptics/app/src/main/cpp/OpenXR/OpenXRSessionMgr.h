@@ -7,11 +7,11 @@ public:
     static void PollEvent();
     static void OnSessionChanged(const XrEventDataSessionStateChanged* sessionStateChanged);
     static bool IsSessionRunning();
+    static bool IsShouldRender();
+    static bool IsShouldProcessInput();
     static void WaitFrame();
     static void BeginFrame();
     static void EndFrame(bool rendered);
-
-    static bool IsShouldRender();
 
     static XrFrameState frameState;
 

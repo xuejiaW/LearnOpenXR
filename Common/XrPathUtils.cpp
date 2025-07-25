@@ -1,11 +1,11 @@
-#include "XrPathUtils.h"
+#include "XRPathUtils.h"
 #include "DebugOutput.h"
 #include "OpenXRHelper.h"
 
-std::unordered_map<std::string, XrPath> XrPathUtils::m_StringToPathCache;
-std::unordered_map<XrPath, std::string> XrPathUtils::m_PathToStringCache;
+std::unordered_map<std::string, XrPath> XRPathUtils::m_StringToPathCache;
+std::unordered_map<XrPath, std::string> XRPathUtils::m_PathToStringCache;
 
-XrPath XrPathUtils::StringToPath(XrInstance instance, const std::string& pathString)
+XrPath XRPathUtils::StringToPath(XrInstance instance, const std::string& pathString)
 {
     // Check cache first
     auto it = m_StringToPathCache.find(pathString);
@@ -26,7 +26,7 @@ XrPath XrPathUtils::StringToPath(XrInstance instance, const std::string& pathStr
     return xrPath;
 }
 
-std::string XrPathUtils::PathToString(XrInstance instance, XrPath path)
+std::string XRPathUtils::PathToString(XrInstance instance, XrPath path)
 {
     // Check cache first
     auto it = m_PathToStringCache.find(path);
@@ -56,23 +56,8 @@ std::string XrPathUtils::PathToString(XrInstance instance, XrPath path)
     return pathString;
 }
 
-void XrPathUtils::ClearPathCache()
+void XRPathUtils::ClearPathCache()
 {
     m_StringToPathCache.clear();
     m_PathToStringCache.clear();
-}
-
-const char* XrPathUtils::GetHandPath(int handIndex)
-{
-    return (handIndex == 0) ? HAND_LEFT_PATH : HAND_RIGHT_PATH;
-}
-
-const char* XrPathUtils::GetSimpleControllerProfilePath()
-{
-    return SIMPLE_CONTROLLER_PROFILE;
-}
-
-const char* XrPathUtils::GetTouchControllerProfilePath()
-{
-    return TOUCH_CONTROLLER_PROFILE;
 }
