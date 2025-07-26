@@ -84,7 +84,6 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRInputMgr.h
     app/src/main/cpp/OpenXR/Input/ActionInfo.h
     app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
-    app/src/main/cpp/OpenXR/Input/InputStructs.h
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
     app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.h

@@ -20,7 +20,7 @@ OpenXRTutorial::OpenXRTutorial(GraphicsAPI_Type apiType)
     m_apiType = apiType;
 }
 
-OpenXRTutorial::~OpenXRTutorial() {}
+OpenXRTutorial::~OpenXRTutorial() = default;
 
 void OpenXRTutorial::Run()
 {
@@ -35,10 +35,29 @@ void OpenXRTutorial::Run()
             OpenXRSessionMgr::WaitFrame();
             OpenXRSessionMgr::BeginFrame();
 
-            OpenXRInputMgr::Tick(OpenXRSessionMgr::frameState.predictedDisplayTime, 
-                                OpenXRSpaceMgr::activeSpaces);
+            if (OpenXRSessionMgr::IsShouldProcessInput())
+            {
 
-            ProcessInputLogic();
+                OpenXRInputMgr::Tick(OpenXRSessionMgr::frameState.predictedDisplayTime,
+                                     OpenXRSpaceMgr::activeSpaces);
+
+                for (int handIndex = 0; handIndex < 2; ++handIndex)
+                {
+                    if (OpenXRInputMgr::GetSelectDown(handIndex))
+                    {
+                        OpenXRInputMgr::TriggerHapticFeedback(handIndex, 0.5f, 100000000);
+                    }
+
+                    bool poseActive;
+                    XrPosef pose = OpenXRInputMgr::GetHandPose(handIndex, &poseActive);
+                    if (poseActive)
+                    {
+                        XR_TUT_LOG("Hand " << handIndex << " pose - Position: (" << pose.position.x << ", " << pose.position.y
+                            << ", " << pose.position.z << "), Orientation: (" << pose.orientation.x << ", "
+                            << pose.orientation.y << ", " << pose.orientation.z << ", " << pose.orientation.w << ")");
+                    }
+                }
+            }
 
             const bool shouldRender = OpenXRSessionMgr::IsShouldRender();
 
@@ -77,16 +96,23 @@ void OpenXRTutorial::InitializeSceneRendering()
     m_sceneRenderer = std::make_unique<SceneRenderer>(m_apiType);
     m_sceneRenderer->SetScene(m_scene);
     m_sceneRenderer->CreateResources();
-
-    // Initialize the refactored input manager
-    OpenXRInputMgr::Initialize();
 }
 
 void OpenXRTutorial::InitializeOpenXR()
 {
     OpenXRCoreMgr::CreateInstance();
     OpenXRCoreMgr::GetSystemID();
+
+    OpenXRInputMgr::CreateActionSet("main_action_set", "Main Action Set", 0);
+    OpenXRInputMgr::SetupActions();
+    OpenXRInputMgr::SetupBindings();
+    OpenXRInputMgr::SubmitAllBindings();
+
     OpenXRCoreMgr::CreateSession(m_apiType);
+
+    OpenXRInputMgr::AttachActionSets();
+    OpenXRInputMgr::CreateHandPoseActionSpace();
+    
     OpenXRDisplayMgr::GetActiveViewConfigurationType();
     OpenXRDisplayMgr::GetViewConfigurationViewsInfo();
     OpenXRDisplayMgr::CreateSwapchains();
@@ -104,33 +130,4 @@ void OpenXRTutorial::ShutDownOpenXR()
     OpenXRCoreMgr::DestroyInstance();
     OpenXRDisplayMgr::DestroySwapchainsRelatedData();
     OpenXRSpaceMgr::DestroyReferenceSpace();
-}
-
-void OpenXRTutorial::ProcessInputLogic()
-{
-    for (int handIndex = 0; handIndex < 2; ++handIndex)
-    {
-        if (OpenXRInputMgr::GetSelectDown(handIndex))
-        {
-            XR_TUT_LOG("Hand " << handIndex << " select button pressed! Applying haptic feedback...");
-            ApplyHapticFeedback(handIndex);
-        }
-
-        bool poseActive;
-        XrPosef pose = OpenXRInputMgr::GetHandPose(handIndex, &poseActive);
-        if (poseActive)
-        {
-            XR_TUT_LOG("Hand " << handIndex << " pose - Position: (" << pose.position.x << ", " << pose.position.y 
-                      << ", " << pose.position.z << "), Orientation: (" << pose.orientation.x << ", " 
-                      << pose.orientation.y << ", " << pose.orientation.z << ", " << pose.orientation.w << ")");
-        }
-    }
-}
-
-void OpenXRTutorial::ApplyHapticFeedback(int handIndex)
-{
-    float amplitude = 0.5f;
-    XrDuration duration = 100000000; // 100ms in nanoseconds
-    
-    OpenXRInputMgr::TriggerHapticFeedback(handIndex, amplitude, duration);
 }

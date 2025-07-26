@@ -16,14 +16,6 @@ XrAction OpenXRInputMgr::m_SelectActions[2] = {XR_NULL_HANDLE, XR_NULL_HANDLE};
 XrAction OpenXRInputMgr::m_HapticActions[2] = {XR_NULL_HANDLE, XR_NULL_HANDLE};
 XrSpace OpenXRInputMgr::m_HandSpaces[2] = {XR_NULL_HANDLE, XR_NULL_HANDLE};
 
-void OpenXRInputMgr::Initialize()
-{
-    SetupActions();
-    SetupBindings();
-
-    XR_TUT_LOG("OpenXRInputMgr initialized successfully");
-}
-
 void OpenXRInputMgr::Shutdown()
 {
     DestroyActionSpaces();
@@ -43,91 +35,68 @@ void OpenXRInputMgr::Shutdown()
 
 void OpenXRInputMgr::Tick(XrTime predictedTime, XrSpace referenceSpace)
 {
-    if (!OpenXRSessionMgr::IsShouldProcessInput()) return;
-
     SyncActions();
     UpdateHandStates(predictedTime, referenceSpace);
 }
 
 bool OpenXRInputMgr::GetSelectDown(int handIndex)
 {
-    if (handIndex < 0 || handIndex >= 2) return false;
     return m_HandStates[handIndex].currentSelectPressed && !m_HandStates[handIndex].lastSelectPressed;
 }
 
 bool OpenXRInputMgr::GetSelect(int handIndex)
 {
-    if (handIndex < 0 || handIndex >= 2) return false;
     return m_HandStates[handIndex].currentSelectPressed;
 }
 
 bool OpenXRInputMgr::GetSelectUp(int handIndex)
 {
-    if (handIndex < 0 || handIndex >= 2) return false;
     return !m_HandStates[handIndex].currentSelectPressed && m_HandStates[handIndex].lastSelectPressed;
 }
 
 XrPosef OpenXRInputMgr::GetHandPose(int handIndex, bool* isActive)
 {
-    if (handIndex < 0 || handIndex >= 2 )
-    {
-        if (isActive) *isActive = false;
-        return {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
-    }
-
     if (isActive) *isActive = m_HandStates[handIndex].poseActive;
     return m_HandStates[handIndex].pose;
 }
 
 void OpenXRInputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDuration duration)
 {
-    if (handIndex < 0 || handIndex >= 2) return;
-    
-    ApplyHapticFeedback(m_HapticActions[handIndex], GetHandPath(handIndex), amplitude, duration);
+    ApplyHapticFeedback(m_HapticActions[handIndex], handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH, amplitude, duration);
 }
 
-// Internal setup functions
 void OpenXRInputMgr::SetupActions()
 {
-    // Create action set
-    CreateActionSet("main_action_set", "Main Action Set", 0);
+    std::vector<std::string> leftHandSubactions = {HAND_LEFT_PATH};
+    std::vector<std::string> rightHandSubactions = {HAND_RIGHT_PATH};
 
-    // Create actions for both hands
-    std::vector<std::string> leftHandSubactions = {GetHandPath(0)};   // Left hand
-    std::vector<std::string> rightHandSubactions = {GetHandPath(1)};  // Right hand
-
-    // Left hand actions
     m_HandPoseActions[0] = CreateAction("left_hand_pose", "Left Hand Pose", XR_ACTION_TYPE_POSE_INPUT, leftHandSubactions);
     m_SelectActions[0] = CreateAction("left_trigger_select", "Left Trigger Select", XR_ACTION_TYPE_BOOLEAN_INPUT, leftHandSubactions);
     m_HapticActions[0] = CreateAction("left_haptic_feedback", "Left Haptic Feedback", XR_ACTION_TYPE_VIBRATION_OUTPUT, leftHandSubactions);
 
-    // Right hand actions
     m_HandPoseActions[1] = CreateAction("right_hand_pose", "Right Hand Pose", XR_ACTION_TYPE_POSE_INPUT, rightHandSubactions);
     m_SelectActions[1] = CreateAction("right_trigger_select", "Right Trigger Select", XR_ACTION_TYPE_BOOLEAN_INPUT, rightHandSubactions);
     m_HapticActions[1] = CreateAction("right_haptic_feedback", "Right Haptic Feedback", XR_ACTION_TYPE_VIBRATION_OUTPUT, rightHandSubactions);
 }
 
+void OpenXRInputMgr::CreateHandPoseActionSpace()
+{
+    m_HandSpaces[0] = CreateActionSpace(m_HandPoseActions[0], HAND_LEFT_PATH);
+    m_HandSpaces[1] = CreateActionSpace(m_HandPoseActions[1], HAND_RIGHT_PATH);
+}
+
 void OpenXRInputMgr::SetupBindings()
 {
-    // Setup bindings for Khronos Simple Controller
     std::vector<std::pair<XrAction, std::string>> bindings = {
-            // Left hand bindings
             {m_HandPoseActions[0], "/user/hand/left/input/grip/pose"},
             {m_SelectActions[0], "/user/hand/left/input/select/click"},
             {m_HapticActions[0], "/user/hand/left/output/haptic"},
-            // Right hand bindings
             {m_HandPoseActions[1], "/user/hand/right/input/grip/pose"},
             {m_SelectActions[1], "/user/hand/right/input/select/click"},
             {m_HapticActions[1], "/user/hand/right/output/haptic"}
         };
 
-    SuggestBinding(GetSimpleControllerProfilePath(), bindings);
-    SuggestAllBindings();
-    AttachActionSets();
-
-    // Create action spaces for both hands
-    m_HandSpaces[0] = CreateActionSpace(m_HandPoseActions[0], GetHandPath(0));
-    m_HandSpaces[1] = CreateActionSpace(m_HandPoseActions[1], GetHandPath(1));
+    AddBindingForProfile(SIMPLE_CONTROLLER_PROFILE, bindings);
 }
 
 void OpenXRInputMgr::UpdateHandStates(XrTime predictedTime, XrSpace referenceSpace)
@@ -135,35 +104,14 @@ void OpenXRInputMgr::UpdateHandStates(XrTime predictedTime, XrSpace referenceSpa
     for (int handIndex = 0; handIndex < 2; ++handIndex)
     {
         m_HandStates[handIndex].lastSelectPressed = m_HandStates[handIndex].currentSelectPressed;
-        m_HandStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectActions[handIndex], GetHandPath(handIndex));
+        m_HandStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectActions[handIndex],
+                                                                             handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
 
         m_HandStates[handIndex].pose = GetActionStatePose(m_HandPoseActions[handIndex], m_HandSpaces[handIndex],
                                                           referenceSpace, predictedTime, &m_HandStates[handIndex].poseActive);
     }
 }
 
-// Utility functions (remain public)
-const char* OpenXRInputMgr::GetHandPath(int handIndex)
-{
-    return (handIndex == 0) ? HAND_LEFT_PATH : HAND_RIGHT_PATH;
-}
-
-const char* OpenXRInputMgr::GetSimpleControllerProfilePath()
-{
-    return SIMPLE_CONTROLLER_PROFILE;
-}
-
-const char* OpenXRInputMgr::GetTouchControllerProfilePath()
-{
-    return TOUCH_CONTROLLER_PROFILE;
-}
-
-void OpenXRInputMgr::OnInteractionProfileChanged()
-{
-    XR_TUT_LOG("Interaction profile changed");
-}
-
-// Low-level OpenXR functions (now private)
 void OpenXRInputMgr::CreateActionSet(const std::string& actionSetName, const std::string& localizedName, uint32_t priority)
 {
     ActionSetInfo actionSetInfo{};
@@ -211,18 +159,11 @@ void OpenXRInputMgr::DestroyActionSets()
 XrAction OpenXRInputMgr::CreateAction(const std::string& actionName, const std::string& localizedName,
                                       XrActionType actionType, const std::vector<std::string>& subactionPaths)
 {
-    if (m_ActionSets.empty())
-    {
-        XR_TUT_LOG_ERROR("No action sets available. Create an action set first.");
-        return XR_NULL_HANDLE;
-    }
-
     ActionInfo actionInfo{};
     actionInfo.actionName = actionName;
     actionInfo.localizedActionName = localizedName;
     actionInfo.actionType = actionType;
 
-    // Convert subaction paths to XrPath using XRPathUtils
     for (const auto& subactionPath : subactionPaths)
     {
         XrPath path = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath);
@@ -249,10 +190,9 @@ XrAction OpenXRInputMgr::CreateAction(const std::string& actionName, const std::
     return actionInfo.action;
 }
 
-void OpenXRInputMgr::SuggestBinding(const std::string& interactionProfilePath,
-                                    const std::vector<std::pair<XrAction, std::string>>& actionBindings)
+void OpenXRInputMgr::AddBindingForProfile(const std::string& interactionProfilePath,
+                                          const std::vector<std::pair<XrAction, std::string>>& actionBindings)
 {
-    // Find existing profile binding or create new one
     InteractionProfileBinding* profileBinding = nullptr;
     for (auto& binding : m_InteractionProfileBindings)
     {
@@ -286,7 +226,7 @@ void OpenXRInputMgr::SuggestBinding(const std::string& interactionProfilePath,
     XR_TUT_LOG("Added " << actionBindings.size() << " bindings for interaction profile: " << interactionProfilePath);
 }
 
-void OpenXRInputMgr::SuggestAllBindings()
+void OpenXRInputMgr::SubmitAllBindings()
 {
     for (const auto& profileBinding : m_InteractionProfileBindings)
     {
@@ -308,12 +248,6 @@ void OpenXRInputMgr::SuggestAllBindings()
 
 void OpenXRInputMgr::AttachActionSets()
 {
-    if (m_ActionSets.empty())
-    {
-        XR_TUT_LOG_ERROR("No action sets to attach");
-        return;
-    }
-
     std::vector<XrActionSet> actionSets;
     for (const auto& actionSetInfo : m_ActionSets)
     {

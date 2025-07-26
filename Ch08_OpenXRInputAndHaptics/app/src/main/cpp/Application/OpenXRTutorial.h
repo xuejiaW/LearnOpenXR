@@ -39,9 +39,6 @@ private:
     void ShutDownOpenXR();
     void PollSystemEvents();
     
-    void ProcessInputLogic();
-    void ApplyHapticFeedback(int handIndex);
-
     std::unique_ptr<SceneRenderer> m_sceneRenderer;
     std::shared_ptr<IScene> m_scene;
 };
