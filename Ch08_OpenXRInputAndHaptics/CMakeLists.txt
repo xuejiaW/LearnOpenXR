@@ -56,10 +56,14 @@ set(SOURCES
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
-    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.cpp
-    app/src/main/cpp/ScenesRendering/TableFloorScene.cpp
+    app/src/main/cpp/ScenesRendering/Core/GameObject.cpp
+    app/src/main/cpp/ScenesRendering/Core/Transform.cpp
+    app/src/main/cpp/ScenesRendering/Core/Scene.cpp
     app/src/main/cpp/ScenesRendering/Rendering/Material.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.cpp
+    app/src/main/cpp/ScenesRendering/Rendering/MeshRenderer.cpp
+    app/src/main/cpp/ScenesRendering/Rendering/Camera.cpp
+    app/src/main/cpp/ScenesRendering/Rendering/Mesh/CubeMesh.cpp
+    app/src/main/cpp/ScenesRendering/TableFloorScene.cpp
 )
 set(HEADERS
     ../Common/DebugOutput.h
@@ -86,10 +90,17 @@ set(HEADERS
     app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
-    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.h
-    app/src/main/cpp/ScenesRendering/TableFloorScene.h
+    # New GameObject-Component Architecture Headers
+    app/src/main/cpp/ScenesRendering/Core/IComponent.h
+    app/src/main/cpp/ScenesRendering/Core/GameObject.h
+    app/src/main/cpp/ScenesRendering/Core/Transform.h
+    app/src/main/cpp/ScenesRendering/Core/Scene.h
     app/src/main/cpp/ScenesRendering/Rendering/Material.h
-    app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.h
+    app/src/main/cpp/ScenesRendering/Rendering/MeshRenderer.h
+    app/src/main/cpp/ScenesRendering/Rendering/Camera.h
+    app/src/main/cpp/ScenesRendering/Rendering/Mesh/IMesh.h
+    app/src/main/cpp/ScenesRendering/Rendering/Mesh/CubeMesh.h
+    app/src/main/cpp/ScenesRendering/TableFloorScene.h
 )
 
 # XR_DOCS_TAG_BEGIN_GLSLShaders

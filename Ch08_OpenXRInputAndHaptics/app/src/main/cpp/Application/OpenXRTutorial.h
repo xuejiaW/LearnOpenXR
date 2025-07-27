@@ -2,7 +2,6 @@
 
 #include <GraphicsAPI.h>
 #include "../ScenesRendering/TableFloorScene.h"
-#include "../ScenesRendering/Scenes/SceneRenderer.h"
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>
@@ -39,6 +38,5 @@ private:
     void ShutDownOpenXR();
     void PollSystemEvents();
     
-    std::unique_ptr<SceneRenderer> m_sceneRenderer;
-    std::shared_ptr<IScene> m_scene;
+    std::unique_ptr<TableFloorScene> m_tableFloorScene;
 };

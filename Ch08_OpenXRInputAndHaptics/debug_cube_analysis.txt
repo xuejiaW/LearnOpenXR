@@ -1,0 +1,27 @@
+CubeGeometry顶点分析：
+
+基础8个顶点：
+0: front-top-right    (+0.5, +0.5, +0.5)
+1: back-top-right     (+0.5, +0.5, -0.5) 
+2: front-bottom-right (+0.5, -0.5, +0.5)
+3: back-bottom-right  (+0.5, -0.5, -0.5)
+4: front-top-left     (-0.5, +0.5, +0.5)
+5: back-top-left      (-0.5, +0.5, -0.5)
+6: front-bottom-left  (-0.5, -0.5, +0.5)
+7: back-bottom-left   (-0.5, -0.5, -0.5)
+
+当前Right face定义: CUBE_FACE(2, 1, 0, 2, 3, 1)
+展开为6个顶点：
+- cubeCorners[2] = (+0.5, -0.5, +0.5) front-bottom-right
+- cubeCorners[1] = (+0.5, +0.5, -0.5) back-top-right
+- cubeCorners[0] = (+0.5, +0.5, +0.5) front-top-right
+- cubeCorners[2] = (+0.5, -0.5, +0.5) front-bottom-right (重复)
+- cubeCorners[3] = (+0.5, -0.5, -0.5) back-bottom-right
+- cubeCorners[1] = (+0.5, +0.5, -0.5) back-top-right (重复)
+
+问题：这6个顶点不能构成正确的右面！
+正确的右面应该是4个顶点：0, 1, 2, 3 (所有X=+0.5的点)
+
+正确的右面三角形应该是：
+Triangle 1: 0, 2, 1 (front-top-right, front-bottom-right, back-top-right)
+Triangle 2: 1, 2, 3 (back-top-right, front-bottom-right, back-bottom-right)

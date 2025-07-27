@@ -1,23 +1,22 @@
 #pragma once
 
-#include "Scenes/IScene.h"
+#include "Core/Scene.h"
 #include <GraphicsAPI.h>
 
-class TableFloorScene : public IScene
-{
+class TableFloorScene {
 public:
     TableFloorScene();
-    ~TableFloorScene() override;
+    ~TableFloorScene();
 
-    void Initialize() override;
-    void Update(float deltaTime) override;
-    const std::vector<SceneObject>& GetObjects() const override { return m_objects; }
+    void Initialize();
+    void Update(float deltaTime);
+    Scene* GetScene() const { return m_scene.get(); }
     
     void SetViewHeight(float heightInMeters) { m_viewHeightM = heightInMeters; }
 
 private:
     float m_viewHeightM = 1.5f;
-    std::vector<SceneObject> m_objects;
+    std::unique_ptr<Scene> m_scene;
     
     void CreateSceneObjects();
 };

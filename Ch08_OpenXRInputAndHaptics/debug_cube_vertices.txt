@@ -1,0 +1,33 @@
+CubeMesh顶点连接分析：
+
+基础8个顶点：
+0: front-top-right    (+0.5, +0.5, +0.5)
+1: back-top-right     (+0.5, +0.5, -0.5) 
+2: front-bottom-right (+0.5, -0.5, +0.5)
+3: back-bottom-right  (+0.5, -0.5, -0.5)
+4: front-top-left     (-0.5, +0.5, +0.5)
+5: back-top-left      (-0.5, +0.5, -0.5)
+6: front-bottom-left  (-0.5, -0.5, +0.5)
+7: back-bottom-left   (-0.5, -0.5, -0.5)
+
+当前CubeMesh中Right face的定义：
+Triangle 1: (2,1,0) = 
+  - 2: (+0.5, -0.5, +0.5) front-bottom-right
+  - 1: (+0.5, +0.5, -0.5) back-top-right  
+  - 0: (+0.5, +0.5, +0.5) front-top-right
+
+问题：顶点2和1之间距离很远！
+- 顶点2在前面底部，顶点1在后面顶部
+- 这不是一个正常的面上的三角形，而是一个跨越整个立方体的对角线三角形！
+
+Triangle 2: (2,3,1) = 
+  - 2: (+0.5, -0.5, +0.5) front-bottom-right
+  - 3: (+0.5, -0.5, -0.5) back-bottom-right
+  - 1: (+0.5, +0.5, -0.5) back-top-right
+
+这个也是错误的对角线三角形！
+
+正确的Right face (+X面)应该是4个共面的顶点：0,1,2,3
+正确的三角形应该是：
+Triangle 1: (0,2,3) - 在同一个X=+0.5平面上
+Triangle 2: (0,3,1) - 在同一个X=+0.5平面上

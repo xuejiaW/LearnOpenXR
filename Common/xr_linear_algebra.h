@@ -117,6 +117,7 @@ inline static bool XrMatrix4x4f_CullBounds(const XrMatrix4x4f* mvp, const XrVect
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
+#include <GraphicsAPI.h>
 
 #define MATH_PI 3.14159265358979323846f
 

@@ -1,40 +1,81 @@
 #include "TableFloorScene.h"
-#include "Rendering/Geometry/CubeGeometry.h"
+#include "Core/GameObject.h"
+#include "Core/Transform.h"
+#include "Rendering/MeshRenderer.h"
 #include "Rendering/Material.h"
+#include "Rendering/Camera.h"
+#include "Rendering/Mesh/CubeMesh.h"
+#include <DebugOutput.h>
 #include <memory>
 
-TableFloorScene::TableFloorScene() {}
+TableFloorScene::TableFloorScene() : m_scene(std::make_unique<Scene>("TableFloorScene")) {}
 
 TableFloorScene::~TableFloorScene() {}
 
-void TableFloorScene::Initialize()
-{
+void TableFloorScene::Initialize() {
     CreateSceneObjects();
 }
 
-void TableFloorScene::Update(float deltaTime)
-{
+void TableFloorScene::Update(float deltaTime) {
+    m_scene->Update(deltaTime);
 }
 
-void TableFloorScene::CreateSceneObjects()
-{
-    auto cubeGeometry = std::make_shared<CubeGeometry>();
-    auto material = std::make_shared<Material>("VertexShader.spv", "PixelShader.spv", VULKAN);
+void TableFloorScene::CreateSceneObjects() {
+    // Create shared resources first
+    auto cubeMesh = std::make_shared<CubeMesh>(1.0f);
     
-    SceneObject floor;
-    floor.pose = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, -m_viewHeightM, 0.0f}};
-    floor.scale = {2.0f, 0.1f, 2.0f};
-    floor.color = {0.4f, 0.5f, 0.5f};
-    floor.geometry = cubeGeometry;
-    floor.material = material;
+    // Create camera first - it will automatically set itself as active
+    GameObject* cameraObject = m_scene->CreateGameObject("Camera");
+    Camera* camera = cameraObject->AddComponent<Camera>();
     
-    SceneObject table;
-    table.pose = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, -m_viewHeightM + 0.9f, -0.7f}};
-    table.scale = {1.0f, 0.2f, 1.0f};
-    table.color = {0.6f, 0.6f, 0.4f};
-    table.geometry = cubeGeometry;
-    table.material = material;
+    // Configure camera render settings - NO LONGER NEED TO SET PIPELINE
+    Camera::RenderSettings settings;
+    settings.width = 1024;  // Default resolution
+    settings.height = 1024;
+    settings.colorImage = nullptr;  // Will be set by OpenXR runtime
+    settings.depthImage = nullptr;  // Will be set by OpenXR runtime
+    settings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    settings.clearColor = {0.0f, 0.0f, 0.2f, 1.0f};
+    // settings.pipeline is no longer needed - Materials will create their own compatible pipelines
+    camera->SetRenderSettings(settings);
     
-    m_objects.push_back(floor);
-    m_objects.push_back(table);
+    XR_TUT_LOG("TableFloorScene::CreateSceneObjects() - Camera created and set as active");
+    
+    // Create floor - make it more visible and properly positioned
+    GameObject* floorObject = m_scene->CreateGameObject("Floor");
+    Transform* floorTransform = floorObject->AddComponent<Transform>(
+        XrVector3f{0.0f, -2.0f, -1.0f},                          // position: further away and lower
+        XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},                   // rotation: no rotation
+        XrVector3f{1.0f, 0.3f, 1.0f}                             // scale: make it thicker so it's clearly a cube
+    );
+    MeshRenderer* floorRenderer = floorObject->AddComponent<MeshRenderer>();
+    floorRenderer->SetMesh(cubeMesh);
+    Material* floorMaterial = floorObject->AddComponent<Material>("VertexShader.spv", "PixelShader.spv", VULKAN);
+    floorMaterial->Initialize(); // Material will get camera settings automatically
+    
+    // // Create table
+    // GameObject* tableObject = m_scene->CreateGameObject("Table");
+    // Transform* tableTransform = tableObject->AddComponent<Transform>(
+    //     XrVector3f{0.0f, -m_viewHeightM + 0.9f, -0.7f},          // position
+    //     XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},                   // rotation
+    //     XrVector3f{1.0f, 0.2f, 1.0f}                             // scale
+    // );
+    // MeshRenderer* tableRenderer = tableObject->AddComponent<MeshRenderer>();
+    // tableRenderer->SetMesh(cubeMesh);
+    // Material* tableMaterial = tableObject->AddComponent<Material>("VertexShader.spv", "PixelShader.spv", VULKAN);
+    // tableMaterial->Initialize(); // Material will get camera settings automatically
+    //
+    // // Create test cube in front of camera to verify rendering works
+    // GameObject* testCubeObject = m_scene->CreateGameObject("TestCube");
+    // Transform* testCubeTransform = testCubeObject->AddComponent<Transform>(
+    //     XrVector3f{0.0f, 0.0f, -2.0f},                           // position: directly in front of camera
+    //     XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},                   // rotation: no rotation
+    //     XrVector3f{0.5f, 0.5f, 0.5f}                             // scale: smaller cube
+    // );
+    // MeshRenderer* testCubeRenderer = testCubeObject->AddComponent<MeshRenderer>();
+    // testCubeRenderer->SetMesh(cubeMesh);
+    // Material* testCubeMaterial = testCubeObject->AddComponent<Material>("VertexShader.spv", "PixelShader.spv", VULKAN);
+    // testCubeMaterial->Initialize();
+    
+    XR_TUT_LOG("TableFloorScene::CreateSceneObjects() - All objects created including test cube at (0,0,-2)");
 }
