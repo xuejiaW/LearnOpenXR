@@ -106,11 +106,10 @@ void OpenXRTutorial::InitializeOpenXR()
     OpenXRInputMgr::CreateActionSet("main_action_set", "Main Action Set", 0);
     OpenXRInputMgr::SetupActions();
     OpenXRInputMgr::SetupBindings();
-    OpenXRInputMgr::SubmitAllBindings();
 
     OpenXRCoreMgr::CreateSession(m_apiType);
 
-    OpenXRInputMgr::AttachActionSets();
+    OpenXRInputMgr::AttachActionSet();
     OpenXRInputMgr::CreateHandPoseActionSpace();
     
     OpenXRDisplayMgr::GetActiveViewConfigurationType();

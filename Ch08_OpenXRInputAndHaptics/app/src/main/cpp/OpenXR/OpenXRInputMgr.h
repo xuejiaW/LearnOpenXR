@@ -23,13 +23,12 @@ public:
     static void TriggerHapticFeedback(int handIndex, float amplitude = 0.5f, XrDuration duration = 100000000);
     
     static void CreateActionSet(const std::string& actionSetName, const std::string& localizedName, uint32_t priority = 0);
-    static void DestroyActionSets();
+    static void DestroyActionSet();
 
     static void SetupActions();
 
     static void SetupBindings();
-    static void SubmitAllBindings();
-    static void AttachActionSets();
+    static void AttachActionSet();
 
     static void CreateHandPoseActionSpace();
     
@@ -43,9 +42,10 @@ private:
     
     static HandState m_HandStates[2];  // Left and Right hand
     
-    static XrAction m_HandPoseActions[2];
-    static XrAction m_SelectActions[2];
-    static XrAction m_HapticActions[2];
+    // 改为单个action，不再使用数组
+    static XrAction m_HandPoseAction;
+    static XrAction m_SelectAction;
+    static XrAction m_HapticAction;
     
     static XrSpace m_HandSpaces[2];
     
@@ -73,7 +73,7 @@ private:
     
     static void GetCurrentInteractionProfile(const std::string& subactionPath, std::string& profilePath);
 
-    static std::vector<ActionSetInfo> m_ActionSets;
+    static ActionSetInfo m_ActionSet;
     static std::vector<InteractionProfileBinding> m_InteractionProfileBindings;
     static std::vector<XrSpace> m_ActionSpaces;
     
