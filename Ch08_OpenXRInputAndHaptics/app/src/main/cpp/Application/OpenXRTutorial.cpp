@@ -78,13 +78,14 @@ void OpenXRTutorial::Run()
                         Camera* camera = cameraObject->GetComponent<Camera>();
                         if (camera) {
                             // Set up camera render settings
+                            XR_TUT_LOG("sss update camera");
                             Camera::RenderSettings settings;
                             settings.colorImage = colorImage;
                             settings.depthImage = depthImage;
                             settings.width = OpenXRDisplayMgr::activeViewConfigurationViews[i].recommendedImageRectWidth;
                             settings.height = OpenXRDisplayMgr::activeViewConfigurationViews[i].recommendedImageRectHeight;
                             settings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-                            settings.clearColor = {0.0f, 0.0f, 0.2f, 1.0f};
+                            settings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
                             
                             // IMPORTANT: Create a default pipeline to avoid crash
                             // For now, set pipeline to nullptr to skip SetRenderAttachments call

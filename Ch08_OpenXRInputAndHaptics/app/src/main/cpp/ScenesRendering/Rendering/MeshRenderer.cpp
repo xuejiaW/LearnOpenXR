@@ -50,11 +50,11 @@ void MeshRenderer::CreateBuffers()
 
     const auto& vertices = m_mesh->GetVertices();
     const auto& indices = m_mesh->GetIndices();
-    const auto& normals = m_mesh->GetNormals();
 
     // Create vertex buffer
     GraphicsAPI::BufferCreateInfo vertexBufferInfo;
     vertexBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::VERTEX;
+    vertexBufferInfo.stride = sizeof(float) * 4;
     vertexBufferInfo.size = vertices.size() * sizeof(XrVector4f);
     vertexBufferInfo.data = const_cast<void*>(static_cast<const void*>(vertices.data()));
     m_vertexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(vertexBufferInfo);
@@ -62,37 +62,38 @@ void MeshRenderer::CreateBuffers()
     // Create index buffer
     GraphicsAPI::BufferCreateInfo indexBufferInfo;
     indexBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::INDEX;
+    indexBufferInfo.stride = sizeof(uint32_t);
     indexBufferInfo.size = indices.size() * sizeof(uint32_t);
     indexBufferInfo.data = const_cast<void*>(static_cast<const void*>(indices.data()));
     m_indexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(indexBufferInfo);
 
-    // Create normals buffer
-    GraphicsAPI::BufferCreateInfo normalsBufferInfo;
-    normalsBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::VERTEX;
-    normalsBufferInfo.size = normals.size() * sizeof(XrVector4f);
-    normalsBufferInfo.data = const_cast<void*>(static_cast<const void*>(normals.data()));
-    m_normalsBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(normalsBufferInfo);
+    // Create face normals buffer (6 faces, exactly like CubeGeometry)
+    // Don't use m_mesh->GetNormals() as it might have per-vertex normals
+    XrVector4f faceNormals[6] = {
+            {1.0f, 0.0f, 0.0f, 0.0f},   // +X face
+            {-1.0f, 0.0f, 0.0f, 0.0f},  // -X face  
+            {0.0f, 1.0f, 0.0f, 0.0f},   // +Y face
+            {0.0f, -1.0f, 0.0f, 0.0f},  // -Y face
+            {0.0f, 0.0f, 1.0f, 0.0f},   // +Z face
+            {0.0f, 0.0f, -1.0f, 0.0f}   // -Z face
+        };
+
+    GraphicsAPI::BufferCreateInfo faceNormalsBufferInfo;
+    faceNormalsBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::UNIFORM;
+    faceNormalsBufferInfo.stride = 0; // Uniform buffer, no stride
+    faceNormalsBufferInfo.size = sizeof(faceNormals);
+    faceNormalsBufferInfo.data = faceNormals;
+    m_faceNormalsBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(faceNormalsBufferInfo);
 
     m_buffersCreated = true;
 }
 
 void MeshRenderer::UpdateBuffers()
 {
-    if (!m_buffersCreated || !m_mesh) return;
-
-    const auto& vertices = m_mesh->GetVertices();
-    const auto& indices = m_mesh->GetIndices();
-    const auto& normals = m_mesh->GetNormals();
-
-    OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetBufferData(m_vertexBuffer, 0, vertices.size() * sizeof(XrVector4f),
-                                                                 const_cast<void*>(static_cast<const void*>(vertices.data())));
-    OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetBufferData(m_indexBuffer, 0, indices.size() * sizeof(uint32_t),
-                                                                 const_cast<void*>(static_cast<const void*>(indices.data())));
-    OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetBufferData(m_normalsBuffer, 0, normals.size() * sizeof(XrVector4f),
-                                                                 const_cast<void*>(static_cast<const void*>(normals.data())));
-}
-
-void MeshRenderer::RenderMesh()
+    // Static geometry data doesn't need updating after creation
+    // Only uniform buffers (like ObjectRenderData) need per-frame updates
+    // This method is kept for potential future dynamic mesh support
+}void MeshRenderer::RenderMesh()
 {
     XR_TUT_LOG("MeshRenderer::RenderMesh() - Starting render");
 
@@ -108,7 +109,7 @@ void MeshRenderer::RenderMesh()
     XR_TUT_LOG("MeshRenderer::RenderMesh() - Got transform and material");
 
     // Check if buffers are valid
-    if (!m_vertexBuffer || !m_indexBuffer || !m_normalsBuffer || !m_mesh)
+    if (!m_vertexBuffer || !m_indexBuffer || !m_mesh)
     {
         XR_TUT_LOG_ERROR("MeshRenderer::RenderMesh() - Invalid buffers or mesh");
         return;
@@ -149,7 +150,7 @@ void MeshRenderer::RenderMesh()
         cameraSettings.depthImage,
         cameraSettings.width, cameraSettings.height,
         pipeline
-    );
+        );
 
     // Set viewport
     GraphicsAPI::Viewport viewport;
@@ -184,7 +185,8 @@ void MeshRenderer::RenderMesh()
     XR_TUT_LOG("MeshRenderer::RenderMesh() - View matrix valid: " << viewValid << ", Proj matrix valid: " << projValid);
 
     // Calculate matrices exactly like SceneRenderer
-    struct ObjectRenderData {
+    struct ObjectRenderData
+    {
         XrMatrix4x4f viewProj;
         XrMatrix4x4f modelViewProj;
         XrMatrix4x4f model;
@@ -196,9 +198,8 @@ void MeshRenderer::RenderMesh()
     // Calculate viewProj matrix CORRECTLY like SceneRenderer
     XrMatrix4x4f_Multiply(&renderData.viewProj, &projectionMatrix, &viewMatrix);
     renderData.model = modelMatrix;
-    // Calculate modelViewProj exactly like SceneRenderer: XrMatrix4x4f_Multiply(&renderData.modelViewProj, &renderData.viewProj, &renderData.model)
     XrMatrix4x4f_Multiply(&renderData.modelViewProj, &renderData.viewProj, &renderData.model);
-    renderData.color = {1.0f, 0.8f, 0.6f, 1.0f};
+    renderData.color = material->GetColor(); // Read color from material instead of hardcoding
 
     // Debug info
     XrVector3f position = transform->GetPosition();
@@ -207,12 +208,16 @@ void MeshRenderer::RenderMesh()
     XR_TUT_LOG("MeshRenderer::RenderMesh() - Object scale: (" << scale.x << ", " << scale.y << ", " << scale.z << ")");
 
     // Print actual matrix values for debugging
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Model matrix[0]: " << modelMatrix.m[0] << ", [5]: " << modelMatrix.m[5] << ", [10]: " << modelMatrix.m[10]);
+    XR_TUT_LOG(
+        "MeshRenderer::RenderMesh() - Model matrix[0]: " << modelMatrix.m[0] << ", [5]: " << modelMatrix.m[5] << ", [10]: " << modelMatrix.m[10]);
     XR_TUT_LOG("MeshRenderer::RenderMesh() - View matrix[0]: " << viewMatrix.m[0] << ", [5]: " << viewMatrix.m[5] << ", [10]: " << viewMatrix.m[10]);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Proj matrix[0]: " << projectionMatrix.m[0] << ", [5]: " << projectionMatrix.m[5] << ", [10]: " << projectionMatrix.m[10]);
+    XR_TUT_LOG(
+        "MeshRenderer::RenderMesh() - Proj matrix[0]: " << projectionMatrix.m[0] << ", [5]: " << projectionMatrix.m[5] << ", [10]: " <<
+        projectionMatrix.m[10]);
 
     // Create uniform buffer for ObjectRenderData (exactly like SceneRenderer)
-    if (!m_uniformBuffer) {
+    if (!m_uniformBuffer)
+    {
         GraphicsAPI::BufferCreateInfo uniformBufferInfo;
         uniformBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::UNIFORM;
         uniformBufferInfo.size = sizeof(ObjectRenderData);
@@ -237,37 +242,17 @@ void MeshRenderer::RenderMesh()
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(objectDataDescriptor);
     XR_TUT_LOG("MeshRenderer::RenderMesh() - Set ObjectRenderData descriptor");
 
-    // Set descriptor for binding 1 (Normals) - CRITICAL FIX: Use face normals like SceneRenderer
-    // VertexShader expects 6 face normals, not 24 vertex normals!
-    if (!m_faceNormalsBuffer) {
-        // Create 6 face normals for cube (exactly what VertexShader expects)
-        XrVector4f faceNormals[6] = {
-            {1.0f, 0.0f, 0.0f, 0.0f},   // +X face
-            {-1.0f, 0.0f, 0.0f, 0.0f},  // -X face  
-            {0.0f, 1.0f, 0.0f, 0.0f},   // +Y face
-            {0.0f, -1.0f, 0.0f, 0.0f},  // -Y face
-            {0.0f, 0.0f, 1.0f, 0.0f},   // +Z face
-            {0.0f, 0.0f, -1.0f, 0.0f}   // -Z face
-        };
-        
-        GraphicsAPI::BufferCreateInfo faceNormalsBufferInfo;
-        faceNormalsBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::UNIFORM;
-        faceNormalsBufferInfo.size = sizeof(faceNormals);
-        faceNormalsBufferInfo.data = faceNormals;
-        m_faceNormalsBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(faceNormalsBufferInfo);
-        XR_TUT_LOG("MeshRenderer::RenderMesh() - Created face normals buffer (6 faces, not 24 vertices)");
-    }
-    
+    // Set descriptor for binding 1 (Face Normals) - exactly like SceneRenderer
     GraphicsAPI::DescriptorInfo normalsDescriptor;
     normalsDescriptor.bindingIndex = 1;
-    normalsDescriptor.resource = m_faceNormalsBuffer;  // Use face normals, not vertex normals!
+    normalsDescriptor.resource = m_faceNormalsBuffer;  // Use the pre-created face normals buffer
     normalsDescriptor.type = GraphicsAPI::DescriptorInfo::Type::BUFFER;
     normalsDescriptor.stage = GraphicsAPI::DescriptorInfo::Stage::VERTEX;
     normalsDescriptor.readWrite = false;
     normalsDescriptor.bufferOffset = 0;
     normalsDescriptor.bufferSize = 6 * sizeof(XrVector4f);  // Only 6 face normals
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(normalsDescriptor);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Set face normals descriptor (6 faces like SceneRenderer)");
+    XR_TUT_LOG("MeshRenderer::RenderMesh() - Set face normals descriptor");
 
     // Don't set binding=2 - SceneRenderer doesn't set it either
     // Update descriptors - only bindings 0 and 1, exactly like SceneRenderer
@@ -311,11 +296,6 @@ void MeshRenderer::DestroyBuffers()
     {
         OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyBuffer(m_indexBuffer);
         m_indexBuffer = nullptr;
-    }
-    if (m_normalsBuffer)
-    {
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyBuffer(m_normalsBuffer);
-        m_normalsBuffer = nullptr;
     }
     if (m_uniformBuffer)
     {
