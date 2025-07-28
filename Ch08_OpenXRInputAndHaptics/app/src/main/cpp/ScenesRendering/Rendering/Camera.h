@@ -29,6 +29,14 @@ public:
     void SetProjectionMatrix(const XrMatrix4x4f& projMatrix);
     void SetRenderSettings(const RenderSettings& settings);
     
+    // 新增：用于 OpenXR 的设置方法
+    void SetupForOpenXR(int viewIndex, void* colorImage, void* depthImage, GraphicsAPI_Type apiType);
+    // 新增：自动从 OpenXRDisplayMgr 获取当前设置
+    void SetupForOpenXRFromDisplayMgr(void* colorImage, void* depthImage, GraphicsAPI_Type apiType);
+    
+    // 新增：设置全局 Graphics API 类型
+    static void SetGraphicsAPIType(GraphicsAPI_Type apiType);
+    
     const XrMatrix4x4f& GetViewMatrix() const { return m_viewMatrix; }
     const XrMatrix4x4f& GetProjectionMatrix() const { return m_projectionMatrix; }
     const XrMatrix4x4f& GetViewProjectionMatrix();
@@ -40,4 +48,13 @@ public:
 private:
     void SetupRenderTarget();
     void UpdateViewProjectionMatrix();
+    void UpdateMatricesFromOpenXR();
+    
+    // 新增：OpenXR 相关的私有成员
+    int m_currentViewIndex = -1;
+    GraphicsAPI_Type m_apiType = UNKNOWN;
+    bool m_needsMatrixUpdate = false;
+    
+    // 新增：全局 Graphics API 类型
+    static GraphicsAPI_Type s_globalApiType;
 };

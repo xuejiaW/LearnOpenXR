@@ -12,6 +12,9 @@ std::vector<XrViewConfigurationView> OpenXRDisplayMgr::activeViewConfigurationVi
 std::vector<SwapchainInfo> OpenXRDisplayMgr::colorSwapchainInfos{};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::depthSwapchainInfos{};
 
+// 新增：当前视图索引的静态变量
+int OpenXRDisplayMgr::currentViewIndex = -1;
+
 void OpenXRDisplayMgr::GetActiveViewConfigurationType()
 {
     uint32_t viewConfigurationCount = 0;
@@ -226,4 +229,19 @@ void OpenXRDisplayMgr::ReleaseSwapChainImages(int viewIndex)
                  "Failed to release Image back to the Color Swapchain");
     OPENXR_CHECK(xrReleaseSwapchainImage(depthSwapchainInfos[viewIndex].swapchain, &releaseInfo),
                  "Failed to release Image back to the Depth Swapchain");
+}
+
+int OpenXRDisplayMgr::GetCurrentViewIndex()
+{
+    return currentViewIndex;
+}
+
+void OpenXRDisplayMgr::StartRenderingView(int viewIndex)
+{
+    currentViewIndex = viewIndex;
+}
+
+void OpenXRDisplayMgr::StopRenderingView()
+{
+    currentViewIndex = -1;
 }

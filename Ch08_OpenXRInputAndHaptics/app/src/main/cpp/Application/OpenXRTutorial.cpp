@@ -68,68 +68,14 @@ void OpenXRTutorial::Run()
                 OpenXRRenderMgr::RefreshViewsData();
                 for (int i = 0; i != static_cast<int>(OpenXRDisplayMgr::GetViewsCount()); ++i)
                 {
-                    void* colorImage = nullptr;
-                    void* depthImage = nullptr;
-                    OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(i, colorImage, depthImage);
+                    // 设置当前渲染的视图索引
+                    OpenXRDisplayMgr::StartRenderingView(i);
 
-                    // Get camera from scene
-                    GameObject* cameraObject = m_tableFloorScene->GetScene()->FindGameObject("Camera");
-                    if (cameraObject) {
-                        Camera* camera = cameraObject->GetComponent<Camera>();
-                        if (camera) {
-                            // Set up camera render settings
-                            XR_TUT_LOG("sss update camera");
-                            Camera::RenderSettings settings;
-                            settings.colorImage = colorImage;
-                            settings.depthImage = depthImage;
-                            settings.width = OpenXRDisplayMgr::activeViewConfigurationViews[i].recommendedImageRectWidth;
-                            settings.height = OpenXRDisplayMgr::activeViewConfigurationViews[i].recommendedImageRectHeight;
-                            settings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-                            settings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
-                            
-                            // IMPORTANT: Create a default pipeline to avoid crash
-                            // For now, set pipeline to nullptr to skip SetRenderAttachments call
-                            // This prevents the Vulkan crash but may not render correctly
-                            settings.pipeline = nullptr;
-                            
-                            camera->SetRenderSettings(settings);
-                            
-                            // Set up view and projection matrices
-                            XrMatrix4x4f viewMatrix, projMatrix;
-                            
-                            // Create view matrix from pose (position and orientation)
-                            // For VR, view matrix = inverse of head transform
-                            XrMatrix4x4f rotationMatrix, translationMatrix;
-                            
-                            // Create rotation matrix from head orientation
-                            XrMatrix4x4f_CreateFromQuaternion(&rotationMatrix, &OpenXRRenderMgr::views[i].pose.orientation);
-                            
-                            // Create translation matrix from head position
-                            XrMatrix4x4f_CreateTranslation(&translationMatrix, 
-                                -OpenXRRenderMgr::views[i].pose.position.x,
-                                -OpenXRRenderMgr::views[i].pose.position.y, 
-                                -OpenXRRenderMgr::views[i].pose.position.z);
-                            
-                            // CRITICAL FIX: For view matrix, we need inverse transform
-                            // View matrix = inverse(rotation) * inverse(translation)
-                            // Since rotation is orthogonal, inverse = transpose
-                            XrMatrix4x4f rotationInverse;
-                            XrMatrix4x4f_Transpose(&rotationInverse, &rotationMatrix);
-                            
-                            // Combine: first apply rotation inverse, then translation inverse
-                            XrMatrix4x4f_Multiply(&viewMatrix, &rotationInverse, &translationMatrix);
-                            
-                            XrMatrix4x4f_CreateProjectionFov(&projMatrix, m_apiType, OpenXRRenderMgr::views[i].fov, 0.05f, 1000.0f);
-                            
-                            camera->SetViewMatrix(viewMatrix);
-                            camera->SetProjectionMatrix(projMatrix);
-                        }
-                    }
-
-                    // Update scene with delta time
+                    // Tutorial 只需要调用 Scene 的 Update，Camera 会自动处理所有事情
                     m_tableFloorScene->Update(0.016f); // Assuming ~60fps
 
-                    OpenXRDisplayMgr::ReleaseSwapChainImages(i);
+                    // 清除当前视图索引
+                    OpenXRDisplayMgr::StopRenderingView();
                 }
                 OpenXRRenderMgr::UpdateRenderLayerInfo();
             }
@@ -143,6 +89,9 @@ void OpenXRTutorial::InitializeSceneRendering()
 {
     m_tableFloorScene = std::make_unique<TableFloorScene>();
     m_tableFloorScene->Initialize();
+    
+    // 设置 Camera 的全局 Graphics API 类型
+    Camera::SetGraphicsAPIType(m_apiType);
 }
 
 void OpenXRTutorial::InitializeOpenXR()
