@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Core/IComponent.h"
+#include "../../Core/IComponent.h"
 #include <string>
 #include <vector>
 #include <GraphicsAPI.h>

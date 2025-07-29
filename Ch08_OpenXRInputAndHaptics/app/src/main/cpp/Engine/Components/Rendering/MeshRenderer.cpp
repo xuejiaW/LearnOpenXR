@@ -1,9 +1,9 @@
 ﻿#include "MeshRenderer.h"
 #include "../Core/Transform.h"
-#include "../Core/GameObject.h"
-#include "../Core/Scene.h"
-#include "../../OpenXR/OpenXRCoreMgr.h"
-#include "../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
+#include "../../Core/GameObject.h"
+#include "../../Core/Scene.h"
+#include "../../../OpenXR/OpenXRCoreMgr.h"
+#include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
 #include "Material.h"
 #include "Camera.h"
 #include <DebugOutput.h>

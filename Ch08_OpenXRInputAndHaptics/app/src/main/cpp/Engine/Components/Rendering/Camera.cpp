@@ -2,11 +2,11 @@
 #include <GraphicsAPI.h>
 #include <xr_linear_algebra.h>
 #include <DebugOutput.h>
-#include "../../OpenXR/OpenXRCoreMgr.h"
-#include "../../OpenXR/OpenXRDisplayMgr.h"
-#include "../../OpenXR/OpenXRRenderMgr.h"
-#include "../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
-#include "../Core/Scene.h"
+#include "../../../OpenXR/OpenXRCoreMgr.h"
+#include "../../../OpenXR/OpenXRDisplayMgr.h"
+#include "../../../OpenXR/OpenXRRenderMgr.h"
+#include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
+#include "../../Core/Scene.h"
 
 // 静态变量定义
 GraphicsAPI_Type Camera::s_globalApiType = UNKNOWN;

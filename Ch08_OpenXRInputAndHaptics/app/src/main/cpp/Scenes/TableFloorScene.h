@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Scene.h"
+#include "../Engine/Core/Scene.h"
 #include <GraphicsAPI.h>
 
 class TableFloorScene {

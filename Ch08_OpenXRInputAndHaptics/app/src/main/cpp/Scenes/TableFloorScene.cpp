@@ -1,10 +1,10 @@
 #include "TableFloorScene.h"
-#include "Core/GameObject.h"
-#include "Core/Transform.h"
-#include "Rendering/MeshRenderer.h"
-#include "Rendering/Material.h"
-#include "Rendering/Camera.h"
-#include "Rendering/Mesh/CubeMesh.h"
+#include "../Engine/Core/GameObject.h"
+#include "../Engine/Components/Core/Transform.h"
+#include "../Engine/Components/Rendering/MeshRenderer.h"
+#include "../Engine/Components/Rendering/Material.h"
+#include "../Engine/Components/Rendering/Camera.h"
+#include "../Engine/Rendering/Mesh/CubeMesh.h"
 #include <DebugOutput.h>
 #include <memory>
 

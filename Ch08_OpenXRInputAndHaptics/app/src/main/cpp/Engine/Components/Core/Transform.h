@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "IComponent.h"
+#include "../../Core/IComponent.h"
 #include <openxr/openxr.h>
 #include <xr_linear_algebra.h>
 

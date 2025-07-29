@@ -56,14 +56,14 @@ set(SOURCES
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
-    app/src/main/cpp/ScenesRendering/Core/GameObject.cpp
-    app/src/main/cpp/ScenesRendering/Core/Transform.cpp
-    app/src/main/cpp/ScenesRendering/Core/Scene.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/Material.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/MeshRenderer.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/Camera.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/Mesh/CubeMesh.cpp
-    app/src/main/cpp/ScenesRendering/TableFloorScene.cpp
+    app/src/main/cpp/Engine/Core/GameObject.cpp
+    app/src/main/cpp/Engine/Components/Core/Transform.cpp
+    app/src/main/cpp/Engine/Core/Scene.cpp
+    app/src/main/cpp/Engine/Components/Rendering/Material.cpp
+    app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
+    app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
+    app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.cpp
+    app/src/main/cpp/Scenes/TableFloorScene.cpp
 )
 set(HEADERS
     ../Common/DebugOutput.h
@@ -91,16 +91,16 @@ set(HEADERS
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
     # New GameObject-Component Architecture Headers
-    app/src/main/cpp/ScenesRendering/Core/IComponent.h
-    app/src/main/cpp/ScenesRendering/Core/GameObject.h
-    app/src/main/cpp/ScenesRendering/Core/Transform.h
-    app/src/main/cpp/ScenesRendering/Core/Scene.h
-    app/src/main/cpp/ScenesRendering/Rendering/Material.h
-    app/src/main/cpp/ScenesRendering/Rendering/MeshRenderer.h
-    app/src/main/cpp/ScenesRendering/Rendering/Camera.h
-    app/src/main/cpp/ScenesRendering/Rendering/Mesh/IMesh.h
-    app/src/main/cpp/ScenesRendering/Rendering/Mesh/CubeMesh.h
-    app/src/main/cpp/ScenesRendering/TableFloorScene.h
+    app/src/main/cpp/Engine/Core/IComponent.h
+    app/src/main/cpp/Engine/Core/GameObject.h
+    app/src/main/cpp/Engine/Components/Core/Transform.h
+    app/src/main/cpp/Engine/Core/Scene.h
+    app/src/main/cpp/Engine/Components/Rendering/Material.h
+    app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
+    app/src/main/cpp/Engine/Components/Rendering/Camera.h
+    app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
+    app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h
+    app/src/main/cpp/Scenes/TableFloorScene.h
 )
 
 # XR_DOCS_TAG_BEGIN_GLSLShaders

@@ -1,6 +1,6 @@
 ﻿#include "Scene.h"
 #include "GameObject.h"
-#include "../Rendering/Camera.h"
+#include "../Components/Rendering/Camera.h"
 #include <algorithm>
 
 // Define static member variable

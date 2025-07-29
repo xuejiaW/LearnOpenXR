@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GraphicsAPI.h>
-#include "../ScenesRendering/TableFloorScene.h"
+#include "../Scenes/TableFloorScene.h"
 
 #if defined(__ANDROID__)
 #include <android_native_app_glue.h>

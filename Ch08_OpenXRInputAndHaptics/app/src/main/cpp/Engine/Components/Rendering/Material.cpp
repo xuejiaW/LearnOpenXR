@@ -2,17 +2,17 @@
 #include <DebugOutput.h>
 #include <fstream>
 #include <vector>
-#include "../../OpenXR/OpenXRCoreMgr.h"
-#include "../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
-#include "../../OpenXR/OpenXRDisplayMgr.h"  // Add this for swapchain format access
-#include "../../Application/OpenXRTutorial.h"
+#include "../../../OpenXR/OpenXRCoreMgr.h"
+#include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
+#include "../../../OpenXR/OpenXRDisplayMgr.h"  // Add this for swapchain format access
+#include "../../../Application/OpenXRTutorial.h"
 #include "Camera.h"
-#include "../Core/Scene.h"
-#include "../Core/GameObject.h"
+#include "../../Core/Scene.h"
+#include "../../Core/GameObject.h"
 
 #if defined(__ANDROID__)
 #include <android/asset_manager.h>
-#include "../../Application/OpenXRTutorial.h"
+#include "../../../Application/OpenXRTutorial.h"
 #endif
 
 Material::Material(const std::string& vertShaderFile, const std::string& fragShaderFile, GraphicsAPI_Type apiType)
