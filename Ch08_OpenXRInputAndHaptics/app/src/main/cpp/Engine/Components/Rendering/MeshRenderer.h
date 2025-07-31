@@ -11,7 +11,6 @@ private:
     void* m_vertexBuffer = nullptr;
     void* m_indexBuffer = nullptr;
     void* m_uniformBuffer = nullptr;
-    void* m_colorBuffer = nullptr;
     void* m_faceNormalsBuffer = nullptr;
     bool m_buffersCreated = false;
 
@@ -25,13 +24,9 @@ public:
     void Initialize() override;
     void Tick(float deltaTime) override;
     void Destroy() override;
-    
-    void* GetVertexBuffer() const { return m_vertexBuffer; }
-    void* GetIndexBuffer() const { return m_indexBuffer; }
 
 private:
     void CreateBuffers();
-    void UpdateBuffers();
     void RenderMesh();
     void DestroyBuffers();
 };

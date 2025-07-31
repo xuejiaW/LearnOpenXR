@@ -25,13 +25,9 @@ public:
     
     void Update(float deltaTime);
     
-    GameObject* FindGameObject(const std::string& name);
-    
     const std::string& GetName() const { return m_sceneName; }
-    size_t GetGameObjectCount() const { return m_gameObjects.size(); }
     const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const { return m_gameObjects; }
     
-    // Static methods for active camera management
     static void SetActiveCamera(Camera* camera);
     static Camera* GetActiveCamera();
 };

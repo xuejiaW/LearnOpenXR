@@ -42,29 +42,11 @@ public:
         return nullptr;
     }
     
-    template<typename T>
-    bool HasComponent() {
-        std::type_index typeIndex = std::type_index(typeid(T));
-        return m_components.find(typeIndex) != m_components.end();
-    }
-    
-    template<typename T>
-    void RemoveComponent() {
-        std::type_index typeIndex = std::type_index(typeid(T));
-        auto it = m_components.find(typeIndex);
-        if (it != m_components.end()) {
-            it->second->Destroy();
-            m_components.erase(it);
-        }
-    }
-    
     void PreTick(float deltaTime);
     void Tick(float deltaTime);
     void PostTick(float deltaTime);
     void Destroy();
     
     const std::string& GetName() const { return m_name; }
-    void SetName(const std::string& name) { m_name = name; }
     bool IsActive() const { return m_active; }
-    void SetActive(bool active) { m_active = active; }
 };

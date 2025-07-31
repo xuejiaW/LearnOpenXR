@@ -78,15 +78,6 @@ void* Material::CreatePipeline() {
     GraphicsAPI::PipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.shaders = {m_vertexShader, m_fragmentShader};
 
-    uint32_t renderWidth = 1024;
-    uint32_t renderHeight = 1024;
-    if (activeCamera) {
-        const Camera::RenderSettings& cameraSettings = activeCamera->GetRenderSettings();
-        if (cameraSettings.width > 0 && cameraSettings.height > 0) {
-            renderWidth = cameraSettings.width;
-            renderHeight = cameraSettings.height;
-        }
-    }
 
     pipelineCreateInfo.vertexInputState.attributes.resize(1);
     pipelineCreateInfo.vertexInputState.attributes[0] = {0, 0, GraphicsAPI::VertexType::VEC4, 0, "TEXCOORD"};
@@ -151,7 +142,6 @@ void* Material::CreatePipeline() {
     return pipeline;
 }
 
-std::string Material::GetShaderKey() const { return m_vertShaderFile + "_" + m_fragShaderFile; }
 
 void* Material::CreateShaderFromFile(const std::string& filename, GraphicsAPI::ShaderCreateInfo::Type type)
 {

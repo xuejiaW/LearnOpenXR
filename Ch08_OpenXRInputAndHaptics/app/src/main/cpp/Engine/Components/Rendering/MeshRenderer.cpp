@@ -85,9 +85,6 @@ void MeshRenderer::CreateBuffers()
     m_buffersCreated = true;
 }
 
-void MeshRenderer::UpdateBuffers()
-{
-}
 
 void MeshRenderer::RenderMesh()
 {
@@ -233,11 +230,6 @@ void MeshRenderer::DestroyBuffers()
     {
         OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyBuffer(m_uniformBuffer);
         m_uniformBuffer = nullptr;
-    }
-    if (m_colorBuffer)
-    {
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyBuffer(m_colorBuffer);
-        m_colorBuffer = nullptr;
     }
     if (m_faceNormalsBuffer)
     {

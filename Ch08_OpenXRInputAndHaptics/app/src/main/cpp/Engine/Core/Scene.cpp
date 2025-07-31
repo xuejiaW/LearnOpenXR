@@ -59,16 +59,6 @@ void Scene::Update(float deltaTime) {
     }
 }
 
-GameObject* Scene::FindGameObject(const std::string& name) {
-    auto it = std::find_if(m_gameObjects.begin(), m_gameObjects.end(),
-        [&name](const std::unique_ptr<GameObject>& obj) {
-            return obj->GetName() == name;
-        });
-    
-    return (it != m_gameObjects.end()) ? it->get() : nullptr;
-}
-
-// Static methods for active camera management
 void Scene::SetActiveCamera(Camera* camera) {
     s_activeCamera = camera;
 }

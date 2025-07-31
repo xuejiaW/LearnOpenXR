@@ -16,7 +16,6 @@ public:
     
     void* GetVertexShader() const { return m_vertexShader; }
     void* GetFragmentShader() const { return m_fragmentShader; }
-    std::string GetShaderKey() const;
     
     // Color management
     void SetColor(const XrVector4f& color) { m_color = color; }
