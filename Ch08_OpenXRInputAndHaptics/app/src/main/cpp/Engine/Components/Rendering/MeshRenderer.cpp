@@ -51,7 +51,6 @@ void MeshRenderer::CreateBuffers()
     const auto& vertices = m_mesh->GetVertices();
     const auto& indices = m_mesh->GetIndices();
 
-    // Create vertex buffer
     GraphicsAPI::BufferCreateInfo vertexBufferInfo;
     vertexBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::VERTEX;
     vertexBufferInfo.stride = sizeof(float) * 4;
@@ -59,7 +58,6 @@ void MeshRenderer::CreateBuffers()
     vertexBufferInfo.data = const_cast<void*>(static_cast<const void*>(vertices.data()));
     m_vertexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(vertexBufferInfo);
 
-    // Create index buffer
     GraphicsAPI::BufferCreateInfo indexBufferInfo;
     indexBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::INDEX;
     indexBufferInfo.stride = sizeof(uint32_t);
@@ -67,20 +65,19 @@ void MeshRenderer::CreateBuffers()
     indexBufferInfo.data = const_cast<void*>(static_cast<const void*>(indices.data()));
     m_indexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(indexBufferInfo);
 
-    // Create face normals buffer (6 faces, exactly like CubeGeometry)
-    // Don't use m_mesh->GetNormals() as it might have per-vertex normals
+    // Use face normals instead of per-vertex normals for shader compatibility
     XrVector4f faceNormals[6] = {
-            {1.0f, 0.0f, 0.0f, 0.0f},   // +X face
-            {-1.0f, 0.0f, 0.0f, 0.0f},  // -X face  
-            {0.0f, 1.0f, 0.0f, 0.0f},   // +Y face
-            {0.0f, -1.0f, 0.0f, 0.0f},  // -Y face
-            {0.0f, 0.0f, 1.0f, 0.0f},   // +Z face
-            {0.0f, 0.0f, -1.0f, 0.0f}   // -Z face
+            {1.0f, 0.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f, 0.0f},
+            {0.0f, -1.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, -1.0f, 0.0f}
         };
 
     GraphicsAPI::BufferCreateInfo faceNormalsBufferInfo;
     faceNormalsBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::UNIFORM;
-    faceNormalsBufferInfo.stride = 0; // Uniform buffer, no stride
+    faceNormalsBufferInfo.stride = 0;
     faceNormalsBufferInfo.size = sizeof(faceNormals);
     faceNormalsBufferInfo.data = faceNormals;
     m_faceNormalsBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(faceNormalsBufferInfo);
@@ -90,13 +87,10 @@ void MeshRenderer::CreateBuffers()
 
 void MeshRenderer::UpdateBuffers()
 {
-    // Static geometry data doesn't need updating after creation
-    // Only uniform buffers (like ObjectRenderData) need per-frame updates
-    // This method is kept for potential future dynamic mesh support
-}void MeshRenderer::RenderMesh()
-{
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Starting render");
+}
 
+void MeshRenderer::RenderMesh()
+{
     Transform* transform = GetGameObject()->GetComponent<Transform>();
     Material* material = GetGameObject()->GetComponent<Material>();
 
@@ -106,18 +100,12 @@ void MeshRenderer::UpdateBuffers()
         return;
     }
 
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Got transform and material");
-
-    // Check if buffers are valid
     if (!m_vertexBuffer || !m_indexBuffer || !m_mesh)
     {
         XR_TUT_LOG_ERROR("MeshRenderer::RenderMesh() - Invalid buffers or mesh");
         return;
     }
 
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Buffers are valid");
-
-    // Get active camera for render settings
     Camera* activeCamera = Scene::GetActiveCamera();
     if (!activeCamera)
     {
@@ -132,7 +120,6 @@ void MeshRenderer::UpdateBuffers()
         return;
     }
 
-    // Get or create the rendering pipeline
     void* pipeline = material->GetOrCreatePipeline();
     if (!pipeline)
     {
@@ -140,10 +127,6 @@ void MeshRenderer::UpdateBuffers()
         return;
     }
 
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Got pipeline successfully");
-
-    // Set render attachments with the material's pipeline
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Setting render attachments");
     void* colorImages[] = {cameraSettings.colorImage};
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetRenderAttachments(
         colorImages, 1,
@@ -152,7 +135,6 @@ void MeshRenderer::UpdateBuffers()
         pipeline
         );
 
-    // Set viewport
     GraphicsAPI::Viewport viewport;
     viewport.x = 0;
     viewport.y = 0;
@@ -161,30 +143,17 @@ void MeshRenderer::UpdateBuffers()
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Setting viewport");
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetViewports(&viewport, 1);
 
-    // Set scissor
     GraphicsAPI::Rect2D scissor = {{0, 0}, {cameraSettings.width, cameraSettings.height}};
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Setting scissor");
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetScissors(&scissor, 1);
 
-    // Set the pipeline
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Setting pipeline");
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetPipeline(pipeline);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Pipeline set successfully");
 
-    // CRITICAL: Calculate ObjectRenderData exactly like SceneRenderer
     const XrMatrix4x4f& modelMatrix = transform->GetModelMatrix();
     const XrMatrix4x4f& viewMatrix = activeCamera->GetViewMatrix();
     const XrMatrix4x4f& projectionMatrix = activeCamera->GetProjectionMatrix();
 
-    // Debug: Print matrix validity
-    bool viewValid = (viewMatrix.m[0] != 0.0f || viewMatrix.m[5] != 0.0f || viewMatrix.m[10] != 0.0f);
-    bool projValid = (projectionMatrix.m[0] != 0.0f || projectionMatrix.m[5] != 0.0f || projectionMatrix.m[10] != 0.0f);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - View matrix valid: " << viewValid << ", Proj matrix valid: " << projValid);
-
-    // Calculate matrices exactly like SceneRenderer
     struct ObjectRenderData
     {
         XrMatrix4x4f viewProj;
@@ -195,27 +164,11 @@ void MeshRenderer::UpdateBuffers()
     };
 
     ObjectRenderData renderData;
-    // Calculate viewProj matrix CORRECTLY like SceneRenderer
     XrMatrix4x4f_Multiply(&renderData.viewProj, &projectionMatrix, &viewMatrix);
     renderData.model = modelMatrix;
     XrMatrix4x4f_Multiply(&renderData.modelViewProj, &renderData.viewProj, &renderData.model);
-    renderData.color = material->GetColor(); // Read color from material instead of hardcoding
+    renderData.color = material->GetColor();
 
-    // Debug info
-    XrVector3f position = transform->GetPosition();
-    XrVector3f scale = transform->GetScale();
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Object position: (" << position.x << ", " << position.y << ", " << position.z << ")");
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Object scale: (" << scale.x << ", " << scale.y << ", " << scale.z << ")");
-
-    // Print actual matrix values for debugging
-    XR_TUT_LOG(
-        "MeshRenderer::RenderMesh() - Model matrix[0]: " << modelMatrix.m[0] << ", [5]: " << modelMatrix.m[5] << ", [10]: " << modelMatrix.m[10]);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - View matrix[0]: " << viewMatrix.m[0] << ", [5]: " << viewMatrix.m[5] << ", [10]: " << viewMatrix.m[10]);
-    XR_TUT_LOG(
-        "MeshRenderer::RenderMesh() - Proj matrix[0]: " << projectionMatrix.m[0] << ", [5]: " << projectionMatrix.m[5] << ", [10]: " <<
-        projectionMatrix.m[10]);
-
-    // Create uniform buffer for ObjectRenderData (exactly like SceneRenderer)
     if (!m_uniformBuffer)
     {
         GraphicsAPI::BufferCreateInfo uniformBufferInfo;
@@ -223,14 +176,10 @@ void MeshRenderer::UpdateBuffers()
         uniformBufferInfo.size = sizeof(ObjectRenderData);
         uniformBufferInfo.data = nullptr;
         m_uniformBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(uniformBufferInfo);
-        XR_TUT_LOG("MeshRenderer::RenderMesh() - Created uniform buffer");
     }
 
-    // Update uniform buffer with ObjectRenderData (exactly like SceneRenderer)
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetBufferData(m_uniformBuffer, 0, sizeof(ObjectRenderData), &renderData);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Updated uniform buffer with ObjectRenderData");
 
-    // Set descriptor for binding 0 (ObjectRenderData)
     GraphicsAPI::DescriptorInfo objectDataDescriptor;
     objectDataDescriptor.bindingIndex = 0;
     objectDataDescriptor.resource = m_uniformBuffer;
@@ -240,49 +189,32 @@ void MeshRenderer::UpdateBuffers()
     objectDataDescriptor.bufferOffset = 0;
     objectDataDescriptor.bufferSize = sizeof(ObjectRenderData);
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(objectDataDescriptor);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Set ObjectRenderData descriptor");
 
-    // Set descriptor for binding 1 (Face Normals) - exactly like SceneRenderer
     GraphicsAPI::DescriptorInfo normalsDescriptor;
     normalsDescriptor.bindingIndex = 1;
-    normalsDescriptor.resource = m_faceNormalsBuffer;  // Use the pre-created face normals buffer
+    normalsDescriptor.resource = m_faceNormalsBuffer;
     normalsDescriptor.type = GraphicsAPI::DescriptorInfo::Type::BUFFER;
     normalsDescriptor.stage = GraphicsAPI::DescriptorInfo::Stage::VERTEX;
     normalsDescriptor.readWrite = false;
     normalsDescriptor.bufferOffset = 0;
-    normalsDescriptor.bufferSize = 6 * sizeof(XrVector4f);  // Only 6 face normals
+    normalsDescriptor.bufferSize = 6 * sizeof(XrVector4f);
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(normalsDescriptor);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Set face normals descriptor");
 
-    // Don't set binding=2 - SceneRenderer doesn't set it either
-    // Update descriptors - only bindings 0 and 1, exactly like SceneRenderer
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->UpdateDescriptors();
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Updated descriptors (0,1 only - matching SceneRenderer)");
 
-    // Check index count
     uint32_t indexCount = m_mesh->GetIndexCount();
     if (indexCount == 0)
     {
         XR_TUT_LOG_ERROR("MeshRenderer::RenderMesh() - Index count is 0");
         return;
     }
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Index count: " << indexCount);
 
-    // Set vertex buffer (only 1 buffer like SceneRenderer)
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Setting vertex buffer");
     void* vertexBuffer = m_vertexBuffer;
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetVertexBuffers(&vertexBuffer, 1);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Vertex buffer set successfully");
 
-    // Set index buffer
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Setting index buffer");
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetIndexBuffer(m_indexBuffer);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - Index buffer set successfully");
 
-    // Draw
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - About to call DrawIndexed");
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DrawIndexed(indexCount);
-    XR_TUT_LOG("MeshRenderer::RenderMesh() - DrawIndexed completed successfully");
 }
 
 void MeshRenderer::DestroyBuffers()

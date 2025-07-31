@@ -4,7 +4,6 @@
 #include <openxr/openxr.h>
 
 #include "DebugOutput.h"
-#include "XRMathUtils.h"
 
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
@@ -12,7 +11,6 @@
 #include "../OpenXR/OpenXRRenderMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 #include "../OpenXR/OpenXRSpaceMgr.h"
-#include "../Engine/Core/GameObject.h"
 #include "../Engine/Components/Rendering/Camera.h"
 
 GraphicsAPI_Type OpenXRTutorial::m_apiType = UNKNOWN;

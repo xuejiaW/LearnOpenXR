@@ -25,7 +25,6 @@ public:
         m_color = {r, g, b, a}; 
     }
     
-    // Pipeline management
     void* GetOrCreatePipeline();
     
     void Initialize() override;
@@ -34,11 +33,11 @@ public:
 private:
     void* m_vertexShader = nullptr;
     void* m_fragmentShader = nullptr;
-    void* m_pipeline = nullptr;  // Cached pipeline
+    void* m_pipeline = nullptr;
     std::string m_vertShaderFile;
     std::string m_fragShaderFile;
     GraphicsAPI_Type m_apiType;
-    XrVector4f m_color = {1.0f, 1.0f, 1.0f, 1.0f}; // Default white color
+    XrVector4f m_color = {1.0f, 1.0f, 1.0f, 1.0f};
     
     void* CreateShaderFromFile(const std::string& filename, GraphicsAPI::ShaderCreateInfo::Type type);
     void* LoadShaderFromAndroidAssets(const std::string& filename, GraphicsAPI::ShaderCreateInfo::Type type);
@@ -46,6 +45,5 @@ private:
     void* CreateShaderFromBuffer(const std::vector<char>& buffer, GraphicsAPI::ShaderCreateInfo::Type type, const std::string& shaderPath);
     void* CreatePipeline();
     
-    // Helper method to get camera render settings for pipeline creation
     Camera* GetActiveCamera();
 };
