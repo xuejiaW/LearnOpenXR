@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "../../Core/Scene.h"
 #include "../../Core/GameObject.h"
+#include "../../Rendering/Vertex.h"
 
 #if defined(__ANDROID__)
 #include <android/asset_manager.h>
@@ -78,12 +79,12 @@ void* Material::CreatePipeline() {
     GraphicsAPI::PipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.shaders = {m_vertexShader, m_fragmentShader};
 
-
-    pipelineCreateInfo.vertexInputState.attributes.resize(1);
-    pipelineCreateInfo.vertexInputState.attributes[0] = {0, 0, GraphicsAPI::VertexType::VEC4, 0, "TEXCOORD"};
+    pipelineCreateInfo.vertexInputState.attributes.resize(2);
+    pipelineCreateInfo.vertexInputState.attributes[0] = {0, 0, GraphicsAPI::VertexType::VEC4, 0, "POSITION"};
+    pipelineCreateInfo.vertexInputState.attributes[1] = {1, 0, GraphicsAPI::VertexType::VEC3, sizeof(XrVector4f), "NORMAL"};
     
     pipelineCreateInfo.vertexInputState.bindings.resize(1);
-    pipelineCreateInfo.vertexInputState.bindings[0] = {0, 0, 4 * sizeof(float)};
+    pipelineCreateInfo.vertexInputState.bindings[0] = {0, 0, sizeof(Vertex)};
 
     pipelineCreateInfo.inputAssemblyState.topology = GraphicsAPI::PrimitiveTopology::TRIANGLE_LIST;
     pipelineCreateInfo.inputAssemblyState.primitiveRestartEnable = false;
@@ -118,7 +119,7 @@ void* Material::CreatePipeline() {
     );
     pipelineCreateInfo.colorBlendState.attachments[0].blendEnable = false;
 
-    pipelineCreateInfo.layout.resize(3);
+    pipelineCreateInfo.layout.resize(2);
     
     pipelineCreateInfo.layout[0].bindingIndex = 0;
     pipelineCreateInfo.layout[0].resource = nullptr;
@@ -128,12 +129,7 @@ void* Material::CreatePipeline() {
     pipelineCreateInfo.layout[1].bindingIndex = 1;
     pipelineCreateInfo.layout[1].resource = nullptr;
     pipelineCreateInfo.layout[1].type = GraphicsAPI::DescriptorInfo::Type::BUFFER;
-    pipelineCreateInfo.layout[1].stage = GraphicsAPI::DescriptorInfo::Stage::VERTEX;
-    
-    pipelineCreateInfo.layout[2].bindingIndex = 2;
-    pipelineCreateInfo.layout[2].resource = nullptr;
-    pipelineCreateInfo.layout[2].type = GraphicsAPI::DescriptorInfo::Type::BUFFER;
-    pipelineCreateInfo.layout[2].stage = GraphicsAPI::DescriptorInfo::Stage::FRAGMENT;
+    pipelineCreateInfo.layout[1].stage = GraphicsAPI::DescriptorInfo::Stage::FRAGMENT;
 
     pipelineCreateInfo.colorFormats = {OpenXRDisplayMgr::colorSwapchainInfos[0].swapchainFormat};
     pipelineCreateInfo.depthFormat = OpenXRDisplayMgr::depthSwapchainInfos[0].swapchainFormat;

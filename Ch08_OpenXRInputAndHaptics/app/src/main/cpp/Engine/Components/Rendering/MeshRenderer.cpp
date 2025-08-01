@@ -6,6 +6,7 @@
 #include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
 #include "Material.h"
 #include "Camera.h"
+#include "../../Rendering/Vertex.h"
 #include <DebugOutput.h>
 
 MeshRenderer::~MeshRenderer()
@@ -48,14 +49,14 @@ void MeshRenderer::CreateBuffers()
 {
     if (!m_mesh) return;
 
-    const auto& vertices = m_mesh->GetVertices();
+    const auto& verticesWithNormals = m_mesh->GetVerticesWithNormals();
     const auto& indices = m_mesh->GetIndices();
 
     GraphicsAPI::BufferCreateInfo vertexBufferInfo;
     vertexBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::VERTEX;
-    vertexBufferInfo.stride = sizeof(float) * 4;
-    vertexBufferInfo.size = vertices.size() * sizeof(XrVector4f);
-    vertexBufferInfo.data = const_cast<void*>(static_cast<const void*>(vertices.data()));
+    vertexBufferInfo.stride = sizeof(Vertex);
+    vertexBufferInfo.size = verticesWithNormals.size() * sizeof(Vertex);
+    vertexBufferInfo.data = const_cast<void*>(static_cast<const void*>(verticesWithNormals.data()));
     m_vertexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(vertexBufferInfo);
 
     GraphicsAPI::BufferCreateInfo indexBufferInfo;
@@ -65,23 +66,8 @@ void MeshRenderer::CreateBuffers()
     indexBufferInfo.data = const_cast<void*>(static_cast<const void*>(indices.data()));
     m_indexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(indexBufferInfo);
 
-    // Use face normals instead of per-vertex normals for shader compatibility
-    XrVector4f faceNormals[6] = {
-            {1.0f, 0.0f, 0.0f, 0.0f},
-            {-1.0f, 0.0f, 0.0f, 0.0f},
-            {0.0f, 1.0f, 0.0f, 0.0f},
-            {0.0f, -1.0f, 0.0f, 0.0f},
-            {0.0f, 0.0f, 1.0f, 0.0f},
-            {0.0f, 0.0f, -1.0f, 0.0f}
-        };
-
-    GraphicsAPI::BufferCreateInfo faceNormalsBufferInfo;
-    faceNormalsBufferInfo.type = GraphicsAPI::BufferCreateInfo::Type::UNIFORM;
-    faceNormalsBufferInfo.stride = 0;
-    faceNormalsBufferInfo.size = sizeof(faceNormals);
-    faceNormalsBufferInfo.data = faceNormals;
-    m_faceNormalsBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(faceNormalsBufferInfo);
-
+    // 移除：不再需要单独的面法线缓冲区
+    
     m_buffersCreated = true;
 }
 
@@ -187,15 +173,11 @@ void MeshRenderer::RenderMesh()
     objectDataDescriptor.bufferSize = sizeof(ObjectRenderData);
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(objectDataDescriptor);
 
-    GraphicsAPI::DescriptorInfo normalsDescriptor;
-    normalsDescriptor.bindingIndex = 1;
-    normalsDescriptor.resource = m_faceNormalsBuffer;
-    normalsDescriptor.type = GraphicsAPI::DescriptorInfo::Type::BUFFER;
-    normalsDescriptor.stage = GraphicsAPI::DescriptorInfo::Stage::VERTEX;
-    normalsDescriptor.readWrite = false;
-    normalsDescriptor.bufferOffset = 0;
-    normalsDescriptor.bufferSize = 6 * sizeof(XrVector4f);
-    OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(normalsDescriptor);
+    // 移除：不再需要单独的法线 descriptor
+    // GraphicsAPI::DescriptorInfo normalsDescriptor;
+    // normalsDescriptor.bindingIndex = 1;
+    // normalsDescriptor.resource = m_faceNormalsBuffer;
+    // ...
 
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->UpdateDescriptors();
 
@@ -230,11 +212,6 @@ void MeshRenderer::DestroyBuffers()
     {
         OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyBuffer(m_uniformBuffer);
         m_uniformBuffer = nullptr;
-    }
-    if (m_faceNormalsBuffer)
-    {
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyBuffer(m_faceNormalsBuffer);
-        m_faceNormalsBuffer = nullptr;
     }
     m_buffersCreated = false;
 }

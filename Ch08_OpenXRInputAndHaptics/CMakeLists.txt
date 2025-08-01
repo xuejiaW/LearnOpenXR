@@ -90,7 +90,6 @@ set(HEADERS
     app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
-    # New GameObject-Component Architecture Headers
     app/src/main/cpp/Engine/Core/IComponent.h
     app/src/main/cpp/Engine/Core/GameObject.h
     app/src/main/cpp/Engine/Components/Core/Transform.h
@@ -98,6 +97,7 @@ set(HEADERS
     app/src/main/cpp/Engine/Components/Rendering/Material.h
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h
+    app/src/main/cpp/Engine/Rendering/Vertex.h
     app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h
     app/src/main/cpp/Scenes/TableFloorScene.h

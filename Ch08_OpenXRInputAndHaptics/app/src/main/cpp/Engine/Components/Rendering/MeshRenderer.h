@@ -11,7 +11,6 @@ private:
     void* m_vertexBuffer = nullptr;
     void* m_indexBuffer = nullptr;
     void* m_uniformBuffer = nullptr;
-    void* m_faceNormalsBuffer = nullptr;
     bool m_buffersCreated = false;
 
 public:
