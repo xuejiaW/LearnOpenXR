@@ -10,6 +10,7 @@
 #include "../OpenXR/OpenXRRenderMgr.h"
 #include "../OpenXR/OpenXRSessionMgr.h"
 #include "../OpenXR/OpenXRSpaceMgr.h"
+#include "../Engine/Components/Rendering/Camera.h"
 
 GraphicsAPI_Type OpenXRTutorial::m_apiType = UNKNOWN;
 
@@ -40,20 +41,11 @@ void OpenXRTutorial::Run()
                 OpenXRRenderMgr::RefreshViewsData();
                 for (int i = 0; i != static_cast<int>(OpenXRDisplayMgr::GetViewsCount()); ++i)
                 {
-                    void* colorImage = nullptr;
-                    void* depthImage = nullptr;
-                    OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(i, colorImage, depthImage);
+                    OpenXRDisplayMgr::StartRenderingView(i);
 
-                    RenderSettings settings{colorImage, depthImage,
-                                            OpenXRDisplayMgr::activeViewConfigurationViews[i].recommendedImageRectWidth,
-                                            OpenXRDisplayMgr::activeViewConfigurationViews[i].recommendedImageRectHeight,
-                                            XR_ENVIRONMENT_BLEND_MODE_OPAQUE, m_sceneRenderer->GetDefaultPipeline()};
+                    m_tableFloorScene->Update(0.016f);
 
-                    XrMatrix4x4f viewProj = XRMathUtils::CreateViewProjectionMatrix(m_apiType, OpenXRRenderMgr::views[i], 0.05f, 1000.0f);
-
-                    m_sceneRenderer->Render(viewProj, settings);
-
-                    OpenXRDisplayMgr::ReleaseSwapChainImages(i);
+                    OpenXRDisplayMgr::StopRenderingView();
                 }
                 OpenXRRenderMgr::UpdateRenderLayerInfo();
             }
@@ -65,11 +57,10 @@ void OpenXRTutorial::Run()
 
 void OpenXRTutorial::InitializeSceneRendering()
 {
-    m_scene = std::make_shared<TableFloorScene>();
-    m_scene->Initialize();
-    m_sceneRenderer = std::make_unique<SceneRenderer>(m_apiType);
-    m_sceneRenderer->SetScene(m_scene);
-    m_sceneRenderer->CreateResources();
+    m_tableFloorScene = std::make_unique<TableFloorScene>();
+    m_tableFloorScene->Initialize();
+    
+    Camera::SetGraphicsAPIType(m_apiType);
 }
 
 void OpenXRTutorial::InitializeOpenXR()

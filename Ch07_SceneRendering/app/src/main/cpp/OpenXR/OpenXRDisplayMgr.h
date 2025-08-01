@@ -20,6 +20,11 @@ class OpenXRDisplayMgr
 
     static void AcquireAndWaitSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage);
     static void ReleaseSwapChainImages(int viewIndex);
+    
+    static void StartRenderingView(int viewIndex);
+    static void StopRenderingView();
+    
+    static int GetCurrentViewIndex();
 
     static std::vector<SwapchainInfo> colorSwapchainInfos;
     static std::vector<SwapchainInfo> depthSwapchainInfos;
@@ -28,6 +33,8 @@ class OpenXRDisplayMgr
     static std::vector<XrViewConfigurationView> activeViewConfigurationViews;
 
   private:
+    static int currentViewIndex;
+    
     static std::vector<int64_t> GetAvailableSwapchainFormats();
     static void CreateSwapchain(const XrSwapchainCreateInfo& baseCreateInfo, const std::vector<int64_t>& availableSwapchainFormats,
                                 const SwapchainConfig& config, SwapchainInfo& swapchainInfo);

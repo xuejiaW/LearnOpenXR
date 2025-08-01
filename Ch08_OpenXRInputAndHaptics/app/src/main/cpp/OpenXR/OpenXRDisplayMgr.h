@@ -21,11 +21,9 @@ class OpenXRDisplayMgr
     static void AcquireAndWaitSwapChainImages(int viewIndex, void*& colorImage, void*& depthImage);
     static void ReleaseSwapChainImages(int viewIndex);
     
-    // 新增：更高级的渲染视图管理（只管理索引状态）
     static void StartRenderingView(int viewIndex);
     static void StopRenderingView();
     
-    // 新增：获取当前正在渲染的视图索引
     static int GetCurrentViewIndex();
 
     static std::vector<SwapchainInfo> colorSwapchainInfos;
@@ -35,7 +33,6 @@ class OpenXRDisplayMgr
     static std::vector<XrViewConfigurationView> activeViewConfigurationViews;
 
   private:
-    // 新增：存储当前正在渲染的视图索引
     static int currentViewIndex;
     
     static std::vector<int64_t> GetAvailableSwapchainFormats();

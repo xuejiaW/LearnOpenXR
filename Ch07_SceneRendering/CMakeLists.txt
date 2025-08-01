@@ -43,21 +43,26 @@ set(SOURCES
     ../Common/GraphicsAPI_Vulkan.cpp
     ../Common/OpenXRDebugUtils.cpp
     ../Common/XRMathUtils.cpp
+    ../Common/XRPathUtils.cpp
     app/src/main/cpp/main.cpp
-    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
-    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRCoreMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRSpaceMgr.cpp
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.cpp
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.cpp
+    app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
-    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.cpp
-    app/src/main/cpp/ScenesRendering/TableFloorScene.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/Material.cpp
-    app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.cpp
+    app/src/main/cpp/Engine/Core/GameObject.cpp
+    app/src/main/cpp/Engine/Components/Core/Transform.cpp
+    app/src/main/cpp/Engine/Core/Scene.cpp
+    app/src/main/cpp/Engine/Components/Rendering/Material.cpp
+    app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
+    app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
+    app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.cpp
+    app/src/main/cpp/Scenes/TableFloorScene.cpp
 )
 set(HEADERS
     ../Common/DebugOutput.h
@@ -68,6 +73,7 @@ set(HEADERS
     ../Common/OpenXRDebugUtils.h
     ../Common/OpenXRHelper.h
     ../Common/XRMathUtils.h
+    ../Common/XRPathUtils.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h
     app/src/main/cpp/OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI_Vulkan.h
     app/src/main/cpp/OpenXR/OpenXRDisplayMgr.h
@@ -79,10 +85,17 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.h
     app/src/main/cpp/Application/OpenXRTutorial.h
-    app/src/main/cpp/ScenesRendering/Scenes/SceneRenderer.h
-    app/src/main/cpp/ScenesRendering/TableFloorScene.h
-    app/src/main/cpp/ScenesRendering/Rendering/Material.h
-    app/src/main/cpp/ScenesRendering/Rendering/Geometry/CubeGeometry.h
+    app/src/main/cpp/Engine/Core/IComponent.h
+    app/src/main/cpp/Engine/Core/GameObject.h
+    app/src/main/cpp/Engine/Components/Core/Transform.h
+    app/src/main/cpp/Engine/Core/Scene.h
+    app/src/main/cpp/Engine/Components/Rendering/Material.h
+    app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
+    app/src/main/cpp/Engine/Components/Rendering/Camera.h
+    app/src/main/cpp/Engine/Rendering/Vertex.h
+    app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
+    app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h
+    app/src/main/cpp/Scenes/TableFloorScene.h
 )
 
 # XR_DOCS_TAG_BEGIN_GLSLShaders

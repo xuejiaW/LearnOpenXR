@@ -12,7 +12,6 @@ std::vector<XrViewConfigurationView> OpenXRDisplayMgr::activeViewConfigurationVi
 std::vector<SwapchainInfo> OpenXRDisplayMgr::colorSwapchainInfos{};
 std::vector<SwapchainInfo> OpenXRDisplayMgr::depthSwapchainInfos{};
 
-// 新增：当前视图索引的静态变量
 int OpenXRDisplayMgr::currentViewIndex = -1;
 
 void OpenXRDisplayMgr::GetActiveViewConfigurationType()

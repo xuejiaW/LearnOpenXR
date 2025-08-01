@@ -66,13 +66,10 @@ void OpenXRTutorial::Run()
                 OpenXRRenderMgr::RefreshViewsData();
                 for (int i = 0; i != static_cast<int>(OpenXRDisplayMgr::GetViewsCount()); ++i)
                 {
-                    // 设置当前渲染的视图索引
                     OpenXRDisplayMgr::StartRenderingView(i);
 
-                    // Tutorial 只需要调用 Scene 的 Update，Camera 会自动处理所有事情
-                    m_tableFloorScene->Update(0.016f); // Assuming ~60fps
+                    m_tableFloorScene->Update(0.016f);
 
-                    // 清除当前视图索引
                     OpenXRDisplayMgr::StopRenderingView();
                 }
                 OpenXRRenderMgr::UpdateRenderLayerInfo();
@@ -88,7 +85,6 @@ void OpenXRTutorial::InitializeSceneRendering()
     m_tableFloorScene = std::make_unique<TableFloorScene>();
     m_tableFloorScene->Initialize();
     
-    // 设置 Camera 的全局 Graphics API 类型
     Camera::SetGraphicsAPIType(m_apiType);
 }
 
