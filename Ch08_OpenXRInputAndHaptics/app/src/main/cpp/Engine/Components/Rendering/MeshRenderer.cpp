@@ -66,8 +66,6 @@ void MeshRenderer::CreateBuffers()
     indexBufferInfo.data = const_cast<void*>(static_cast<const void*>(indices.data()));
     m_indexBuffer = OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->CreateBuffer(indexBufferInfo);
 
-    // 移除：不再需要单独的面法线缓冲区
-    
     m_buffersCreated = true;
 }
 
@@ -172,12 +170,6 @@ void MeshRenderer::RenderMesh()
     objectDataDescriptor.bufferOffset = 0;
     objectDataDescriptor.bufferSize = sizeof(ObjectRenderData);
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->SetDescriptor(objectDataDescriptor);
-
-    // 移除：不再需要单独的法线 descriptor
-    // GraphicsAPI::DescriptorInfo normalsDescriptor;
-    // normalsDescriptor.bindingIndex = 1;
-    // normalsDescriptor.resource = m_faceNormalsBuffer;
-    // ...
 
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->UpdateDescriptors();
 
