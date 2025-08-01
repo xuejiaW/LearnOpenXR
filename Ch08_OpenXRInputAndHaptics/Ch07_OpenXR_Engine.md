@@ -10,6 +10,19 @@ updated: 2025-08-01
 
 在 [Ch 06 OpenXR Frame Submission Pipeline](Ch%2006%20OpenXR%20Frame%20Submission%20Pipeline.md) 中，我们已经实现了完整的帧提交管线，能够在 XR 设备中显示空白内容。本章中，我们将实现一个基于 ECS（Entity Component System）架构的 OpenXR Engine，通过组件化的设计来管理场景中的对象和渲染流程，最终实现一个包含桌子和地板的简单 3D 场景。
 
+OpenXR Engine 的设计目标是为 OpenXR 应用提供一个轻量级、高效的渲染框架。其核心设计原则包括：
+
+1. **与 OpenXR 深度集成**：Engine 的组件直接与 OpenXR 的 API 协作，避免不必要的抽象层，也方便理解，例如
+    -  [Transform 组件](#transform%20组件) 直接使用 OpenXR 的坐标系统和数据类型
+    -  [Camera 组件](#camera%20组件) 管理 OpenXR 的 Swapchain Images 和 RenderSettings
+2. **组件化设计**：通过 ECS 架构实现功能的模块化，便于扩展和维护
+
+Engine 采用简化的 ECS 架构：
+
+-   **Entity（实体）**：由 `GameObject` 类表示，作为组件的容器
+-   **Component（组件）**：继承自 `Component` 基类，实现具体功能
+-   **System（系统）**：通过组件的生命周期方法（PreTick、Tick、PostTick）隐式实现
+
 > [!note]
 >
 > 本章的目标是构建一个与 OpenXR 紧密集成的轻量级渲染引擎，重点关注组件如何与 OpenXR 的渲染管线协作，而不是一个通用的 ECS 引擎实现。
@@ -36,90 +49,79 @@ Engine/
         └── CubeMesh.h/.cpp        # 立方体网格实现
 ```
 
-Engine 的核心架构与 OpenXR 集成关系如下图所示：
+Engine 的核心架构关系如下图所示：
 
 ```mermaid
 graph TB
-    subgraph "OpenXR Layer"
-        XR[OpenXR Runtime]
-        XRGAPI[OpenXR Graphics API]
-        XRSession[OpenXR Session]
+    Scene[Scene 场景管理器]
+    
+    subgraph "GameObject 实体容器"
+        GO1[GameObject: Camera]
+        GO2[GameObject: Floor]
+        GO3[GameObject: Table]
     end
-
-    subgraph "Engine Core"
-        Scene[Scene Manager]
-        GO[GameObject]
-
-        subgraph "Components"
-            Camera[Camera Component]
-            MeshRenderer[MeshRenderer Component]
-            Material[Material Component]
-            Transform[Transform Component]
-        end
-
-        subgraph "Rendering Data"
-            Mesh[IMesh Interface]
-            Vertex[Vertex Structure]
-            CubeMesh[CubeMesh Implementation]
-        end
+    
+    subgraph "Component 组件基类"
+        Component[Component 抽象基类]
     end
-
-    subgraph "Render Loop"
-        PreTick[PreTick Phase]
-        Tick[Tick Phase - Rendering]
-        PostTick[PostTick Phase]
+    
+    subgraph "具体组件实现"
+        Transform[Transform<br/>空间变换组件]
+        Camera[Camera<br/>摄像机组件]
+        Material[Material<br/>材质组件]
+        MeshRenderer[MeshRenderer<br/>网格渲染组件]
     end
-
-    XR --> XRGAPI
-    XRGAPI --> Camera
-    Camera --> |RenderSettings| Scene
-    Scene --> GO
-    GO --> Transform
-    GO --> MeshRenderer
-    GO --> Material
-    MeshRenderer --> Mesh
-    Mesh --> Vertex
-    CubeMesh -.-> Mesh
-
-    XRSession --> |Frame Loop| PreTick
-    PreTick --> Tick
-    Tick --> PostTick
-    Tick --> MeshRenderer
-
-    Camera --> |OpenXR View Matrix| MeshRenderer
-    Material --> |Pipeline & Shaders| MeshRenderer
-    Transform --> |Model Matrix| MeshRenderer
+    
+    subgraph "渲染数据结构"
+        IMesh[IMesh<br/>网格接口]
+        CubeMesh[CubeMesh<br/>立方体网格实现]
+        Vertex[Vertex<br/>顶点数据结构]
+    end
+    
+    %% Scene 与 GameObject 的一对多关系
+    Scene -->|1对多管理| GO1
+    Scene -->|1对多管理| GO2
+    Scene -->|1对多管理| GO3
+    
+    %% GameObject 与 Component 的一对多关系
+    GO1 -->|包含多个| Transform
+    GO1 -->|包含多个| Camera
+    GO2 -->|包含多个| Transform
+    GO2 -->|包含多个| Material
+    GO2 -->|包含多个| MeshRenderer
+    GO3 -->|包含多个| Transform
+    GO3 -->|包含多个| Material
+    GO3 -->|包含多个| MeshRenderer
+    
+    %% 继承关系
+    Component -.->|继承| Transform
+    Component -.->|继承| Camera
+    Component -.->|继承| Material
+    Component -.->|继承| MeshRenderer
+    
+    %% 使用关系
+    MeshRenderer -->|使用| IMesh
+    IMesh <-.->|实现| CubeMesh
+    CubeMesh -->|生成| Vertex
+    IMesh -->|包含| Vertex
+    
+    %% 样式定义
+    classDef scene fill:#e3f2fd
+    classDef gameobject fill:#f3e5f5
+    classDef component fill:#e8f5e8
+    classDef concrete fill:#fff3e0
+    classDef data fill:#fce4ec
+    
+    class Scene scene
+    class GO1,GO2,GO3 gameobject
+    class Component component
+    class Transform,Camera,Material,MeshRenderer concrete
+    class IMesh,CubeMesh,Vertex data
 ```
 
 ## Engine 架构与 ECS 实现
 
-### OpenXR Engine 的设计目标和架构原则
-
-OpenXR Engine 的设计目标是为 OpenXR 应用提供一个轻量级、高效的渲染框架。其核心设计原则包括：
-
-1. **与 OpenXR 深度集成**：Engine 的组件直接与 OpenXR 的渲染管线协作，避免不必要的抽象层
-2. **组件化设计**：通过 ECS 架构实现功能的模块化，便于扩展和维护
-3. **性能优先**：针对 XR 应用的高帧率要求进行优化
-
-### 与 OpenXR 框架的集成策略
-
-Engine 与 OpenXR 的集成主要体现在以下几个方面：
-
--   **渲染循环集成**：组件的生命周期与 OpenXR 的帧循环（WaitFrame、BeginFrame、EndFrame）同步
--   **空间坐标系统**：Transform 组件直接使用 OpenXR 的坐标系统和数据类型
--   **渲染目标管理**：Camera 组件管理 OpenXR 的 Swapchain Images 和 RenderSettings
-
-### ECS 架构在 OpenXR 中的应用
-
-Engine 采用简化的 ECS 架构：
-
--   **Entity（实体）**：由 `GameObject` 类表示，作为组件的容器
--   **Component（组件）**：继承自 `Component` 基类，实现具体功能
--   **System（系统）**：通过组件的生命周期方法（PreTick、Tick、PostTick）隐式实现
-
-这种设计避免了传统 ECS 中复杂的查询和过滤机制，更适合 OpenXR 应用的需求。
-
-### GameObject 和 Component 基类设计
+### GameObject 基类设计
 
 `GameObject` 是 Engine 中的核心类，提供组件管理功能：
 
@@ -145,6 +147,8 @@ private:
 };
 ```
 
+### Component 基类设计
+
 `Component` 基类定义了组件的生命周期接口：
 
 ```cpp
@@ -168,7 +172,7 @@ private:
 };
 ```
 
-### 组件生命周期管理（PreTick, Tick, PostTick）
+#### 组件生命周期管理
 
 组件的生命周期与 OpenXR 的渲染循环紧密配合：
 
@@ -178,20 +182,12 @@ private:
 
 这种设计确保了组件的执行时机与 OpenXR 的帧同步要求一致。
 
-### 架构关系图
-
-上述组件关系和数据流向已在本章开头的 mermaid 图中展示，其中重点体现了：
-
-1. OpenXR Layer 为 Engine 提供基础渲染服务
-2. Camera 组件作为 OpenXR 视图系统的桥梁
-3. MeshRenderer 组件整合各个组件数据进行实际渲染
-4. 渲染循环与 OpenXR 帧循环的同步关系
-
 ## 核心组件详解
 
 ### Transform 组件
 
 Transform 组件负责管理 GameObject 的空间变换信息，直接使用 OpenXR 的数据类型：
+
 
 ```cpp
 class Transform : public Component
@@ -213,35 +209,6 @@ private:
 };
 ```
 
-#### 空间变换的基础
-
-Transform 组件使用 OpenXR 标准的右手坐标系，其中：
-
--   X 轴指向右方
--   Y 轴指向上方
--   Z 轴指向用户方向（与传统图形学的 -Z 方向相反）
-
-#### 模型矩阵计算
-
-模型矩阵的计算通过 OpenXR 提供的数学函数实现：
-
-```cpp
-void Transform::UpdateModelMatrix()
-{
-    XrMatrix4x4f scaleMatrix, rotationMatrix, translationMatrix;
-    XrMatrix4x4f_CreateScale(&scaleMatrix, m_scale.x, m_scale.y, m_scale.z);
-    XrMatrix4x4f_CreateFromQuaternion(&rotationMatrix, &m_rotation);
-    XrMatrix4x4f_CreateTranslation(&translationMatrix, m_position.x, m_position.y, m_position.z);
-
-    XrMatrix4x4f temp;
-    XrMatrix4x4f_Multiply(&temp, &rotationMatrix, &scaleMatrix);
-    XrMatrix4x4f_Multiply(&m_modelMatrix, &translationMatrix, &temp);
-}
-```
-
-#### 在 OpenXR 空间中的应用
-
-Transform 组件的坐标直接对应 OpenXR 的世界空间，无需额外的坐标系转换，这简化了与 OpenXR 跟踪系统的集成。
 
 ### Camera 组件
 
@@ -271,8 +238,6 @@ private:
     RenderSettings m_renderSettings;
 };
 ```
-
-#### Camera 组件的职责和生命周期
 
 Camera 组件负责：
 
