@@ -30,6 +30,16 @@ void OpenXRCoreMgr::CreateInstance()
     FindRequiredExtensions(requiredExtensions, activeExtensions);
 
     XrInstanceCreateInfo instanceCreateInfo = {};
+
+#if defined(__ANDROID__)
+    XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid{};
+    instanceCreateInfoAndroid.type = XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR;
+    instanceCreateInfoAndroid.applicationVM = OpenXRTutorial::androidVM;
+    instanceCreateInfoAndroid.applicationActivity = OpenXRTutorial::androidActivity;
+    instanceCreateInfo.next = reinterpret_cast<XrBaseInStructure*>(&instanceCreateInfoAndroid);
+#endif
+    
+    
     instanceCreateInfo.type = XR_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.applicationInfo = appInfo;
     instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(activeExtensions.size());
@@ -75,6 +85,7 @@ void OpenXRCoreMgr::GetSystemID()
 void OpenXRCoreMgr::CreateRequiredExtensions(std::vector<std::string>& requiredExtensions)
 {
     requiredExtensions.clear();
+    requiredExtensions.emplace_back("XR_KHR_android_create_instance");
     requiredExtensions.emplace_back(OpenXRGraphicsAPI::GetGraphicsAPIInstanceExtensionString(OpenXRTutorial::m_apiType));
 }
 

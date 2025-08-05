@@ -14,6 +14,7 @@
 
 GraphicsAPI_Type OpenXRTutorial::m_apiType = UNKNOWN;
 
+
 OpenXRTutorial::OpenXRTutorial(GraphicsAPI_Type apiType)
 {
     m_apiType = apiType;

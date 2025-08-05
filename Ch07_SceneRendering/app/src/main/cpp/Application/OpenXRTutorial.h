@@ -20,6 +20,8 @@ public:
 #if defined(__ANDROID__)
   public:
     static android_app *androidApp;
+    static void* androidVM;
+    static void* androidActivity;
 
     struct AndroidAppState
     {

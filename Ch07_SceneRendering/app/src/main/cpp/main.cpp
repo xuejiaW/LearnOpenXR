@@ -40,6 +40,8 @@ void android_main(struct android_app *app)
     app->userData = &OpenXRTutorial::androidAppState;
     app->onAppCmd = OpenXRTutorial::AndroidAppHandleCmd;
     OpenXRTutorial::androidApp = app;
+    OpenXRTutorial::androidVM = app->activity->vm;
+    OpenXRTutorial::androidActivity = app->activity->clazz;
     OpenXRTutorial_Main(VULKAN);
 }
 #else
@@ -49,8 +51,3 @@ int main(int argc, char** argv)
     return 0;
 }
 #endif
-
-
-
-
-
