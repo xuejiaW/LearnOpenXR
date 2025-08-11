@@ -7,49 +7,65 @@
 #include "../../../OpenXR/OpenXRRenderMgr.h"
 #include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
 #include "../../Core/Scene.h"
+#include "../../Core/GameObject.h"
+#include "../Core/Transform.h"
 
 GraphicsAPI_Type Camera::s_globalApiType = UNKNOWN;
 
 Camera::Camera()
 {
-    XrMatrix4x4f_CreateIdentity(&m_viewMatrix);
-    XrMatrix4x4f_CreateIdentity(&m_projectionMatrix);
-    XrMatrix4x4f_CreateIdentity(&m_viewProjectionMatrix);
+    XrMatrix4x4f_CreateIdentity(&m_ProjectionMatrix);
+    XrMatrix4x4f_CreateIdentity(&m_ViewProjectionMatrix);
     
     Scene::SetActiveCamera(this);
 }
 
+void Camera::SetFieldOfView(const XrFovf& fov)
+{
+    m_FieldOfView = fov;
+    m_ProjectionDirty = true;
+    m_ViewProjectionDirty = true;
+}
+
+void Camera::SetProjectionParameters(float nearPlane, float farPlane)
+{
+    m_NearPlane = nearPlane;
+    m_FarPlane = farPlane;
+    m_ProjectionDirty = true;
+    m_ViewProjectionDirty = true;
+}
+
 void Camera::SetViewMatrix(const XrMatrix4x4f& viewMatrix)
 {
-    m_viewMatrix = viewMatrix;
-    m_isDirty = true;
+    m_ViewProjectionDirty = true;
 }
 
 void Camera::SetProjectionMatrix(const XrMatrix4x4f& projMatrix)
 {
-    m_projectionMatrix = projMatrix;
-    m_isDirty = true;
+    m_ProjectionMatrix = projMatrix;
+    m_ProjectionDirty = false;
+    m_ViewProjectionDirty = true;
 }
 
 void Camera::SetRenderSettings(const RenderSettings& settings)
 {
-    m_renderSettings = settings;
+    m_RenderSettings = settings;
 }
 
 void Camera::SetupForOpenXR(int viewIndex, void* colorImage, void* depthImage, GraphicsAPI_Type apiType)
 {
-    m_currentViewIndex = viewIndex;
-    m_apiType = apiType;
+    m_CurrentViewIndex = viewIndex;
+    m_ApiType = apiType;
     
-    m_renderSettings.colorImage = colorImage;
-    m_renderSettings.depthImage = depthImage;
-    m_renderSettings.width = OpenXRDisplayMgr::activeViewConfigurationViews[viewIndex].recommendedImageRectWidth;
-    m_renderSettings.height = OpenXRDisplayMgr::activeViewConfigurationViews[viewIndex].recommendedImageRectHeight;
-    m_renderSettings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-    m_renderSettings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
-    m_renderSettings.pipeline = nullptr;
+    m_RenderSettings.colorImage = colorImage;
+    m_RenderSettings.depthImage = depthImage;
+    m_RenderSettings.width = OpenXRDisplayMgr::activeViewConfigurationViews[viewIndex].recommendedImageRectWidth;
+    m_RenderSettings.height = OpenXRDisplayMgr::activeViewConfigurationViews[viewIndex].recommendedImageRectHeight;
+    m_RenderSettings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+    m_RenderSettings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
+    m_RenderSettings.pipeline = nullptr;
     
-    m_needsMatrixUpdate = true;
+    m_NeedsMatrixUpdate = true;
 }
 
 void Camera::SetupForOpenXRFromDisplayMgr(void* colorImage, void* depthImage, GraphicsAPI_Type apiType)
@@ -65,37 +81,57 @@ void Camera::SetGraphicsAPIType(GraphicsAPI_Type apiType)
     s_globalApiType = apiType;
 }
 
+const XrMatrix4x4f& Camera::GetViewMatrix()
+{
+    Transform* transform = GetGameObject()->GetComponent<Transform>();
+    if (transform) {
+        return transform->GetViewMatrix();
+    }
+    
+    static XrMatrix4x4f identity;
+    XrMatrix4x4f_CreateIdentity(&identity);
+    return identity;
+}
+
+const XrMatrix4x4f& Camera::GetProjectionMatrix()
+{
+    if (m_ProjectionDirty) {
+        UpdateProjectionMatrix();
+        m_ProjectionDirty = false;
+    }
+    return m_ProjectionMatrix;
+}
+
 const XrMatrix4x4f& Camera::GetViewProjectionMatrix()
 {
-    if (m_isDirty)
-    {
+    if (m_ViewProjectionDirty) {
         UpdateViewProjectionMatrix();
-        m_isDirty = false;
+        m_ViewProjectionDirty = false;
     }
-    return m_viewProjectionMatrix;
+    return m_ViewProjectionMatrix;
 }
 
 void Camera::PreTick(float deltaTime) {
     int currentViewIndex = OpenXRDisplayMgr::GetCurrentViewIndex();
     if (currentViewIndex >= 0) {
-        if (m_currentViewIndex != currentViewIndex) {
-            m_currentViewIndex = currentViewIndex;
-            m_apiType = s_globalApiType;
+        if (m_CurrentViewIndex != currentViewIndex) {
+            m_CurrentViewIndex = currentViewIndex;
+            m_ApiType = s_globalApiType;
             
-            m_renderSettings.width = OpenXRDisplayMgr::activeViewConfigurationViews[currentViewIndex].recommendedImageRectWidth;
-            m_renderSettings.height = OpenXRDisplayMgr::activeViewConfigurationViews[currentViewIndex].recommendedImageRectHeight;
-            m_renderSettings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-            m_renderSettings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
-            m_renderSettings.pipeline = nullptr;
+            m_RenderSettings.width = OpenXRDisplayMgr::activeViewConfigurationViews[currentViewIndex].recommendedImageRectWidth;
+            m_RenderSettings.height = OpenXRDisplayMgr::activeViewConfigurationViews[currentViewIndex].recommendedImageRectHeight;
+            m_RenderSettings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+            m_RenderSettings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
+            m_RenderSettings.pipeline = nullptr;
             
-            m_needsMatrixUpdate = true;
+            m_NeedsMatrixUpdate = true;
         }
         
-        OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(currentViewIndex, m_renderSettings.colorImage, m_renderSettings.depthImage);
+        OpenXRDisplayMgr::AcquireAndWaitSwapChainImages(currentViewIndex, m_RenderSettings.colorImage, m_RenderSettings.depthImage);
         
-        if (m_needsMatrixUpdate) {
+        if (m_NeedsMatrixUpdate) {
             UpdateMatricesFromOpenXR();
-            m_needsMatrixUpdate = false;
+            m_NeedsMatrixUpdate = false;
         }
     }
     
@@ -106,61 +142,50 @@ void Camera::PreTick(float deltaTime) {
 void Camera::PostTick(float deltaTime) {
     OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->EndRendering();
     
-    if (m_currentViewIndex >= 0) {
-        OpenXRDisplayMgr::ReleaseSwapChainImages(m_currentViewIndex);
+    if (m_CurrentViewIndex >= 0) {
+        OpenXRDisplayMgr::ReleaseSwapChainImages(m_CurrentViewIndex);
     }
 }
 
 void Camera::SetupRenderTarget()
 {
-    if (m_renderSettings.colorImage && m_renderSettings.width > 0 && m_renderSettings.height > 0)
+    if (m_RenderSettings.colorImage && m_RenderSettings.width > 0 && m_RenderSettings.height > 0)
     {
-        if (m_renderSettings.blendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
+        if (m_RenderSettings.blendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
         {
             OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->ClearColor(
-                m_renderSettings.colorImage, 
-                m_renderSettings.clearColor.x, 
-                m_renderSettings.clearColor.y, 
-                m_renderSettings.clearColor.z, 
-                m_renderSettings.clearColor.w
+                m_RenderSettings.colorImage, 
+                m_RenderSettings.clearColor.x, 
+                m_RenderSettings.clearColor.y, 
+                m_RenderSettings.clearColor.z, 
+                m_RenderSettings.clearColor.w
             );
         }
         
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->ClearDepth(m_renderSettings.depthImage, 1.0f);
+        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->ClearDepth(m_RenderSettings.depthImage, 1.0f);
     }
     else
     {
-        XR_TUT_LOG_ERROR("Camera::SetupRenderTarget() - Invalid render settings: colorImage=" << m_renderSettings.colorImage << ", width=" << m_renderSettings.width << ", height=" << m_renderSettings.height);
+        XR_TUT_LOG_ERROR("Camera::SetupRenderTarget() - Invalid render settings: colorImage=" << m_RenderSettings.colorImage << ", width=" << m_RenderSettings.width << ", height=" << m_RenderSettings.height);
     }
+}
+
+void Camera::UpdateProjectionMatrix()
+{
+    XrMatrix4x4f_CreateProjectionFov(&m_ProjectionMatrix, m_ApiType, m_FieldOfView, m_NearPlane, m_FarPlane);
 }
 
 void Camera::UpdateViewProjectionMatrix()
 {
-    XrMatrix4x4f_Multiply(&m_viewProjectionMatrix, &m_projectionMatrix, &m_viewMatrix);
+    const XrMatrix4x4f& viewMatrix = GetViewMatrix();
+    const XrMatrix4x4f& projMatrix = GetProjectionMatrix();
+    XrMatrix4x4f_Multiply(&m_ViewProjectionMatrix, &projMatrix, &viewMatrix);
 }
 
 void Camera::UpdateMatricesFromOpenXR()
 {
-    if (m_currentViewIndex < 0) return;
+    if (m_CurrentViewIndex < 0) return;
     
-    XrMatrix4x4f viewMatrix, projMatrix;
-    XrMatrix4x4f rotationMatrix, translationMatrix;
-    
-    XrMatrix4x4f_CreateFromQuaternion(&rotationMatrix, &OpenXRRenderMgr::views[m_currentViewIndex].pose.orientation);
-    
-    XrMatrix4x4f_CreateTranslation(&translationMatrix, 
-        -OpenXRRenderMgr::views[m_currentViewIndex].pose.position.x,
-        -OpenXRRenderMgr::views[m_currentViewIndex].pose.position.y, 
-        -OpenXRRenderMgr::views[m_currentViewIndex].pose.position.z);
-    
-    // View matrix requires inverse transform: rotation is orthogonal so inverse = transpose
-    XrMatrix4x4f rotationInverse;
-    XrMatrix4x4f_Transpose(&rotationInverse, &rotationMatrix);
-    
-    XrMatrix4x4f_Multiply(&viewMatrix, &rotationInverse, &translationMatrix);
-    
-    XrMatrix4x4f_CreateProjectionFov(&projMatrix, m_apiType, OpenXRRenderMgr::views[m_currentViewIndex].fov, 0.05f, 1000.0f);
-    
-    SetViewMatrix(viewMatrix);
-    SetProjectionMatrix(projMatrix);
+    const XrFovf& fov = OpenXRRenderMgr::views[m_CurrentViewIndex].fov;
+    SetFieldOfView(fov);
 }

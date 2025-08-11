@@ -4,78 +4,104 @@
 
 Transform::Transform() {
     UpdateModelMatrix();
+    UpdateViewMatrix();
 }
 
-Transform::Transform(const XrVector3f& position) : m_position(position) {
+Transform::Transform(const XrVector3f& position) : m_Position(position) {
     UpdateModelMatrix();
+    UpdateViewMatrix();
 }
 
 Transform::Transform(const XrVector3f& position, const XrQuaternionf& rotation) 
-    : m_position(position), m_rotation(rotation) {
+    : m_Position(position), m_Rotation(rotation) {
     UpdateModelMatrix();
+    UpdateViewMatrix();
 }
 
 Transform::Transform(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale)
-    : m_position(position), m_rotation(rotation), m_scale(scale) {
+    : m_Position(position), m_Rotation(rotation), m_Scale(scale) {
     UpdateModelMatrix();
+    UpdateViewMatrix();
 }
 
 void Transform::SetPosition(const XrVector3f& position) {
-    m_position = position;
-    m_isDirty = true;
+    m_Position = position;
+    MarkMatricesDirty();
 }
 
 void Transform::SetRotation(const XrQuaternionf& rotation) {
-    m_rotation = rotation;
-    m_isDirty = true;
+    m_Rotation = rotation;
+    MarkMatricesDirty();
 }
 
 void Transform::SetScale(const XrVector3f& scale) {
-    m_scale = scale;
-    m_isDirty = true;
+    m_Scale = scale;
+    m_ModelMatrixDirty = true;
 }
 
 const XrMatrix4x4f& Transform::GetModelMatrix() {
-    if (m_isDirty) {
+    if (m_ModelMatrixDirty) {
         UpdateModelMatrix();
-        m_isDirty = false;
+        m_ModelMatrixDirty = false;
     }
-    return m_modelMatrix;
+    return m_ModelMatrix;
+}
+
+const XrMatrix4x4f& Transform::GetViewMatrix() {
+    if (m_ViewMatrixDirty) {
+        UpdateViewMatrix();
+        m_ViewMatrixDirty = false;
+    }
+    return m_ViewMatrix;
 }
 
 void Transform::Translate(const XrVector3f& translation) {
-    m_position.x += translation.x;
-    m_position.y += translation.y;
-    m_position.z += translation.z;
-    m_isDirty = true;
+    m_Position.x += translation.x;
+    m_Position.y += translation.y;
+    m_Position.z += translation.z;
+    MarkMatricesDirty();
 }
 
 void Transform::Rotate(const XrQuaternionf& rotation) {
-    // Multiply current rotation by new rotation
     XrQuaternionf result;
-    result.w = m_rotation.w * rotation.w - m_rotation.x * rotation.x - m_rotation.y * rotation.y - m_rotation.z * rotation.z;
-    result.x = m_rotation.w * rotation.x + m_rotation.x * rotation.w + m_rotation.y * rotation.z - m_rotation.z * rotation.y;
-    result.y = m_rotation.w * rotation.y - m_rotation.x * rotation.z + m_rotation.y * rotation.w + m_rotation.z * rotation.x;
-    result.z = m_rotation.w * rotation.z + m_rotation.x * rotation.y - m_rotation.y * rotation.x + m_rotation.z * rotation.w;
-    m_rotation = result;
-    m_isDirty = true;
+    result.w = m_Rotation.w * rotation.w - m_Rotation.x * rotation.x - m_Rotation.y * rotation.y - m_Rotation.z * rotation.z;
+    result.x = m_Rotation.w * rotation.x + m_Rotation.x * rotation.w + m_Rotation.y * rotation.z - m_Rotation.z * rotation.y;
+    result.y = m_Rotation.w * rotation.y - m_Rotation.x * rotation.z + m_Rotation.y * rotation.w + m_Rotation.z * rotation.x;
+    result.z = m_Rotation.w * rotation.z + m_Rotation.x * rotation.y - m_Rotation.y * rotation.x + m_Rotation.z * rotation.w;
+    m_Rotation = result;
+    MarkMatricesDirty();
 }
 
 void Transform::UpdateModelMatrix() {
-    // Create scale matrix
     XrMatrix4x4f scaleMatrix;
-    XrMatrix4x4f_CreateScale(&scaleMatrix, m_scale.x, m_scale.y, m_scale.z);
+    XrMatrix4x4f_CreateScale(&scaleMatrix, m_Scale.x, m_Scale.y, m_Scale.z);
     
-    // Create rotation matrix
     XrMatrix4x4f rotationMatrix;
-    XrMatrix4x4f_CreateFromQuaternion(&rotationMatrix, &m_rotation);
+    XrMatrix4x4f_CreateFromQuaternion(&rotationMatrix, &m_Rotation);
     
-    // Create translation matrix
     XrMatrix4x4f translationMatrix;
-    XrMatrix4x4f_CreateTranslation(&translationMatrix, m_position.x, m_position.y, m_position.z);
+    XrMatrix4x4f_CreateTranslation(&translationMatrix, m_Position.x, m_Position.y, m_Position.z);
     
-    // Combine: Translation * Rotation * Scale
     XrMatrix4x4f temp;
     XrMatrix4x4f_Multiply(&temp, &rotationMatrix, &scaleMatrix);
-    XrMatrix4x4f_Multiply(&m_modelMatrix, &translationMatrix, &temp);
+    XrMatrix4x4f_Multiply(&m_ModelMatrix, &translationMatrix, &temp);
+}
+
+void Transform::UpdateViewMatrix() {
+    XrMatrix4x4f rotationMatrix, translationMatrix;
+    
+    XrMatrix4x4f_CreateFromQuaternion(&rotationMatrix, &m_Rotation);
+    
+    XrMatrix4x4f_CreateTranslation(&translationMatrix, 
+        -m_Position.x, -m_Position.y, -m_Position.z);
+    
+    XrMatrix4x4f rotationInverse;
+    XrMatrix4x4f_Transpose(&rotationInverse, &rotationMatrix);
+    
+    XrMatrix4x4f_Multiply(&m_ViewMatrix, &rotationInverse, &translationMatrix);
+}
+
+void Transform::MarkMatricesDirty() {
+    m_ModelMatrixDirty = true;
+    m_ViewMatrixDirty = true;
 }

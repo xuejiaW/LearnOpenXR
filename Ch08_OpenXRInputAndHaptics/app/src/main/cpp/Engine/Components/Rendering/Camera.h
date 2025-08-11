@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "../../Core/IComponent.h"
+#include "RenderSettings.h"
 #include <openxr/openxr.h>
 #include <GraphicsAPI.h>
 #include <xr_linear_algebra.h>
@@ -13,15 +14,7 @@ private:
     bool m_isDirty = true;
 
 public:
-    struct RenderSettings {
-        uint32_t width = 0;
-        uint32_t height = 0;
-        void* colorImage = nullptr;
-        void* depthImage = nullptr;
-        XrEnvironmentBlendMode blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-        XrVector4f clearColor = {0.0f, 0.0f, 0.2f, 1.0f};
-        void* pipeline = nullptr;
-    } m_renderSettings;
+    RenderSettings m_renderSettings;
 
     Camera();
     

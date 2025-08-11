@@ -97,10 +97,14 @@ set(HEADERS
     app/src/main/cpp/Engine/Components/Rendering/Material.h
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h
+    app/src/main/cpp/Engine/Components/Rendering/RenderSettings.h
     app/src/main/cpp/Engine/Rendering/Vertex.h
     app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h
     app/src/main/cpp/Scenes/TableFloorScene.h
+    app/src/main/cpp/Engine/Rendering/Mesh/QuadMesh.h
+    app/src/main/cpp/Engine/Components/Rendering/Skybox.h
+    app/src/main/cpp/Engine/Components/Input/HandController.h
 )
 
 # XR_DOCS_TAG_BEGIN_GLSLShaders

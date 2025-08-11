@@ -8,13 +8,6 @@ class GameObject;
 class Camera;
 
 class Scene {
-private:
-    std::vector<std::unique_ptr<GameObject>> m_gameObjects;
-    std::string m_sceneName;
-    
-    // Static active camera for easy access across the scene
-    static Camera* s_activeCamera;
-
 public:
     Scene(const std::string& name = "Scene");
     ~Scene();
@@ -25,9 +18,14 @@ public:
     
     void Update(float deltaTime);
     
-    const std::string& GetName() const { return m_sceneName; }
-    const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const { return m_gameObjects; }
+    const std::string& GetName() const { return m_SceneName; }
+    const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const { return m_GameObjectsLists; }
     
     static void SetActiveCamera(Camera* camera);
     static Camera* GetActiveCamera();
+private:
+    std::vector<std::unique_ptr<GameObject>> m_GameObjectsLists;
+    std::string m_SceneName;
+    
+    static Camera* s_ActiveCamera;
 };

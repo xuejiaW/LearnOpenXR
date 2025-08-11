@@ -21,13 +21,13 @@ void CubeMesh::GenerateCubeData(float size)
         };
 
     XrVector3f faceNormals[6] = {
-        {1.00f, 0.00f, 0.00f},   // Right face  (+X)
-        {-1.00f, 0.00f, 0.00f},  // Left face   (-X)
-        {0.00f, 1.00f, 0.00f},   // Top face    (+Y)
-        {0.00f, -1.00f, 0.00f},  // Bottom face (-Y)
-        {0.00f, 0.00f, 1.00f},   // Front face  (+Z)
-        {0.00f, 0.00f, -1.00f}   // Back face   (-Z)
-    };
+            {1.00f, 0.00f, 0.00f},
+            {-1.00f, 0.00f, 0.00f},
+            {0.00f, 1.00f, 0.00f},
+            {0.00f, -1.00f, 0.00f},
+            {0.00f, 0.00f, 1.00f},
+            {0.00f, 0.00f, -1.00f}
+        };
 
 #define CUBE_FACE(V1, V2, V3, V4, V5, V6, NORMAL_IDX) \
     Vertex(cubeCorners[V1], faceNormals[NORMAL_IDX]), \
