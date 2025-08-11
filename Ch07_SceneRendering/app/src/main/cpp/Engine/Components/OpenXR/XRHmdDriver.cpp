@@ -1,5 +1,5 @@
 ﻿#include "XRHmdDriver.h"
-#include "Camera.h"
+#include "../Rendering/Camera.h"
 #include "../Core/Transform.h"
 #include "../../Core/GameObject.h"
 #include "../../../OpenXR/OpenXRDisplayMgr.h"
