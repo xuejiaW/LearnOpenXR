@@ -2,7 +2,8 @@
 #include "../Engine/Core/GameObject.h"
 #include "../Engine/Components/Core/Transform.h"
 #include "../Engine/Components/Rendering/MeshRenderer.h"
-#include "../Engine/Components/Rendering/Material.h"
+#include "../Engine/Rendering/Material.h"
+#include "../Engine/Rendering/Shader.h"
 #include "../Engine/Components/Rendering/Camera.h"
 #include "../Engine/Components/Rendering/RenderSettings.h"
 #include "../Engine/Components/OpenXR/XRHmdDriver.h"
@@ -27,6 +28,20 @@ void TableFloorScene::Update(float deltaTime)
 void TableFloorScene::CreateSceneObjects()
 {
     auto cubeMesh = std::make_shared<CubeMesh>(1.0f);
+
+    // Create shared shaders
+    auto vertexShader = std::make_shared<Shader>("shaders/VertexShader.spv", Shader::VERTEX, VULKAN);
+    auto fragmentShader = std::make_shared<Shader>("shaders/PixelShader.spv", Shader::FRAGMENT, VULKAN);
+    
+    // Create floor material
+    auto floorMaterial = std::make_shared<Material>();
+    floorMaterial->SetShaders(vertexShader, fragmentShader);
+    floorMaterial->SetColor(0.4f, 0.5f, 0.5f, 1.0f);
+    
+    // Create table material
+    auto tableMaterial = std::make_shared<Material>();
+    tableMaterial->SetShaders(vertexShader, fragmentShader);
+    tableMaterial->SetColor(0.6f, 0.6f, 0.4f, 1.0f);
 
     GameObject* cameraObject = m_scene->CreateGameObject("Camera");
     
@@ -56,9 +71,7 @@ void TableFloorScene::CreateSceneObjects()
         );
     MeshRenderer* floorRenderer = floorObject->AddComponent<MeshRenderer>();
     floorRenderer->SetMesh(cubeMesh);
-    Material* floorMaterial = floorObject->AddComponent<Material>("VertexShader.spv", "PixelShader.spv", VULKAN);
-    floorMaterial->SetColor({0.4f, 0.5f, 0.5f, 1.0f});
-    floorMaterial->Initialize();
+    floorRenderer->SetMaterial(floorMaterial);
 
     GameObject* tableObject = m_scene->CreateGameObject("Table");
     tableObject->AddComponent<Transform>(
@@ -68,9 +81,7 @@ void TableFloorScene::CreateSceneObjects()
         );
     MeshRenderer* tableRenderer = tableObject->AddComponent<MeshRenderer>();
     tableRenderer->SetMesh(cubeMesh);
-    Material* tableMaterial = tableObject->AddComponent<Material>("VertexShader.spv", "PixelShader.spv", VULKAN);
-    tableMaterial->SetColor({0.6f, 0.6f, 0.4f, 1.0f});
-    tableMaterial->Initialize();
+    tableRenderer->SetMaterial(tableMaterial);
 
     XR_TUT_LOG("TableFloorScene::CreateSceneObjects() - All objects created including test cube at (0,0,-2)");
 }
