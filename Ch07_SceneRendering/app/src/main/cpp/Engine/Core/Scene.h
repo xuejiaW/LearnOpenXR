@@ -10,7 +10,7 @@ class Camera;
 class Scene {
 public:
     Scene(const std::string& name = "Scene");
-    ~Scene();
+    virtual ~Scene();
     
     GameObject* CreateGameObject(const std::string& name = "GameObject");
     void DestroyGameObject(GameObject* gameObject);

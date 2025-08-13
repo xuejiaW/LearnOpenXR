@@ -9,41 +9,28 @@
 #include "../Engine/Components/OpenXR/XRHmdDriver.h"
 #include "../Engine/Rendering/Mesh/CubeMesh.h"
 #include <DebugOutput.h>
-#include <memory>
 
-TableFloorScene::TableFloorScene() : m_scene(std::make_unique<Scene>("TableFloorScene")) {}
+TableFloorScene::TableFloorScene() : Scene("TableFloorScene") {}
 
 TableFloorScene::~TableFloorScene() {}
 
-void TableFloorScene::Initialize()
-{
-    CreateSceneObjects();
-}
+void TableFloorScene::Initialize() { CreateSceneObjects(); }
 
-void TableFloorScene::Update(float deltaTime)
-{
-    m_scene->Update(deltaTime);
-}
-
-void TableFloorScene::CreateSceneObjects()
-{
+void TableFloorScene::CreateSceneObjects() {
     auto cubeMesh = std::make_shared<CubeMesh>(1.0f);
 
-    // Create shared shaders
     auto vertexShader = std::make_shared<Shader>("shaders/VertexShader.spv", Shader::VERTEX, VULKAN);
     auto fragmentShader = std::make_shared<Shader>("shaders/PixelShader.spv", Shader::FRAGMENT, VULKAN);
     
-    // Create floor material
     auto floorMaterial = std::make_shared<Material>();
     floorMaterial->SetShaders(vertexShader, fragmentShader);
     floorMaterial->SetColor(0.4f, 0.5f, 0.5f, 1.0f);
     
-    // Create table material
     auto tableMaterial = std::make_shared<Material>();
     tableMaterial->SetShaders(vertexShader, fragmentShader);
     tableMaterial->SetColor(0.6f, 0.6f, 0.4f, 1.0f);
 
-    GameObject* cameraObject = m_scene->CreateGameObject("Camera");
+    GameObject* cameraObject = CreateGameObject("XRCamera");
     
     Transform* cameraTransform = cameraObject->AddComponent<Transform>();
     cameraTransform->SetPosition({0.0f, 0.0f, 0.0f});
@@ -63,7 +50,7 @@ void TableFloorScene::CreateSceneObjects()
     
     cameraObject->AddComponent<XRHmdDriver>();
 
-    GameObject* floorObject = m_scene->CreateGameObject("Floor");
+    GameObject* floorObject = CreateGameObject("Floor");
     floorObject->AddComponent<Transform>(
         XrVector3f{0.0f, -m_viewHeightM, -1.0f},
         XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},
@@ -73,7 +60,7 @@ void TableFloorScene::CreateSceneObjects()
     floorRenderer->SetMesh(cubeMesh);
     floorRenderer->SetMaterial(floorMaterial);
 
-    GameObject* tableObject = m_scene->CreateGameObject("Table");
+    GameObject* tableObject = CreateGameObject("Table");
     tableObject->AddComponent<Transform>(
         XrVector3f{0.0f, -m_viewHeightM + 0.9f, -0.7f},
         XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},
