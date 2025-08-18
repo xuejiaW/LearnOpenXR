@@ -56,6 +56,7 @@ set(SOURCES
     app/src/main/cpp/Application/OpenXRTutorial_Android.cpp
     app/src/main/cpp/Application/OpenXRTutorial.cpp
     app/src/main/cpp/Application/OpenXRTutorial_Windows.cpp
+    app/src/main/cpp/Application/Components/TestControllerHaptics.cpp
     app/src/main/cpp/Engine/Core/GameObject.cpp
     app/src/main/cpp/Engine/Components/Core/Transform.cpp
     app/src/main/cpp/Engine/Core/Scene.cpp
@@ -63,7 +64,8 @@ set(SOURCES
     app/src/main/cpp/Engine/Components/Rendering/Material.cpp
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
     app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
-    app/src/main/cpp/Engine/Components/Rendering/XRHmdDriver.cpp
+    app/src/main/cpp/Engine/Components/XRDevices/XRHmdDriver.cpp
+    app/src/main/cpp/Engine/Components/XRDevices/XRControllerDriver.cpp
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.cpp
     app/src/main/cpp/Scenes/TableFloorScene.cpp
 )
@@ -92,6 +94,7 @@ set(HEADERS
     app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
+    app/src/main/cpp/Application/Components/TestControllerHaptics.h
     app/src/main/cpp/Engine/Core/IComponent.h
     app/src/main/cpp/Engine/Core/GameObject.h
     app/src/main/cpp/Engine/Components/Core/Transform.h
@@ -101,7 +104,8 @@ set(HEADERS
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h
     app/src/main/cpp/Engine/Components/Rendering/RenderSettings.h
-    app/src/main/cpp/Engine/Components/Rendering/XRHmdDriver.h
+    app/src/main/cpp/Engine/Components/XRDevices//XRHmdDriver.h
+    app/src/main/cpp/Engine/Components/XRDevices/XRControllerDriver.h
     app/src/main/cpp/Engine/Rendering/Vertex.h
     app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h

@@ -44,10 +44,6 @@ void OpenXRTutorial::Run()
 
                 for (int handIndex = 0; handIndex < 2; ++handIndex)
                 {
-                    if (InputMgr::GetSelectDown(handIndex))
-                    {
-                        OpenXRInputMgr::TriggerHapticFeedback(handIndex, 0.5f, 100000000);
-                    }
 
                     bool poseActive;
                     XrPosef pose = InputMgr::GetHandPose(handIndex, &poseActive);
