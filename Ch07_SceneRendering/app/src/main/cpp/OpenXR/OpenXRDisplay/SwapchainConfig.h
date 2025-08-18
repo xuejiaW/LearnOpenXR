@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <openxr/openxr.h>
 
+#include <functional>
+
 struct SwapchainConfig
 {
     XrSwapchainUsageFlags usageFlags;

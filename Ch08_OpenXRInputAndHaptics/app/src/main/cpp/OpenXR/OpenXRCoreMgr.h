@@ -26,5 +26,5 @@ public:
     static std::unique_ptr<OpenXRGraphicsAPI> openxrGraphicsAPI;
 private:
     static void CreateRequiredExtensions(std::vector<std::string>& requiredExtensions);
-    static void FindRequiredExtensions(const std::vector<std::string>& requestExtensions, std::vector<const char*>& activeExtensions);
+    static void FindRequiredExtensions(const std::vector<std::string>& requestExtensions, std::vector<std::string>& activeExtensions);
 };

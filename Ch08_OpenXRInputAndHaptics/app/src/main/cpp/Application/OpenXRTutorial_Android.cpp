@@ -5,6 +5,9 @@
 
 #if defined(__ANDROID__)
 android_app *OpenXRTutorial::androidApp = nullptr;
+void* OpenXRTutorial::androidVM = nullptr;
+void* OpenXRTutorial::androidActivity = nullptr;
+
 OpenXRTutorial::AndroidAppState OpenXRTutorial::androidAppState = {};
 
 void OpenXRTutorial::AndroidAppHandleCmd(struct android_app *app, int32_t cmd) {

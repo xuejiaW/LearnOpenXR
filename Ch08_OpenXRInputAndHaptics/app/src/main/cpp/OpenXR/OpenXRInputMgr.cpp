@@ -41,7 +41,6 @@ void OpenXRInputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDur
 
 void OpenXRInputMgr::SetupActions()
 {
-    // 创建同时支持左右手的subaction paths
     std::vector<std::string> bothHandsSubactions = {HAND_LEFT_PATH, HAND_RIGHT_PATH};
 
     m_HandPoseAction = CreateAction("hand_pose", "Hand Pose", XR_ACTION_TYPE_POSE_INPUT, bothHandsSubactions);

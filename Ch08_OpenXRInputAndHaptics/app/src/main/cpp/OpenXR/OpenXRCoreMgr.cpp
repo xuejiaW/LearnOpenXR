@@ -25,15 +25,32 @@ void OpenXRCoreMgr::CreateInstance()
     appInfo.apiVersion = XR_CURRENT_API_VERSION;
 
     std::vector<std::string> requiredExtensions{};
-    std::vector<const char*> activeExtensions{};
+    std::vector<std::string> activeExtensions{};
     CreateRequiredExtensions(requiredExtensions);
     FindRequiredExtensions(requiredExtensions, activeExtensions);
 
+    // Convert string vector to const char* vector for OpenXR API
+    std::vector<const char*> activeExtensionCStrings{};
+    for (const auto& ext : activeExtensions)
+    {
+        activeExtensionCStrings.push_back(ext.c_str());
+    }
+
     XrInstanceCreateInfo instanceCreateInfo = {};
+
+#if defined(__ANDROID__)
+    XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid{};
+    instanceCreateInfoAndroid.type = XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR;
+    instanceCreateInfoAndroid.applicationVM = OpenXRTutorial::androidVM;
+    instanceCreateInfoAndroid.applicationActivity = OpenXRTutorial::androidActivity;
+    instanceCreateInfo.next = reinterpret_cast<XrBaseInStructure*>(&instanceCreateInfoAndroid);
+#endif
+
     instanceCreateInfo.type = XR_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.applicationInfo = appInfo;
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(activeExtensions.size());
-    instanceCreateInfo.enabledExtensionNames = activeExtensions.data();
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(activeExtensionCStrings.size());
+    instanceCreateInfo.enabledExtensionNames = activeExtensionCStrings.data();
+
     OPENXR_CHECK(xrCreateInstance(&instanceCreateInfo, &m_xrInstance), "Failed to create OpenXR instance");
     XR_TUT_LOG("OpenXR instance created successfully");
 
@@ -75,10 +92,15 @@ void OpenXRCoreMgr::GetSystemID()
 void OpenXRCoreMgr::CreateRequiredExtensions(std::vector<std::string>& requiredExtensions)
 {
     requiredExtensions.clear();
+
+#if defined(__ANDROID__)
+    requiredExtensions.emplace_back("XR_KHR_android_create_instance");
+#endif
+
     requiredExtensions.emplace_back(OpenXRGraphicsAPI::GetGraphicsAPIInstanceExtensionString(OpenXRTutorial::m_apiType));
 }
 
-void OpenXRCoreMgr::FindRequiredExtensions(const std::vector<std::string>& requestExtensions, std::vector<const char*>& activeExtensions)
+void OpenXRCoreMgr::FindRequiredExtensions(const std::vector<std::string>& requestExtensions, std::vector<std::string>& activeExtensions)
 {
     uint32_t extensionCount = 0;
     OPENXR_CHECK(xrEnumerateInstanceExtensionProperties(nullptr, 0, &extensionCount, nullptr), "Failed to enumerate OpenXR instance extensions");
@@ -96,7 +118,7 @@ void OpenXRCoreMgr::FindRequiredExtensions(const std::vector<std::string>& reque
         {
             if (strcmp(ext.extensionName, requestExtension.c_str()) == 0)
             {
-                activeExtensions.push_back(ext.extensionName);
+                activeExtensions.emplace_back(ext.extensionName);
                 found = true;
                 break;
             }

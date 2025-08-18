@@ -3,9 +3,6 @@
 #include <GraphicsAPI_Vulkan.h>
 #include <openxr/openxr.h>
 
-#include "DebugOutput.h"
-#include "../Engine/Components/Input/InputMgr.h"
-
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
 #include "../OpenXR/OpenXRInputMgr.h"
@@ -41,19 +38,6 @@ void OpenXRTutorial::Run()
 
                 OpenXRInputMgr::Tick(OpenXRSessionMgr::frameState.predictedDisplayTime,
                                      OpenXRSpaceMgr::activeSpaces);
-
-                for (int handIndex = 0; handIndex < 2; ++handIndex)
-                {
-
-                    bool poseActive;
-                    XrPosef pose = InputMgr::GetHandPose(handIndex, &poseActive);
-                    if (poseActive)
-                    {
-                        XR_TUT_LOG("Hand " << handIndex << " pose - Position: (" << pose.position.x << ", " << pose.position.y
-                            << ", " << pose.position.z << "), Orientation: (" << pose.orientation.x << ", "
-                            << pose.orientation.y << ", " << pose.orientation.z << ", " << pose.orientation.w << ")");
-                    }
-                }
             }
 
             const bool shouldRender = OpenXRSessionMgr::IsShouldRender();

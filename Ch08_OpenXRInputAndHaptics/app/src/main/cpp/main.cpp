@@ -27,9 +27,7 @@ void android_main(struct android_app *app)
         return;
     }
 
-    XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid = {};
-    loaderInitializeInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
-    loaderInitializeInfoAndroid.next = nullptr;
+    XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
     loaderInitializeInfoAndroid.applicationVM = app->activity->vm;
     loaderInitializeInfoAndroid.applicationContext = app->activity->clazz;
     if (XR_FAILED(xrInitializeLoaderKHR((const XrLoaderInitInfoBaseHeaderKHR *)&loaderInitializeInfoAndroid))) {
@@ -42,6 +40,8 @@ void android_main(struct android_app *app)
     app->userData = &OpenXRTutorial::androidAppState;
     app->onAppCmd = OpenXRTutorial::AndroidAppHandleCmd;
     OpenXRTutorial::androidApp = app;
+    OpenXRTutorial::androidVM = app->activity->vm;
+    OpenXRTutorial::androidActivity = app->activity->clazz;
     OpenXRTutorial_Main(VULKAN);
 }
 #else

@@ -259,7 +259,8 @@ else() # Windows / Linux
 
     # XR_DOCS_TAG_BEGIN_BuildShadersVulkanWindowsLinux
     # Vulkan GLSL
-    set(SHADER_DEST "${CMAKE_CURRENT_BINARY_DIR}")
+    set(SHADER_DEST "${CMAKE_CURRENT_BINARY_DIR}/shaders")
+    file(MAKE_DIRECTORY ${SHADER_DEST})
     if(Vulkan_FOUND)
         include(../cmake/glsl_shader.cmake)
         set_source_files_properties(
