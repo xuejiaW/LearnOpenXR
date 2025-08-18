@@ -4,6 +4,8 @@
 #include "../Engine/Components/Rendering/MeshRenderer.h"
 #include "../Engine/Components/Rendering/Material.h"
 #include "../Engine/Components/Rendering/Camera.h"
+#include "../Engine/Components/Rendering/RenderSettings.h"
+#include "../Engine/Components/Rendering/XRHmdDriver.h"
 #include "../Engine/Rendering/Mesh/CubeMesh.h"
 #include <DebugOutput.h>
 #include <memory>
@@ -27,9 +29,15 @@ void TableFloorScene::CreateSceneObjects()
     auto cubeMesh = std::make_shared<CubeMesh>(1.0f);
 
     GameObject* cameraObject = m_scene->CreateGameObject("Camera");
+    
+    Transform* cameraTransform = cameraObject->AddComponent<Transform>();
+    cameraTransform->SetPosition({0.0f, 0.0f, 0.0f});
+    cameraTransform->SetRotation({0.0f, 0.0f, 0.0f, 1.0f});
+    
     Camera* camera = cameraObject->AddComponent<Camera>();
-
-    Camera::RenderSettings settings;
+    camera->SetProjectionParameters(0.05f, 1000.0f);
+    
+    RenderSettings settings;
     settings.width = 1024;
     settings.height = 1024;
     settings.colorImage = nullptr;
@@ -37,9 +45,11 @@ void TableFloorScene::CreateSceneObjects()
     settings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
     settings.clearColor = {0.0f, 0.0f, 0.2f, 1.0f};
     camera->SetRenderSettings(settings);
+    
+    cameraObject->AddComponent<XRHmdDriver>();
 
     GameObject* floorObject = m_scene->CreateGameObject("Floor");
-    Transform* floorTransform = floorObject->AddComponent<Transform>(
+    floorObject->AddComponent<Transform>(
         XrVector3f{0.0f, -m_viewHeightM, -1.0f},
         XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},
         XrVector3f{2.0f, 0.1f, 2.0f}
@@ -51,7 +61,7 @@ void TableFloorScene::CreateSceneObjects()
     floorMaterial->Initialize();
 
     GameObject* tableObject = m_scene->CreateGameObject("Table");
-    Transform* tableTransform = tableObject->AddComponent<Transform>(
+    tableObject->AddComponent<Transform>(
         XrVector3f{0.0f, -m_viewHeightM + 0.9f, -0.7f},
         XrQuaternionf{0.0f, 0.0f, 0.0f, 1.0f},
         XrVector3f{1.0f, 0.2f, 1.0f}

@@ -3,8 +3,8 @@
 #include <openxr/openxr.h>
 
 struct Vertex {
-    XrVector4f position;  // 位置 (x, y, z, w)
-    XrVector3f normal;    // 法线 (nx, ny, nz)
+    XrVector4f position;
+    XrVector3f normal;
     
     Vertex() = default;
     

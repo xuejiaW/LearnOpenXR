@@ -13,8 +13,8 @@ public:
     const std::vector<Vertex>& GetVerticesWithNormals() const override { return m_verticesWithNormals; }
     const std::vector<uint32_t>& GetIndices() const override { return m_indices; }
     
-    uint32_t GetVertexCount() const override { return m_verticesWithNormals.size(); }
-    uint32_t GetIndexCount() const override { return m_indices.size(); }
+    uint64_t GetVertexCount() const override { return m_verticesWithNormals.size(); }
+    uint64_t GetIndexCount() const override { return m_indices.size(); }
 
 private:
     void GenerateCubeData(float size);

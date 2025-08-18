@@ -5,7 +5,6 @@
 #include "../../../OpenXR/OpenXRCoreMgr.h"
 #include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
 #include "../../../OpenXR/OpenXRDisplayMgr.h"
-#include "../../../Application/OpenXRTutorial.h"
 #include "Camera.h"
 #include "../../Core/Scene.h"
 #include "../../Core/GameObject.h"
@@ -17,49 +16,49 @@
 #endif
 
 Material::Material(const std::string& vertShaderFile, const std::string& fragShaderFile, GraphicsAPI_Type apiType)
-    : m_vertShaderFile(vertShaderFile), m_fragShaderFile(fragShaderFile), m_apiType(apiType)
+    : m_VertShaderFile(vertShaderFile), m_FragShaderFile(fragShaderFile), m_ApiType(apiType)
 {
 }
 
 Material::~Material()
 {
-    if (m_vertexShader) OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_vertexShader);
-    if (m_fragmentShader) OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_fragmentShader);
+    if (m_VertexShader) OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_VertexShader);
+    if (m_FragmentShader) OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_FragmentShader);
 }
 
 void Material::Initialize() {
-    if (m_apiType == VULKAN) {
-        m_vertexShader = CreateShaderFromFile(m_vertShaderFile, GraphicsAPI::ShaderCreateInfo::Type::VERTEX);
-        m_fragmentShader = CreateShaderFromFile(m_fragShaderFile, GraphicsAPI::ShaderCreateInfo::Type::FRAGMENT);
+    if (m_ApiType == VULKAN) {
+        m_VertexShader = CreateShaderFromFile(m_VertShaderFile, GraphicsAPI::ShaderCreateInfo::Type::VERTEX);
+        m_FragmentShader = CreateShaderFromFile(m_FragShaderFile, GraphicsAPI::ShaderCreateInfo::Type::FRAGMENT);
     }
 }
 
 void Material::Destroy() {
-    if (m_vertexShader) {
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_vertexShader);
-        m_vertexShader = nullptr;
+    if (m_VertexShader) {
+        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_VertexShader);
+        m_VertexShader = nullptr;
     }
-    if (m_fragmentShader) {
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_fragmentShader);
-        m_fragmentShader = nullptr;
+    if (m_FragmentShader) {
+        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyShader(m_FragmentShader);
+        m_FragmentShader = nullptr;
     }
-    if (m_pipeline) {
-        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyPipeline(m_pipeline);
-        m_pipeline = nullptr;
+    if (m_Pipeline) {
+        OpenXRCoreMgr::openxrGraphicsAPI->graphicsAPI->DestroyPipeline(m_Pipeline);
+        m_Pipeline = nullptr;
     }
 }
 
 void* Material::GetOrCreatePipeline() {
-    if (m_pipeline) {
-        return m_pipeline;
+    if (m_Pipeline) {
+        return m_Pipeline;
     }
     
-    if (!m_vertexShader || !m_fragmentShader) {
+    if (!m_VertexShader || !m_FragmentShader) {
         return nullptr;
     }
     
-    m_pipeline = CreatePipeline();
-    return m_pipeline;
+    m_Pipeline = CreatePipeline();
+    return m_Pipeline;
 }
 
 Camera* Material::GetActiveCamera() {
@@ -77,7 +76,7 @@ void* Material::CreatePipeline() {
     }
     
     GraphicsAPI::PipelineCreateInfo pipelineCreateInfo;
-    pipelineCreateInfo.shaders = {m_vertexShader, m_fragmentShader};
+    pipelineCreateInfo.shaders = {m_VertexShader, m_FragmentShader};
 
     pipelineCreateInfo.vertexInputState.attributes.resize(2);
     pipelineCreateInfo.vertexInputState.attributes[0] = {0, 0, GraphicsAPI::VertexType::VEC4, 0, "POSITION"};
@@ -193,11 +192,11 @@ void* Material::LoadShaderFromFileSystem(const std::string& filename, GraphicsAP
         return nullptr;
     }
 
-    size_t fileSize = static_cast<size_t>(file.tellg());
+    size_t fileSize = file.tellg();
 
     std::vector<char> buffer(fileSize);
     file.seekg(0);
-    file.read(buffer.data(), fileSize);
+    file.read(buffer.data(), static_cast<std::streamsize>(fileSize));
     file.close();
 
     if (!file.good() && !file.eof())

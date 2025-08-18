@@ -62,6 +62,7 @@ set(SOURCES
     app/src/main/cpp/Engine/Components/Rendering/Material.cpp
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
     app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
+    app/src/main/cpp/Engine/Components/Rendering/XRHmdDriver.cpp
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.cpp
     app/src/main/cpp/Scenes/TableFloorScene.cpp
 )
@@ -98,13 +99,11 @@ set(HEADERS
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h
     app/src/main/cpp/Engine/Components/Rendering/RenderSettings.h
+    app/src/main/cpp/Engine/Components/Rendering/XRHmdDriver.h
     app/src/main/cpp/Engine/Rendering/Vertex.h
     app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h
     app/src/main/cpp/Scenes/TableFloorScene.h
-    app/src/main/cpp/Engine/Rendering/Mesh/QuadMesh.h
-    app/src/main/cpp/Engine/Components/Rendering/Skybox.h
-    app/src/main/cpp/Engine/Components/Input/HandController.h
 )
 
 # XR_DOCS_TAG_BEGIN_GLSLShaders
