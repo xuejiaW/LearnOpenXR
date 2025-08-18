@@ -62,8 +62,8 @@ set(SOURCES
     app/src/main/cpp/Engine/Rendering/Material.cpp
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
     app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
+    app/src/main/cpp/Engine/Components/XRDevices/XRHmdDriver.cpp
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.cpp
-    app/src/main/cpp/Engine/Components/OpenXR/XRHmdDriver.cpp
     app/src/main/cpp/Scenes/TableFloorScene.cpp
 )
 set(HEADERS
@@ -96,8 +96,7 @@ set(HEADERS
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h
     app/src/main/cpp/Engine/Components/Rendering/RenderSettings.h
-    app/src/main/cpp/Engine/Components/OpenXR/XRHmdDriver.h
-
+    app/src/main/cpp/Engine/Components/XRDevices/XRHmdDriver.h
     app/src/main/cpp/Engine/Rendering/Vertex.h
     app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h

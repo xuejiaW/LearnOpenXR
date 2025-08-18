@@ -6,7 +6,7 @@
 #include "../Engine/Rendering/Shader.h"
 #include "../Engine/Components/Rendering/Camera.h"
 #include "../Engine/Components/Rendering/RenderSettings.h"
-#include "../Engine/Components/OpenXR/XRHmdDriver.h"
+#include "../Engine/Components/XRDevices/XRHmdDriver.h"
 #include "../Engine/Rendering/Mesh/CubeMesh.h"
 #include <DebugOutput.h>
 

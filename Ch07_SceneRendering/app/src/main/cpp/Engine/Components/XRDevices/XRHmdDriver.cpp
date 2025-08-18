@@ -1,10 +1,6 @@
 ﻿#include "XRHmdDriver.h"
-<<<<<<<< HEAD:Ch07_SceneRendering/app/src/main/cpp/Engine/Components/OpenXR/XRHmdDriver.cpp
 #include "../Rendering/Camera.h"
-========
->>>>>>>> b2b411d (refactor: move XRHmdDriver to XRDevices folder):Ch07_SceneRendering/app/src/main/cpp/Engine/Components/XRDevices/XRHmdDriver.cpp
 #include "../Core/Transform.h"
-#include "../Rendering/Camera.h"
 #include "../../Core/GameObject.h"
 #include "../../../OpenXR/OpenXRDisplayMgr.h"
 #include "../../../OpenXR/OpenXRRenderMgr.h"
