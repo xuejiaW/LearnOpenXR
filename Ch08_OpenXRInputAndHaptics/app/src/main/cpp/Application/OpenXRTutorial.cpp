@@ -4,6 +4,7 @@
 #include <openxr/openxr.h>
 
 #include "DebugOutput.h"
+#include "../Engine/Components/Input/InputMgr.h"
 
 #include "../OpenXR/OpenXRCoreMgr.h"
 #include "../OpenXR/OpenXRDisplayMgr.h"
@@ -43,13 +44,13 @@ void OpenXRTutorial::Run()
 
                 for (int handIndex = 0; handIndex < 2; ++handIndex)
                 {
-                    if (OpenXRInputMgr::GetSelectDown(handIndex))
+                    if (InputMgr::GetSelectDown(handIndex))
                     {
                         OpenXRInputMgr::TriggerHapticFeedback(handIndex, 0.5f, 100000000);
                     }
 
                     bool poseActive;
-                    XrPosef pose = OpenXRInputMgr::GetHandPose(handIndex, &poseActive);
+                    XrPosef pose = InputMgr::GetHandPose(handIndex, &poseActive);
                     if (poseActive)
                     {
                         XR_TUT_LOG("Hand " << handIndex << " pose - Position: (" << pose.position.x << ", " << pose.position.y

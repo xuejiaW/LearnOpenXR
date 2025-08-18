@@ -59,6 +59,7 @@ set(SOURCES
     app/src/main/cpp/Engine/Core/GameObject.cpp
     app/src/main/cpp/Engine/Components/Core/Transform.cpp
     app/src/main/cpp/Engine/Core/Scene.cpp
+    app/src/main/cpp/Engine/Components/Input/InputMgr.cpp
     app/src/main/cpp/Engine/Components/Rendering/Material.cpp
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
     app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
@@ -95,6 +96,7 @@ set(HEADERS
     app/src/main/cpp/Engine/Core/GameObject.h
     app/src/main/cpp/Engine/Components/Core/Transform.h
     app/src/main/cpp/Engine/Core/Scene.h
+    app/src/main/cpp/Engine/Components/Input/InputMgr.h
     app/src/main/cpp/Engine/Components/Rendering/Material.h
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h

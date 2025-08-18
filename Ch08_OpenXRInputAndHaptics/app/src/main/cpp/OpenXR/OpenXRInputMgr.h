@@ -5,20 +5,15 @@
 #include <string>
 #include <functional>
 
-#include "Input/ActionInfo.h"
 #include "Input/ActionSetInfo.h"
 #include "Input/InteractionProfileBinding.h"
+#include "Input//HandState.h"
 
 class OpenXRInputMgr
 {
 public:
     static void Shutdown();
     static void Tick(XrTime predictedTime, XrSpace referenceSpace);
-    
-    static bool GetSelectDown(int handIndex);  // Button just pressed
-    static bool GetSelect(int handIndex);      // Button held down
-    static bool GetSelectUp(int handIndex);    // Button just released
-    static XrPosef GetHandPose(int handIndex, bool* isActive = nullptr);
     
     static void TriggerHapticFeedback(int handIndex, float amplitude = 0.5f, XrDuration duration = 100000000);
     
@@ -31,18 +26,12 @@ public:
     static void AttachActionSet();
 
     static void CreateHandPoseActionSpace();
+
+    static HandState handStates[2];  // Left and Right hand
     
 private:
-    struct HandState {
-        bool currentSelectPressed = false;
-        bool lastSelectPressed = false;
-        XrPosef pose = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
-        bool poseActive = false;
-    };
     
-    static HandState m_HandStates[2];  // Left and Right hand
     
-    // 改为单个action，不再使用数组
     static XrAction m_HandPoseAction;
     static XrAction m_SelectAction;
     static XrAction m_HapticAction;

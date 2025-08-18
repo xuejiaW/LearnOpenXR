@@ -9,7 +9,7 @@ ActionSetInfo OpenXRInputMgr::m_ActionSet{};
 std::vector<InteractionProfileBinding> OpenXRInputMgr::m_InteractionProfileBindings{};
 std::vector<XrSpace> OpenXRInputMgr::m_ActionSpaces{};
 
-OpenXRInputMgr::HandState OpenXRInputMgr::m_HandStates[2] = {};
+HandState OpenXRInputMgr::handStates[2] = {};
 XrAction OpenXRInputMgr::m_HandPoseAction = XR_NULL_HANDLE;
 XrAction OpenXRInputMgr::m_SelectAction = XR_NULL_HANDLE;
 XrAction OpenXRInputMgr::m_HapticAction = XR_NULL_HANDLE;
@@ -22,7 +22,7 @@ void OpenXRInputMgr::Shutdown()
 
     for (int i = 0; i < 2; ++i)
     {
-        m_HandStates[i] = {};
+        handStates[i] = {};
     }
 
     XR_TUT_LOG("OpenXRInputMgr shutdown completed");
@@ -32,27 +32,6 @@ void OpenXRInputMgr::Tick(XrTime predictedTime, XrSpace referenceSpace)
 {
     SyncActions();
     UpdateHandStates(predictedTime, referenceSpace);
-}
-
-bool OpenXRInputMgr::GetSelectDown(int handIndex)
-{
-    return m_HandStates[handIndex].currentSelectPressed && !m_HandStates[handIndex].lastSelectPressed;
-}
-
-bool OpenXRInputMgr::GetSelect(int handIndex)
-{
-    return m_HandStates[handIndex].currentSelectPressed;
-}
-
-bool OpenXRInputMgr::GetSelectUp(int handIndex)
-{
-    return !m_HandStates[handIndex].currentSelectPressed && m_HandStates[handIndex].lastSelectPressed;
-}
-
-XrPosef OpenXRInputMgr::GetHandPose(int handIndex, bool* isActive)
-{
-    if (isActive) *isActive = m_HandStates[handIndex].poseActive;
-    return m_HandStates[handIndex].pose;
 }
 
 void OpenXRInputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDuration duration)
@@ -148,12 +127,12 @@ void OpenXRInputMgr::UpdateHandStates(XrTime predictedTime, XrSpace referenceSpa
 {
     for (int handIndex = 0; handIndex < 2; ++handIndex)
     {
-        m_HandStates[handIndex].lastSelectPressed = m_HandStates[handIndex].currentSelectPressed;
-        m_HandStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
+        handStates[handIndex].lastSelectPressed = handStates[handIndex].currentSelectPressed;
+        handStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
                                                                              handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
 
-        m_HandStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, m_HandSpaces[handIndex],
-                                                          referenceSpace, predictedTime, &m_HandStates[handIndex].poseActive);
+        handStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, m_HandSpaces[handIndex],
+                                                          referenceSpace, predictedTime, &handStates[handIndex].poseActive);
     }
 }
 
