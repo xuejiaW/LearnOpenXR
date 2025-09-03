@@ -19,11 +19,11 @@ bool InputMgr::GetSelectUp(int handIndex)
 
 XrPosef InputMgr::GetHandPose(int handIndex, bool* isActive)
 {
-    if (isActive) *isActive = OpenXRInputMgr::handStates[handIndex].poseActive;
+    *isActive = OpenXRInputMgr::handStates[handIndex].poseActive;
     return OpenXRInputMgr::handStates[handIndex].pose;
 }
 
 void InputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDuration duration)
 {
-     OpenXRInputMgr::TriggerHapticFeedback(handIndex,amplitude,duration);
+    OpenXRInputMgr::TriggerHapticFeedback(handIndex, amplitude, duration);
 }

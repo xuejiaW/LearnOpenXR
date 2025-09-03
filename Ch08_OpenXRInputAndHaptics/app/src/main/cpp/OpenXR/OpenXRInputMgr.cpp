@@ -128,10 +128,10 @@ void OpenXRInputMgr::UpdateHandStates(XrTime predictedTime, XrSpace referenceSpa
     {
         handStates[handIndex].lastSelectPressed = handStates[handIndex].currentSelectPressed;
         handStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
-                                                                             handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
+                                                                           handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
 
-        handStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, m_HandSpaces[handIndex],
-                                                          referenceSpace, predictedTime, &handStates[handIndex].poseActive);
+        handStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH, m_HandSpaces[handIndex],
+                                                        referenceSpace, predictedTime, &handStates[handIndex].poseActive);
     }
 }
 
@@ -266,9 +266,7 @@ void OpenXRInputMgr::DestroyActionSpaces()
 
 void OpenXRInputMgr::SyncActions()
 {
-    XrActiveActionSet activeActionSet{};
-    activeActionSet.actionSet = m_ActionSet.actionSet;
-    activeActionSet.subactionPath = XR_NULL_PATH;
+    XrActiveActionSet activeActionSet{m_ActionSet.actionSet,XR_NULL_PATH};
 
     XrActionsSyncInfo syncInfo;
     syncInfo.type = XR_TYPE_ACTIONS_SYNC_INFO;
@@ -337,21 +335,19 @@ float OpenXRInputMgr::GetActionStateFloat(XrAction action, const std::string& su
     return 0.0f;
 }
 
-XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, XrSpace actionSpace, XrSpace referenceSpace, XrTime predictedTime, bool* isActive)
+XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, const std::string& subactionPath, XrSpace actionSpace, XrSpace referenceSpace,
+                                           XrTime predictedTime, bool* isActive)
 {
     XrPosef pose = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
 
     if (actionSpace == XR_NULL_HANDLE || referenceSpace == XR_NULL_HANDLE)
     {
-        if (isActive) *isActive = false;
+        *isActive = false;
         return pose;
     }
 
-    // First check if the action is active
-    XrActionStateGetInfo getInfo = {};
-    getInfo.type = XR_TYPE_ACTION_STATE_GET_INFO;
-    getInfo.next = nullptr;
-    getInfo.action = poseAction;
+    XrActionStateGetInfo getInfo = {XR_TYPE_ACTION_STATE_GET_INFO, nullptr, poseAction,
+                                    XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath)};
 
     XrActionStatePose actionStatePose = {};
     actionStatePose.type = XR_TYPE_ACTION_STATE_POSE;
@@ -360,7 +356,7 @@ XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, XrSpace actionSp
 
     if (!XR_SUCCEEDED(result) || actionStatePose.isActive != XR_TRUE)
     {
-        if (isActive) *isActive = false;
+        *isActive = false;
         return pose;
     }
 
@@ -373,11 +369,11 @@ XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, XrSpace actionSp
     if (XR_SUCCEEDED(result) && (spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) &&
         (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
     {
-        if (isActive) *isActive = true;
+        *isActive = true;
         return spaceLocation.pose;
     }
 
-    if (isActive) *isActive = false;
+    *isActive = false;
     return pose;
 }
 

@@ -54,7 +54,8 @@ private:
     static void SyncActions();
     static bool GetActionStateBoolean(XrAction action, const std::string& subactionPath = "", bool* changedSinceLastSync = nullptr);
     static float GetActionStateFloat(XrAction action, const std::string& subactionPath = "", bool* changedSinceLastSync = nullptr);
-    static XrPosef GetActionStatePose(XrAction poseAction, XrSpace actionSpace, XrSpace referenceSpace, XrTime predictedTime, bool* isActive = nullptr);
+    static XrPosef GetActionStatePose(XrAction poseAction, const std::string& subactionPath, XrSpace actionSpace, XrSpace referenceSpace,
+                                           XrTime predictedTime, bool* isActive);
     
     static void ApplyHapticFeedback(XrAction hapticAction, const std::string& subactionPath, 
                                    float amplitude, XrDuration duration = XR_MIN_HAPTIC_DURATION, 
