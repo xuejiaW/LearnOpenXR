@@ -14,18 +14,12 @@ public:
     
     void SetFieldOfView(const XrFovf& fov);
     void SetProjectionParameters(float nearPlane, float farPlane);
-    void SetViewMatrix(const XrMatrix4x4f& viewMatrix);
-    void SetProjectionMatrix(const XrMatrix4x4f& projMatrix);
     void SetRenderSettings(const RenderSettings& settings);
-    
-    void SetupForOpenXR(int viewIndex, void* colorImage, void* depthImage, GraphicsAPI_Type apiType);
-    void SetupForOpenXRFromDisplayMgr(void* colorImage, void* depthImage, GraphicsAPI_Type apiType);
     
     static void SetGraphicsAPIType(GraphicsAPI_Type apiType);
     
     const XrMatrix4x4f& GetViewMatrix();
     const XrMatrix4x4f& GetProjectionMatrix();
-    const XrMatrix4x4f& GetViewProjectionMatrix();
     const RenderSettings& GetRenderSettings() const { return m_RenderSettings; }
     
     void PreTick(float deltaTime) override;

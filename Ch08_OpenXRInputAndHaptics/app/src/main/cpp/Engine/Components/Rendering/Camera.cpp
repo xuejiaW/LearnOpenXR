@@ -35,45 +35,9 @@ void Camera::SetProjectionParameters(float nearPlane, float farPlane)
     m_ViewProjectionDirty = true;
 }
 
-void Camera::SetViewMatrix(const XrMatrix4x4f& viewMatrix)
-{
-    m_ViewProjectionDirty = true;
-}
-
-void Camera::SetProjectionMatrix(const XrMatrix4x4f& projMatrix)
-{
-    m_ProjectionMatrix = projMatrix;
-    m_ProjectionDirty = false;
-    m_ViewProjectionDirty = true;
-}
-
 void Camera::SetRenderSettings(const RenderSettings& settings)
 {
     m_RenderSettings = settings;
-}
-
-void Camera::SetupForOpenXR(int viewIndex, void* colorImage, void* depthImage, GraphicsAPI_Type apiType)
-{
-    m_CurrentViewIndex = viewIndex;
-    m_ApiType = apiType;
-    
-    m_RenderSettings.colorImage = colorImage;
-    m_RenderSettings.depthImage = depthImage;
-    m_RenderSettings.width = OpenXRDisplayMgr::activeViewConfigurationViews[viewIndex].recommendedImageRectWidth;
-    m_RenderSettings.height = OpenXRDisplayMgr::activeViewConfigurationViews[viewIndex].recommendedImageRectHeight;
-    m_RenderSettings.blendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-    m_RenderSettings.clearColor = {0.17f, 0.17f, 0.17f, 1.0f};
-    m_RenderSettings.pipeline = nullptr;
-    
-    m_NeedsMatrixUpdate = true;
-}
-
-void Camera::SetupForOpenXRFromDisplayMgr(void* colorImage, void* depthImage, GraphicsAPI_Type apiType)
-{
-    int currentViewIndex = OpenXRDisplayMgr::GetCurrentViewIndex();
-    if (currentViewIndex >= 0) {
-        SetupForOpenXR(currentViewIndex, colorImage, depthImage, apiType);
-    }
 }
 
 void Camera::SetGraphicsAPIType(GraphicsAPI_Type apiType)
@@ -100,15 +64,6 @@ const XrMatrix4x4f& Camera::GetProjectionMatrix()
         m_ProjectionDirty = false;
     }
     return m_ProjectionMatrix;
-}
-
-const XrMatrix4x4f& Camera::GetViewProjectionMatrix()
-{
-    if (m_ViewProjectionDirty) {
-        UpdateViewProjectionMatrix();
-        m_ViewProjectionDirty = false;
-    }
-    return m_ViewProjectionMatrix;
 }
 
 void Camera::PreTick(float deltaTime) {
