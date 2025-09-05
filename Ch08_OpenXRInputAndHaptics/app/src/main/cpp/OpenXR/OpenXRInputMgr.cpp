@@ -65,7 +65,7 @@ void OpenXRInputMgr::SetupBindings()
             {m_HapticAction, "/user/hand/right/output/haptic"}
         };
 
-    AddBindingForProfile(SIMPLE_CONTROLLER_PROFILE, bindings);
+    ConfigureInteractionProfilerBinding(SIMPLE_CONTROLLER_PROFILE, bindings);
 
     for (const auto& profileBinding : m_InteractionProfileBindings)
     {
@@ -85,8 +85,8 @@ void OpenXRInputMgr::SetupBindings()
     }
 }
 
-void OpenXRInputMgr::AddBindingForProfile(const std::string& interactionProfilePath,
-                                          const std::vector<std::pair<XrAction, std::string>>& actionBindings)
+void OpenXRInputMgr::ConfigureInteractionProfilerBinding(const std::string& interactionProfilePath,
+                                                         const std::vector<std::pair<XrAction, std::string>>& actionBindings)
 {
     InteractionProfileBinding* profileBinding = nullptr;
     for (auto& binding : m_InteractionProfileBindings)
@@ -128,10 +128,11 @@ void OpenXRInputMgr::UpdateControllerStates(XrTime predictedTime, XrSpace refere
     {
         controllerStates[handIndex].lastSelectPressed = controllerStates[handIndex].currentSelectPressed;
         controllerStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
-                                                                           handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
+                                                                                 handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
 
-        controllerStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH, m_HandSpaces[handIndex],
-                                                        referenceSpace, predictedTime, &controllerStates[handIndex].poseActive);
+        controllerStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH,
+                                                              m_HandSpaces[handIndex],
+                                                              referenceSpace, predictedTime, &controllerStates[handIndex].poseActive);
     }
 }
 
@@ -403,24 +404,5 @@ void OpenXRInputMgr::ApplyHapticFeedback(XrAction hapticAction, const std::strin
     if (!XR_SUCCEEDED(result))
     {
         XR_TUT_LOG_ERROR("Failed to apply haptic feedback");
-    }
-}
-
-void OpenXRInputMgr::GetCurrentInteractionProfile(const std::string& subactionPath, std::string& profilePath)
-{
-    XrPath topLevelUserPath = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath);
-
-    XrInteractionProfileState profileState = {};
-    profileState.type = XR_TYPE_INTERACTION_PROFILE_STATE;
-    profileState.next = nullptr;
-    XrResult result = xrGetCurrentInteractionProfile(OpenXRCoreMgr::xrSession, topLevelUserPath, &profileState);
-
-    if (XR_SUCCEEDED(result) && profileState.interactionProfile != XR_NULL_PATH)
-    {
-        profilePath = XRPathUtils::PathToString(OpenXRCoreMgr::m_xrInstance, profileState.interactionProfile);
-    }
-    else
-    {
-        profilePath.clear();
     }
 }
