@@ -7,7 +7,7 @@
 
 #include "Input/ActionSetInfo.h"
 #include "Input/InteractionProfileBinding.h"
-#include "Input//HandState.h"
+#include "Input/ControllerState.h"
 
 class OpenXRInputMgr
 {
@@ -27,7 +27,7 @@ public:
 
     static void CreateHandPoseActionSpace();
 
-    static HandState handStates[2];  // Left and Right hand
+    static ControllerState controllerStates[2];  // Left and Right hand
     
 private:
     
@@ -38,7 +38,7 @@ private:
     
     static XrSpace m_HandSpaces[2];
     
-    static void UpdateHandStates(XrTime predictedTime, XrSpace referenceSpace);
+    static void UpdateControllerStates(XrTime predictedTime, XrSpace referenceSpace);
     
     
     static XrAction CreateAction(const std::string& actionName, const std::string& localizedName, 

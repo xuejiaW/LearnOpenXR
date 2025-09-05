@@ -9,7 +9,7 @@ ActionSetInfo OpenXRInputMgr::m_ActionSet{};
 std::vector<InteractionProfileBinding> OpenXRInputMgr::m_InteractionProfileBindings{};
 std::vector<XrSpace> OpenXRInputMgr::m_ActionSpaces{};
 
-HandState OpenXRInputMgr::handStates[2] = {};
+ControllerState OpenXRInputMgr::controllerStates[2] = {};
 XrAction OpenXRInputMgr::m_HandPoseAction = XR_NULL_HANDLE;
 XrAction OpenXRInputMgr::m_SelectAction = XR_NULL_HANDLE;
 XrAction OpenXRInputMgr::m_HapticAction = XR_NULL_HANDLE;
@@ -22,7 +22,7 @@ void OpenXRInputMgr::Shutdown()
 
     for (int i = 0; i < 2; ++i)
     {
-        handStates[i] = {};
+        controllerStates[i] = {};
     }
 
     XR_TUT_LOG("OpenXRInputMgr shutdown completed");
@@ -31,7 +31,7 @@ void OpenXRInputMgr::Shutdown()
 void OpenXRInputMgr::Tick(XrTime predictedTime, XrSpace referenceSpace)
 {
     SyncActions();
-    UpdateHandStates(predictedTime, referenceSpace);
+    UpdateControllerStates(predictedTime, referenceSpace);
 }
 
 void OpenXRInputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDuration duration)
@@ -122,16 +122,16 @@ void OpenXRInputMgr::AddBindingForProfile(const std::string& interactionProfileP
 }
 
 
-void OpenXRInputMgr::UpdateHandStates(XrTime predictedTime, XrSpace referenceSpace)
+void OpenXRInputMgr::UpdateControllerStates(XrTime predictedTime, XrSpace referenceSpace)
 {
     for (int handIndex = 0; handIndex < 2; ++handIndex)
     {
-        handStates[handIndex].lastSelectPressed = handStates[handIndex].currentSelectPressed;
-        handStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
+        controllerStates[handIndex].lastSelectPressed = controllerStates[handIndex].currentSelectPressed;
+        controllerStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
                                                                            handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
 
-        handStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH, m_HandSpaces[handIndex],
-                                                        referenceSpace, predictedTime, &handStates[handIndex].poseActive);
+        controllerStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH, m_HandSpaces[handIndex],
+                                                        referenceSpace, predictedTime, &controllerStates[handIndex].poseActive);
     }
 }
 

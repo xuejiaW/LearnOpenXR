@@ -93,6 +93,7 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRInputMgr.h
     app/src/main/cpp/OpenXR/Input/ActionInfo.h
     app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
+    app/src/main/cpp/OpenXR/Input/ControllerState.h
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
     app/src/main/cpp/Application/OpenXRTutorial.h
     app/src/main/cpp/Application/Components/TestControllerHaptics.h
