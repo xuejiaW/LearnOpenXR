@@ -6,7 +6,6 @@
 #include "../../Core/Scene.h"
 #include "../../../OpenXR/OpenXRCoreMgr.h"
 #include "../../../OpenXR/OpenXRGraphicsAPI/OpenXRGraphicsAPI.h"
-#include "Material.h"
 #include "../../Rendering/Vertex.h"
 #include <DebugOutput.h>
 
@@ -27,6 +26,11 @@ void MeshRenderer::SetMesh(std::shared_ptr<IMesh> mesh)
     CreateBuffers();
 }
 
+void MeshRenderer::SetMaterial(std::shared_ptr<Material> material)
+{
+    m_Material = material;
+}
+
 void MeshRenderer::Initialize()
 {
     if (m_Mesh)
@@ -37,7 +41,7 @@ void MeshRenderer::Initialize()
 
 void MeshRenderer::Tick(float deltaTime)
 {
-    if (m_Mesh && m_BuffersCreated)
+    if (m_Mesh && m_Material && m_BuffersCreated)
     {
         RenderMesh();
     }
@@ -76,9 +80,8 @@ void MeshRenderer::CreateBuffers()
 void MeshRenderer::RenderMesh()
 {
     Transform* transform = GetGameObject()->GetComponent<Transform>();
-    Material* material = GetGameObject()->GetComponent<Material>();
 
-    if (!transform || !material)
+    if (!transform || !m_Material)
     {
         XR_TUT_LOG_ERROR("MeshRenderer::RenderMesh() - Missing transform or material");
         return;
@@ -104,7 +107,7 @@ void MeshRenderer::RenderMesh()
         return;
     }
 
-    void* pipeline = material->GetOrCreatePipeline();
+    void* pipeline = m_Material->GetOrCreatePipeline();
     if (!pipeline)
     {
         XR_TUT_LOG_ERROR("Failed to get or create pipeline for material");
@@ -142,7 +145,7 @@ void MeshRenderer::RenderMesh()
     XrMatrix4x4f_Multiply(&renderData.viewProj, &projectionMatrix, &viewMatrix);
     renderData.model = modelMatrix;
     XrMatrix4x4f_Multiply(&renderData.modelViewProj, &renderData.viewProj, &renderData.model);
-    renderData.color = material->GetColor();
+    renderData.color = m_Material->GetColor();
 
     if (!m_UniformBuffer)
     {

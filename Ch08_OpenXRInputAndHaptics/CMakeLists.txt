@@ -60,12 +60,13 @@ set(SOURCES
     app/src/main/cpp/Engine/Core/GameObject.cpp
     app/src/main/cpp/Engine/Components/Core/Transform.cpp
     app/src/main/cpp/Engine/Core/Scene.cpp
-    app/src/main/cpp/Engine/Components/Input/InputMgr.cpp
-    app/src/main/cpp/Engine/Components/Rendering/Material.cpp
+    app/src/main/cpp/Engine/Rendering/Shader.cpp
+    app/src/main/cpp/Engine/Rendering/Material.cpp
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.cpp
     app/src/main/cpp/Engine/Components/Rendering/Camera.cpp
     app/src/main/cpp/Engine/Components/XRDevices/XRHmdDriver.cpp
     app/src/main/cpp/Engine/Components/XRDevices/XRControllerDriver.cpp
+    app/src/main/cpp/Engine/Components/Input/InputMgr.cpp
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.cpp
     app/src/main/cpp/Scenes/TableFloorScene.cpp
 )
@@ -99,13 +100,14 @@ set(HEADERS
     app/src/main/cpp/Engine/Core/GameObject.h
     app/src/main/cpp/Engine/Components/Core/Transform.h
     app/src/main/cpp/Engine/Core/Scene.h
-    app/src/main/cpp/Engine/Components/Input/InputMgr.h
-    app/src/main/cpp/Engine/Components/Rendering/Material.h
+    app/src/main/cpp/Engine/Rendering/Shader.h
+    app/src/main/cpp/Engine/Rendering/Material.h
     app/src/main/cpp/Engine/Components/Rendering/MeshRenderer.h
     app/src/main/cpp/Engine/Components/Rendering/Camera.h
     app/src/main/cpp/Engine/Components/Rendering/RenderSettings.h
-    app/src/main/cpp/Engine/Components/XRDevices//XRHmdDriver.h
+    app/src/main/cpp/Engine/Components/XRDevices/XRHmdDriver.h
     app/src/main/cpp/Engine/Components/XRDevices/XRControllerDriver.h
+    app/src/main/cpp/Engine/Components/Input/InputMgr.h
     app/src/main/cpp/Engine/Rendering/Vertex.h
     app/src/main/cpp/Engine/Rendering/Mesh/IMesh.h
     app/src/main/cpp/Engine/Rendering/Mesh/CubeMesh.h

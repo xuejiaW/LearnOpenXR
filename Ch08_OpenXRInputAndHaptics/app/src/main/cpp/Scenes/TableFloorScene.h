@@ -3,20 +3,16 @@
 #include "../Engine/Core/Scene.h"
 #include <GraphicsAPI.h>
 
-class TableFloorScene {
+class TableFloorScene : public Scene {
 public:
     TableFloorScene();
     ~TableFloorScene();
 
-    void Initialize();
-    void Update(float deltaTime);
-    Scene* GetScene() const { return m_scene.get(); }
-    
+    void Initialize(); // Builds objects
     void SetViewHeight(float heightInMeters) { m_viewHeightM = heightInMeters; }
 
 private:
     float m_viewHeightM = 1.5f;
-    std::unique_ptr<Scene> m_scene;
-    
     void CreateSceneObjects();
 };
+

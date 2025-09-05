@@ -50,7 +50,6 @@ public:
 
     const std::string& GetName() const { return m_Name; }
     bool IsActive() const { return m_Active; }
-
 private:
     std::string m_Name;
     std::unordered_map<std::type_index, std::unique_ptr<IComponent>> m_ComponentsLists;
