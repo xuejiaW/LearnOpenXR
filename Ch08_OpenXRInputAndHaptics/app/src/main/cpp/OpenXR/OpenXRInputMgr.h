@@ -42,7 +42,7 @@ private:
     static XrAction CreateAction(const std::string& actionName, const std::string& localizedName,
                                  XrActionType actionType, const std::vector<std::string>& subactionPaths = {});
 
-    static void ConfigureInteractionProfilerBinding(const std::string& interactionProfilePath,
+    static void AddInteractionProfilerBinding(const std::string& interactionProfilePath,
                                                     const std::vector<std::pair<XrAction, std::string>>& actionBindings);
 
 
@@ -50,8 +50,7 @@ private:
     static void DestroyActionSpaces();
 
     static void SyncActions();
-    static bool GetActionStateBoolean(XrAction action, const std::string& subactionPath = "", bool* changedSinceLastSync = nullptr);
-    static float GetActionStateFloat(XrAction action, const std::string& subactionPath = "", bool* changedSinceLastSync = nullptr);
+    static bool GetActionStateBoolean(XrAction action, const std::string& subactionPath);
     static XrPosef GetActionStatePose(XrAction poseAction, const std::string& subactionPath, XrSpace actionSpace, XrSpace referenceSpace,
                                       XrTime predictedTime, bool* isActive);
 
@@ -61,7 +60,6 @@ private:
 
     static ActionSetInfo m_ActionSet;
     static std::vector<InteractionProfileBinding> m_InteractionProfileBindings;
-    static std::vector<XrSpace> m_ActionSpaces;
 
     static constexpr const char* HAND_LEFT_PATH = "/user/hand/left";
     static constexpr const char* HAND_RIGHT_PATH = "/user/hand/right";

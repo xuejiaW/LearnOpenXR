@@ -91,7 +91,6 @@ set(HEADERS
     app/src/main/cpp/OpenXR/OpenXRSessionMgr.h
     app/src/main/cpp/OpenXR/OpenXRRenderMgr.h
     app/src/main/cpp/OpenXR/OpenXRInputMgr.h
-    app/src/main/cpp/OpenXR/Input/ActionInfo.h
     app/src/main/cpp/OpenXR/Input/ActionSetInfo.h
     app/src/main/cpp/OpenXR/Input/ControllerState.h
     app/src/main/cpp/OpenXR/Input/InteractionProfileBinding.h
