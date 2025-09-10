@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'org.khronos.Ch00_BaseProject'
+    compileSdk 34
+    ndkVersion '23.1.7779620'
+
+    defaultConfig {
+        applicationId "org.khronos.Ch00_BaseProject"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            version '3.22.1'
+            path '../CMakeLists.txt'
+        }
+    }
+
+    // Enable prefab support for the OpenXR AAR
+    buildFeatures {
+        prefab true
+    }
+}
+
+dependencies {
+    implementation 'org.khronos.openxr:openxr_loader_for_android:1.0.34'
+}
+
+
