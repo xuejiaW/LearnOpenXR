@@ -1,5 +1,4 @@
 #version 450
-#extension GL_KHR_vulkan_glsl : enable
 
 layout(std140, binding = 0) uniform CameraConstants {
     mat4 viewProj;
