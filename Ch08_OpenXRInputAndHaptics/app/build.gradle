@@ -4,13 +4,13 @@ plugins {
 
 android {
     namespace 'org.khronos.Ch08_OpenXRInputAndHaptics'
-    compileSdk 29
+    compileSdk 34
     ndkVersion '23.1.7779620'
 
     defaultConfig {
         applicationId "org.khronos.Ch08_OpenXRInputAndHaptics"
         minSdk 24
-        targetSdk 29
+        targetSdk 34
         versionCode 1
         versionName "1.0"
     }
