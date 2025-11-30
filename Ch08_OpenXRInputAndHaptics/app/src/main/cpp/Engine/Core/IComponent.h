@@ -4,8 +4,8 @@ class GameObject;
 
 class IComponent {
 protected:
-    GameObject* m_GameObject = nullptr;
-    bool m_Enabled = true;
+    GameObject* m_gameObject = nullptr;
+    bool m_enabled = true;
 
 public:
     virtual ~IComponent() = default;
@@ -16,8 +16,8 @@ public:
     virtual void PostTick(float deltaTime) {}
     virtual void Destroy() {}
     
-    GameObject* GetGameObject() const { return m_GameObject; }
-    void SetGameObject(GameObject* go) { m_GameObject = go; }
-    bool IsEnabled() const { return m_Enabled; }
-    void SetEnabled(bool enabled) { m_Enabled = enabled; }
+    GameObject* GetGameObject() const { return m_gameObject; }
+    void SetGameObject(GameObject* go) { m_gameObject = go; }
+    bool IsEnabled() const { return m_enabled; }
+    void SetEnabled(bool enabled) { m_enabled = enabled; }
 };

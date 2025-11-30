@@ -7,8 +7,9 @@
 
 ActionSetInfo OpenXRInputMgr::m_ActionSet{};
 std::vector<InteractionProfileBinding> OpenXRInputMgr::m_InteractionProfileBindings{};
+std::vector<XrSpace> OpenXRInputMgr::m_ActionSpaces{};
 
-ControllerState OpenXRInputMgr::controllerStates[2] = {};
+HandState OpenXRInputMgr::handStates[2] = {};
 XrAction OpenXRInputMgr::m_HandPoseAction = XR_NULL_HANDLE;
 XrAction OpenXRInputMgr::m_SelectAction = XR_NULL_HANDLE;
 XrAction OpenXRInputMgr::m_HapticAction = XR_NULL_HANDLE;
@@ -21,7 +22,7 @@ void OpenXRInputMgr::Shutdown()
 
     for (int i = 0; i < 2; ++i)
     {
-        controllerStates[i] = {};
+        handStates[i] = {};
     }
 
     XR_TUT_LOG("OpenXRInputMgr shutdown completed");
@@ -30,7 +31,7 @@ void OpenXRInputMgr::Shutdown()
 void OpenXRInputMgr::Tick(XrTime predictedTime, XrSpace referenceSpace)
 {
     SyncActions();
-    UpdateControllerStates(predictedTime, referenceSpace);
+    UpdateHandStates(predictedTime, referenceSpace);
 }
 
 void OpenXRInputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDuration duration)
@@ -55,18 +56,16 @@ void OpenXRInputMgr::CreateHandPoseActionSpace()
 
 void OpenXRInputMgr::SetupBindings()
 {
-    std::vector<std::pair<XrAction, std::string>> simpleControllerBindings = {
+    std::vector<std::pair<XrAction, std::string>> bindings = {
             {m_HandPoseAction, "/user/hand/left/input/grip/pose"},
-            {m_HandPoseAction, "/user/hand/right/input/grip/pose"},
-
             {m_SelectAction, "/user/hand/left/input/select/click"},
-            {m_SelectAction, "/user/hand/right/input/select/click"},
-
             {m_HapticAction, "/user/hand/left/output/haptic"},
+            {m_HandPoseAction, "/user/hand/right/input/grip/pose"},
+            {m_SelectAction, "/user/hand/right/input/select/click"},
             {m_HapticAction, "/user/hand/right/output/haptic"}
         };
 
-    AddInteractionProfilerBinding(SIMPLE_CONTROLLER_PROFILE, simpleControllerBindings);
+    AddBindingForProfile(SIMPLE_CONTROLLER_PROFILE, bindings);
 
     for (const auto& profileBinding : m_InteractionProfileBindings)
     {
@@ -86,44 +85,62 @@ void OpenXRInputMgr::SetupBindings()
     }
 }
 
-void OpenXRInputMgr::AddInteractionProfilerBinding(const std::string& interactionProfilePath,
-                                                   const std::vector<std::pair<XrAction, std::string>>& actionBindings)
+void OpenXRInputMgr::AddBindingForProfile(const std::string& interactionProfilePath,
+                                          const std::vector<std::pair<XrAction, std::string>>& actionBindings)
 {
-    InteractionProfileBinding profileBinding;
-    profileBinding.interactionProfilePath = interactionProfilePath;
-
-    for (const auto& binding : actionBindings)
+    InteractionProfileBinding* profileBinding = nullptr;
+    for (auto& binding : m_InteractionProfileBindings)
     {
-        XrAction action = binding.first;
-        const std::string& pathString = binding.second;
-
-        XrPath bindingPath = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, pathString);
-        profileBinding.bindings.push_back({action, bindingPath});
+        if (binding.interactionProfilePath == interactionProfilePath)
+        {
+            profileBinding = &binding;
+            break;
+        }
     }
 
-    m_InteractionProfileBindings.push_back(profileBinding);
+    if (!profileBinding)
+    {
+        InteractionProfileBinding newBinding{};
+        newBinding.interactionProfilePath = interactionProfilePath;
+        m_InteractionProfileBindings.push_back(newBinding);
+        profileBinding = &m_InteractionProfileBindings.back();
+    }
+
+    // Add action bindings using XRPathUtils
+    for (const auto& actionBinding : actionBindings)
+    {
+        XrPath bindingPath = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, actionBinding.second);
+
+        XrActionSuggestedBinding suggestedBinding{};
+        suggestedBinding.action = actionBinding.first;
+        suggestedBinding.binding = bindingPath;
+
+        profileBinding->bindings.push_back(suggestedBinding);
+    }
+
+    XR_TUT_LOG("Added " << actionBindings.size() << " bindings for interaction profile: " << interactionProfilePath);
 }
 
 
-void OpenXRInputMgr::UpdateControllerStates(XrTime predictedTime, XrSpace referenceSpace)
+void OpenXRInputMgr::UpdateHandStates(XrTime predictedTime, XrSpace referenceSpace)
 {
     for (int handIndex = 0; handIndex < 2; ++handIndex)
     {
-        const std::string& handPath = (handIndex == 0) ? HAND_LEFT_PATH : HAND_RIGHT_PATH;
+        handStates[handIndex].lastSelectPressed = handStates[handIndex].currentSelectPressed;
+        handStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction,
+                                                                             handIndex == 0 ? HAND_LEFT_PATH : HAND_RIGHT_PATH);
 
-        controllerStates[handIndex].lastSelectPressed = controllerStates[handIndex].currentSelectPressed;
-        controllerStates[handIndex].currentSelectPressed = GetActionStateBoolean(m_SelectAction, handPath);
-
-        controllerStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, handPath, m_HandSpaces[handIndex],
-                                                              referenceSpace, predictedTime, &controllerStates[handIndex].poseActive);
+        handStates[handIndex].pose = GetActionStatePose(m_HandPoseAction, m_HandSpaces[handIndex],
+                                                          referenceSpace, predictedTime, &handStates[handIndex].poseActive);
     }
 }
 
 void OpenXRInputMgr::CreateActionSet(const std::string& actionSetName, const std::string& localizedName, uint32_t priority)
 {
-    m_ActionSet.actionSetName = actionSetName;
-    m_ActionSet.localizedActionSetName = localizedName;
-    m_ActionSet.priority = priority;
+    ActionSetInfo actionSetInfo{};
+    actionSetInfo.actionSetName = actionSetName;
+    actionSetInfo.localizedActionSetName = localizedName;
+    actionSetInfo.priority = priority;
 
     XrActionSetCreateInfo actionSetCreateInfo = {};
     actionSetCreateInfo.type = XR_TYPE_ACTION_SET_CREATE_INFO;
@@ -132,17 +149,22 @@ void OpenXRInputMgr::CreateActionSet(const std::string& actionSetName, const std
     strncpy(actionSetCreateInfo.localizedActionSetName, localizedName.c_str(), XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE);
     actionSetCreateInfo.priority = priority;
 
-    OPENXR_CHECK(xrCreateActionSet(OpenXRCoreMgr::m_xrInstance, &actionSetCreateInfo, &m_ActionSet.actionSet),
+    OPENXR_CHECK(xrCreateActionSet(OpenXRCoreMgr::m_xrInstance, &actionSetCreateInfo, &actionSetInfo.actionSet),
                  "Failed to create action set: " + actionSetName);
 
+    m_ActionSet = actionSetInfo;
     XR_TUT_LOG("Created action set: " << actionSetName);
 }
 
 void OpenXRInputMgr::DestroyActionSet()
 {
-    OPENXR_CHECK(xrDestroyAction(m_HandPoseAction), "Failed to destroy Hand Pose Action ");
-    OPENXR_CHECK(xrDestroyAction(m_SelectAction), "Failed to destroy Select Action ");
-    OPENXR_CHECK(xrDestroyAction(m_HapticAction), "Failed to destroy Haptics Action ");
+    for (auto& actionInfo : m_ActionSet.actions)
+    {
+        if (actionInfo.action != XR_NULL_HANDLE)
+        {
+            OPENXR_CHECK(xrDestroyAction(actionInfo.action), "Failed to destroy action: " + actionInfo.actionName);
+        }
+    }
 
     if (m_ActionSet.actionSet != XR_NULL_HANDLE)
     {
@@ -157,27 +179,35 @@ void OpenXRInputMgr::DestroyActionSet()
 XrAction OpenXRInputMgr::CreateAction(const std::string& actionName, const std::string& localizedName,
                                       XrActionType actionType, const std::vector<std::string>& subactionPaths)
 {
-    std::vector<XrPath> xrSubactionPaths;
-    for (const auto& pathString : subactionPaths)
+    ActionInfo actionInfo{};
+    actionInfo.actionName = actionName;
+    actionInfo.localizedActionName = localizedName;
+    actionInfo.actionType = actionType;
+
+    for (const auto& subactionPath : subactionPaths)
     {
-        XrPath path = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, pathString);
-        xrSubactionPaths.push_back(path);
+        XrPath path = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath);
+        actionInfo.subactionPaths.push_back(path);
     }
 
     XrActionCreateInfo actionCreateInfo = {};
     actionCreateInfo.type = XR_TYPE_ACTION_CREATE_INFO;
     actionCreateInfo.next = nullptr;
-    actionCreateInfo.actionType = actionType;
     strncpy(actionCreateInfo.actionName, actionName.c_str(), XR_MAX_ACTION_NAME_SIZE);
-    strncpy(actionCreateInfo.localizedActionName, localizedName.c_str(), XR_MAX_ACTION_NAME_SIZE);
-    actionCreateInfo.countSubactionPaths = static_cast<uint32_t>(xrSubactionPaths.size());
-    actionCreateInfo.subactionPaths = xrSubactionPaths.data();
+    strncpy(actionCreateInfo.localizedActionName, localizedName.c_str(), XR_MAX_LOCALIZED_ACTION_NAME_SIZE);
+    actionCreateInfo.actionType = actionType;
+    actionCreateInfo.countSubactionPaths = static_cast<uint32_t>(actionInfo.subactionPaths.size());
+    actionCreateInfo.subactionPaths = actionInfo.subactionPaths.empty() ? nullptr : actionInfo.subactionPaths.data();
 
-    XrAction action;
-    OPENXR_CHECK(xrCreateAction(m_ActionSet.actionSet, &actionCreateInfo, &action), "Failed to create action: " + actionName);
+    // Add to the most recent action set
+    ActionSetInfo& currentActionSet = m_ActionSet;
+    OPENXR_CHECK(xrCreateAction(currentActionSet.actionSet, &actionCreateInfo, &actionInfo.action),
+                 "Failed to create action: " + actionName);
 
-    XR_TUT_LOG("Created action: " << actionName);
-    return action;
+    currentActionSet.actions.push_back(actionInfo);
+    XR_TUT_LOG("Created action: " << actionName << " in action set: " << currentActionSet.actionSetName);
+
+    return actionInfo.action;
 }
 
 
@@ -191,7 +221,8 @@ void OpenXRInputMgr::AttachActionSet()
     attachInfo.countActionSets = 1;
     attachInfo.actionSets = &actionSet;
 
-    OPENXR_CHECK(xrAttachSessionActionSets(OpenXRCoreMgr::xrSession, &attachInfo), "Failed to attach action set to session");
+    OPENXR_CHECK(xrAttachSessionActionSets(OpenXRCoreMgr::xrSession, &attachInfo),
+                 "Failed to attach action set to session");
 
     XR_TUT_LOG("Attached action set to session: " << m_ActionSet.actionSetName);
 }
@@ -210,22 +241,34 @@ XrSpace OpenXRInputMgr::CreateActionSpace(XrAction poseAction, const std::string
     }
 
     XrSpace actionSpace;
-    OPENXR_CHECK(xrCreateActionSpace(OpenXRCoreMgr::xrSession, &createActionSpaceInfo, &actionSpace), "Failed to create action space");
+    OPENXR_CHECK(xrCreateActionSpace(OpenXRCoreMgr::xrSession, &createActionSpaceInfo, &actionSpace),
+                 "Failed to create action space");
+
+    m_ActionSpaces.push_back(actionSpace);
+    XR_TUT_LOG("Created action space for pose action");
 
     return actionSpace;
 }
 
 void OpenXRInputMgr::DestroyActionSpaces()
 {
-    OPENXR_CHECK(xrDestroySpace(m_HandSpaces[0]), "Failed to destroy action space");
-    OPENXR_CHECK(xrDestroySpace(m_HandSpaces[1]), "Failed to destroy action space");
+    for (XrSpace actionSpace : m_ActionSpaces)
+    {
+        if (actionSpace != XR_NULL_HANDLE)
+        {
+            OPENXR_CHECK(xrDestroySpace(actionSpace), "Failed to destroy action space");
+        }
+    }
 
+    m_ActionSpaces.clear();
     XR_TUT_LOG("Destroyed all action spaces");
 }
 
 void OpenXRInputMgr::SyncActions()
 {
-    XrActiveActionSet activeActionSet{m_ActionSet.actionSet, XR_NULL_PATH};
+    XrActiveActionSet activeActionSet{};
+    activeActionSet.actionSet = m_ActionSet.actionSet;
+    activeActionSet.subactionPath = XR_NULL_PATH;
 
     XrActionsSyncInfo syncInfo;
     syncInfo.type = XR_TYPE_ACTIONS_SYNC_INFO;
@@ -236,7 +279,7 @@ void OpenXRInputMgr::SyncActions()
     OPENXR_CHECK(xrSyncActions(OpenXRCoreMgr::xrSession, &syncInfo), "Failed to sync actions");
 }
 
-bool OpenXRInputMgr::GetActionStateBoolean(XrAction action, const std::string& subactionPath)
+bool OpenXRInputMgr::GetActionStateBoolean(XrAction action, const std::string& subactionPath, bool* changedSinceLastSync)
 {
     XrActionStateGetInfo getInfo = {};
     getInfo.type = XR_TYPE_ACTION_STATE_GET_INFO;
@@ -253,22 +296,62 @@ bool OpenXRInputMgr::GetActionStateBoolean(XrAction action, const std::string& s
     actionState.next = nullptr;
     XrResult result = xrGetActionStateBoolean(OpenXRCoreMgr::xrSession, &getInfo, &actionState);
 
-    return XR_SUCCEEDED(result) && actionState.currentState == XR_TRUE && actionState.isActive == XR_TRUE;
+    if (XR_SUCCEEDED(result))
+    {
+        if (changedSinceLastSync)
+        {
+            *changedSinceLastSync = actionState.changedSinceLastSync == XR_TRUE;
+        }
+        return actionState.currentState == XR_TRUE && actionState.isActive == XR_TRUE;
+    }
+
+    return false;
 }
 
-XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, const std::string& subactionPath, XrSpace actionSpace, XrSpace referenceSpace,
-                                           XrTime predictedTime, bool* isActive)
+float OpenXRInputMgr::GetActionStateFloat(XrAction action, const std::string& subactionPath, bool* changedSinceLastSync)
+{
+    XrActionStateGetInfo getInfo = {};
+    getInfo.type = XR_TYPE_ACTION_STATE_GET_INFO;
+    getInfo.next = nullptr;
+    getInfo.action = action;
+
+    if (!subactionPath.empty())
+    {
+        getInfo.subactionPath = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath);
+    }
+
+    XrActionStateFloat actionState = {};
+    actionState.type = XR_TYPE_ACTION_STATE_FLOAT;
+    actionState.next = nullptr;
+    XrResult result = xrGetActionStateFloat(OpenXRCoreMgr::xrSession, &getInfo, &actionState);
+
+    if (XR_SUCCEEDED(result))
+    {
+        if (changedSinceLastSync)
+        {
+            *changedSinceLastSync = actionState.changedSinceLastSync == XR_TRUE;
+        }
+        return actionState.isActive == XR_TRUE ? actionState.currentState : 0.0f;
+    }
+
+    return 0.0f;
+}
+
+XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, XrSpace actionSpace, XrSpace referenceSpace, XrTime predictedTime, bool* isActive)
 {
     XrPosef pose = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
 
     if (actionSpace == XR_NULL_HANDLE || referenceSpace == XR_NULL_HANDLE)
     {
-        *isActive = false;
+        if (isActive) *isActive = false;
         return pose;
     }
 
-    XrActionStateGetInfo getInfo = {XR_TYPE_ACTION_STATE_GET_INFO, nullptr, poseAction,
-                                    XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath)};
+    // First check if the action is active
+    XrActionStateGetInfo getInfo = {};
+    getInfo.type = XR_TYPE_ACTION_STATE_GET_INFO;
+    getInfo.next = nullptr;
+    getInfo.action = poseAction;
 
     XrActionStatePose actionStatePose = {};
     actionStatePose.type = XR_TYPE_ACTION_STATE_POSE;
@@ -277,19 +360,25 @@ XrPosef OpenXRInputMgr::GetActionStatePose(XrAction poseAction, const std::strin
 
     if (!XR_SUCCEEDED(result) || actionStatePose.isActive != XR_TRUE)
     {
-        *isActive = false;
+        if (isActive) *isActive = false;
         return pose;
     }
 
+    // Get the space location
     XrSpaceLocation spaceLocation = {};
     spaceLocation.type = XR_TYPE_SPACE_LOCATION;
     spaceLocation.next = nullptr;
     result = xrLocateSpace(actionSpace, referenceSpace, predictedTime, &spaceLocation);
 
-    *isActive = XR_SUCCEEDED(result) && spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT && spaceLocation.locationFlags &
-                XR_SPACE_LOCATION_ORIENTATION_VALID_BIT;
+    if (XR_SUCCEEDED(result) && (spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) &&
+        (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
+    {
+        if (isActive) *isActive = true;
+        return spaceLocation.pose;
+    }
 
-    return isActive ? spaceLocation.pose : pose;
+    if (isActive) *isActive = false;
+    return pose;
 }
 
 void OpenXRInputMgr::ApplyHapticFeedback(XrAction hapticAction, const std::string& subactionPath,
@@ -312,6 +401,30 @@ void OpenXRInputMgr::ApplyHapticFeedback(XrAction hapticAction, const std::strin
     vibration.duration = duration;
     vibration.frequency = frequency;
 
-    OPENXR_CHECK(xrApplyHapticFeedback(OpenXRCoreMgr::xrSession, &hapticActionInfo, reinterpret_cast<const XrHapticBaseHeader*>(&vibration)),
-                 "Failed to apply haptic feedback");
+    XrResult result = xrApplyHapticFeedback(OpenXRCoreMgr::xrSession, &hapticActionInfo,
+                                            reinterpret_cast<const XrHapticBaseHeader*>(&vibration));
+
+    if (!XR_SUCCEEDED(result))
+    {
+        XR_TUT_LOG_ERROR("Failed to apply haptic feedback");
+    }
+}
+
+void OpenXRInputMgr::GetCurrentInteractionProfile(const std::string& subactionPath, std::string& profilePath)
+{
+    XrPath topLevelUserPath = XRPathUtils::StringToPath(OpenXRCoreMgr::m_xrInstance, subactionPath);
+
+    XrInteractionProfileState profileState = {};
+    profileState.type = XR_TYPE_INTERACTION_PROFILE_STATE;
+    profileState.next = nullptr;
+    XrResult result = xrGetCurrentInteractionProfile(OpenXRCoreMgr::xrSession, topLevelUserPath, &profileState);
+
+    if (XR_SUCCEEDED(result) && profileState.interactionProfile != XR_NULL_PATH)
+    {
+        profilePath = XRPathUtils::PathToString(OpenXRCoreMgr::m_xrInstance, profileState.interactionProfile);
+    }
+    else
+    {
+        profilePath.clear();
+    }
 }

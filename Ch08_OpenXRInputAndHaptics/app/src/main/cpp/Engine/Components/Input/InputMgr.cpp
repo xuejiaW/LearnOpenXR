@@ -4,26 +4,26 @@
 
 bool InputMgr::GetSelectDown(int handIndex)
 {
-    return OpenXRInputMgr::controllerStates[handIndex].currentSelectPressed && !OpenXRInputMgr::controllerStates[handIndex].lastSelectPressed;
+    return OpenXRInputMgr::handStates[handIndex].currentSelectPressed && !OpenXRInputMgr::handStates[handIndex].lastSelectPressed;
 }
 
 bool InputMgr::GetSelect(int handIndex)
 {
-    return OpenXRInputMgr::controllerStates[handIndex].currentSelectPressed;
+    return OpenXRInputMgr::handStates[handIndex].currentSelectPressed;
 }
 
 bool InputMgr::GetSelectUp(int handIndex)
 {
-    return !OpenXRInputMgr::controllerStates[handIndex].currentSelectPressed && OpenXRInputMgr::controllerStates[handIndex].lastSelectPressed;
+    return !OpenXRInputMgr::handStates[handIndex].currentSelectPressed && OpenXRInputMgr::handStates[handIndex].lastSelectPressed;
 }
 
 XrPosef InputMgr::GetHandPose(int handIndex, bool* isActive)
 {
-    *isActive = OpenXRInputMgr::controllerStates[handIndex].poseActive;
-    return OpenXRInputMgr::controllerStates[handIndex].pose;
+    if (isActive) *isActive = OpenXRInputMgr::handStates[handIndex].poseActive;
+    return OpenXRInputMgr::handStates[handIndex].pose;
 }
 
 void InputMgr::TriggerHapticFeedback(int handIndex, float amplitude, XrDuration duration)
 {
-    OpenXRInputMgr::TriggerHapticFeedback(handIndex, amplitude, duration);
+     OpenXRInputMgr::TriggerHapticFeedback(handIndex,amplitude,duration);
 }

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <openxr/openxr.h>
 
-struct ControllerState
+struct HandState
 {
     bool currentSelectPressed = false;
     bool lastSelectPressed = false;
