@@ -1,0 +1,3 @@
+[submodule "Ch00_BaseProject"]
+	path = Ch00_BaseProject
+	url = git@github.com:xuejiaW/android-native-activity-template.git
