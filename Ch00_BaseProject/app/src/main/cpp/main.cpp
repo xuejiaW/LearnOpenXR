@@ -1,32 +1,27 @@
-#include <DebugOutput.h>
-#include "Application/OpenXRTutorial.h"
+#include <android/log.h>
+#include <android_native_app_glue.h>
 
-static void OpenXRTutorial_Main(GraphicsAPI_Type apiType)
-{
-    XR_TUT_LOG("OpenXR Tutorial Ch00_BaseProject");
+#define LOG_TAG "NDK_Template"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
-    XR_TUT_LOG("Graphics API Type: " << apiType);
+void android_main(struct android_app* app) {
+  LOGI("========================================");
+  LOGI("NDK C++ Template Started!");
+  LOGI("========================================");
 
-    OpenXRTutorial app(apiType);
-    app.Run();
+  int events;
+  struct android_poll_source* source;
+
+  while (true) {
+    while (ALooper_pollAll(0, nullptr, &events, (void**)&source) >= 0) {
+      if (source != nullptr) {
+        source->process(app, source);
+      }
+
+      if (app->destroyRequested != 0) {
+        LOGI("App destroy requested, exiting...");
+        return;
+      }
+    }
+  }
 }
-
-#if defined(__ANDROID__)
-void android_main(struct android_app *app)
-{
-    JNIEnv *env;
-    app->activity->vm->AttachCurrentThread(&env, nullptr);
-
-    app->userData = &OpenXRTutorial::androidAppState;
-    app->onAppCmd = OpenXRTutorial::AndroidAppHandleCmd;
-    OpenXRTutorial::androidApp = app;
-    OpenXRTutorial_Main(VULKAN);
-}
-#else
-int main(int argc, char** argv)
-{
-    OpenXRTutorial_Main(VULKAN);
-    return 0;
-}
-#endif
-

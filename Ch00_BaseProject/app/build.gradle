@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'org.khronos.Ch00_BaseProject'
+    namespace 'ndk.application.example'
     compileSdk 34
     ndkVersion '23.1.7779620'
 
     defaultConfig {
-        applicationId "org.khronos.Ch00_BaseProject"
+        applicationId "ndk.application.example"
         minSdk 24
         targetSdk 34
         versionCode 1
@@ -17,26 +17,25 @@ android {
 
     buildTypes {
         release {
+            // ProGuard not needed for pure C++ NativeActivity
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     externalNativeBuild {
         cmake {
             version '3.22.1'
-            path '../CMakeLists.txt'
+            path file('../CMakeLists.txt')
         }
     }
 
-    // Enable prefab support for the OpenXR AAR
-    buildFeatures {
-        prefab true
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-    implementation 'org.khronos.openxr:openxr_loader_for_android:1.0.34'
+    // No dependencies needed for pure C++ NativeActivity
 }
-
 
